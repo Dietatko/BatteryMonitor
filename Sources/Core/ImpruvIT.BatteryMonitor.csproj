@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ImpruvIT.Core">
-      <HintPath>..\WPFApp\bin\Debug\ImpruvIT.Core.dll</HintPath>
+      <HintPath>..\..\Libraries\ImpruvIT\ImpruvIT.Core.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>

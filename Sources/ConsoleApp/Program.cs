@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using FTD2XX_NET;
 
 using ImpruvIT.BatteryMonitor;
-using ImpruvIT.BatteryMonitor.Communication;
 using ImpruvIT.BatteryMonitor.Domain;
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;

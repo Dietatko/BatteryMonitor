@@ -1,0 +1,1332 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ImpruvIT.Core</name>
+    </assembly>
+    <members>
+        <member name="T:ImpruvIT.IAsyncSubscription">
+            <summary>
+            Represents a generic subscription.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.ISubscription">
+            <summary>
+            Represents a generic subscription.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.ISubscription.Unsubscribe">
+            <summary>
+            Unsubscribes the subscription.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.IAsyncSubscription.UnsubscribeAsync">
+            <summary>
+            Unsubscribes the subscription.
+            </summary>
+            <returns>The asynchronous Unsubscribe operation task.</returns>
+        </member>
+        <member name="T:ImpruvIT.IServiceProvider">
+            <summary>
+            Defines a mechanism for retrieving a service object; that is, an object that provides custom support to other objects.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.IServiceProvider.GetService``1">
+            <summary>
+            Gets the service object of the specified type.
+            </summary>
+            <typeparam name="TService">The type of service to return.</typeparam>
+            <returns>A service object of type <typeparamref name="TService" />.-or- null if there is no service object of type <typeparamref name="TService" />.</returns>
+        </member>
+        <member name="T:JetBrains.Annotations.LocalizationRequiredAttribute">
+            <summary>
+            Indicates that marked element should be localized or not.
+            </summary>
+            <example>
+            <code>
+            [LocalizationRequiredAttribute(true)]
+            public class Foo
+            {
+              private string str = "my string"; // Warning: Localizable string
+            }
+            </code>
+            </example>
+        </member>
+        <member name="M:JetBrains.Annotations.LocalizationRequiredAttribute.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:JetBrains.Annotations.LocalizationRequiredAttribute"/> class with
+            <see cref="P:JetBrains.Annotations.LocalizationRequiredAttribute.Required"/> set to <see langword="true"/>.
+            </summary>
+        </member>
+        <member name="M:JetBrains.Annotations.LocalizationRequiredAttribute.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:JetBrains.Annotations.LocalizationRequiredAttribute"/> class.
+            </summary>
+            <param name="required"><c>true</c> if a element should be localized; otherwise, <c>false</c>.</param>
+        </member>
+        <member name="M:JetBrains.Annotations.LocalizationRequiredAttribute.Equals(System.Object)">
+            <summary>
+            Returns whether the value of the given object is equal to the current <see cref="T:JetBrains.Annotations.LocalizationRequiredAttribute"/>.
+            </summary>
+            <param name="obj">The object to test the value equality of. </param>
+            <returns>
+            <c>true</c> if the value of the given object is equal to that of the current; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:JetBrains.Annotations.LocalizationRequiredAttribute.GetHashCode">
+            <summary>
+            Returns the hash code for this instance.
+            </summary>
+            <returns>A hash code for the current <see cref="T:JetBrains.Annotations.LocalizationRequiredAttribute"/>.</returns>
+        </member>
+        <member name="P:JetBrains.Annotations.LocalizationRequiredAttribute.Required">
+            <summary>
+            Gets a value indicating whether a element should be localized.
+            <value><c>true</c> if a element should be localized; otherwise, <c>false</c>.</value>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.StringFormatMethodAttribute">
+            <summary>
+            Indicates that the marked method builds string by format pattern and (optional) arguments. 
+            Parameter, which contains format string, should be given in constructor.
+            The format string should be in <see cref="M:System.String.Format(System.IFormatProvider,System.String,System.Object[])"/> -like form
+            </summary>
+            <example>
+            <code>
+            [StringFormatMethod("message")]
+            public void ShowError(string message, params object[] args)
+            {
+              //Do something
+            }
+            public void Foo()
+            {
+              ShowError("Failed: {0}"); // Warning: Non-existing argument in format string
+            }
+            </code>
+            </example>
+        </member>
+        <member name="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <summary>
+            Initializes new instance of StringFormatMethodAttribute
+            </summary>
+            <param name="formatParameterName">Specifies which parameter of an annotated method should be treated as format-string</param>
+        </member>
+        <member name="P:JetBrains.Annotations.StringFormatMethodAttribute.FormatParameterName">
+            <summary>
+            Gets format parameter name
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.InvokerParameterNameAttribute">
+            <summary>
+            Indicates that the function argument should be string literal and match one of the parameters
+            of the caller function.
+            For example, ReSharper annotates the parameter of <see cref="T:System.ArgumentNullException"/>.
+            </summary>
+            <example>
+            <code>
+            public void Foo(string param)
+            {
+              if (param == null)
+                throw new ArgumentNullException("par"); // Warning: Cannot resolve symbol
+            }
+            </code>
+            </example>
+        </member>
+        <member name="T:JetBrains.Annotations.NotifyPropertyChangedInvocatorAttribute">
+             <summary>
+             Indicates that the method is contained in a type that implements
+             <see cref="T:System.ComponentModel.INotifyPropertyChanged"/> interface
+             and this method is used to notify that some property value changed.
+             </summary>
+             <remarks>
+             The method should be non-static and conform to one of the supported signatures:
+             <list>
+             <item><c>NotifyChanged(string)</c></item>
+             <item><c>NotifyChanged(params string[])</c></item>
+             <item><c>NotifyChanged{T}(Expression{Func{T}})</c></item>
+             <item><c>NotifyChanged{T,U}(Expression{Func{T,U}})</c></item>
+             <item><c>SetProperty{T}(ref T, T, string)</c></item>
+             </list>
+             </remarks>
+             <example>
+             <code>
+             public class Foo : INotifyPropertyChanged
+             {
+               public event PropertyChangedEventHandler PropertyChanged;
+            
+               [NotifyPropertyChangedInvocator]
+               protected virtual void NotifyChanged(string propertyName)
+               {}
+            
+               private string _name;
+               public string Name
+               {
+                 get { return _name; }
+                 set
+                 {
+                   _name = value;
+                   NotifyChanged("LastName"); // Warning
+                 }
+               }
+             }
+             </code>
+             Examples of generated notifications:
+             <list>
+             <item><c>NotifyChanged("Property")</c></item>
+             <item><c>NotifyChanged(() =&gt; Property)</c></item>
+             <item><c>NotifyChanged((VM x) =&gt; x.Property)</c></item>
+             <item><c>SetProperty(ref myField, value, "Property")</c></item>
+             </list>
+             </example>
+        </member>
+        <member name="T:JetBrains.Annotations.CanBeNullAttribute">
+            <summary>
+            Indicates that the value of the marked element could be <c>null</c> sometimes, 
+            so the check for <c>null</c> is necessary before its usage.
+            </summary>
+            <example>
+            <code>
+            [CanBeNull]
+            public object Test()
+            {
+              return null;
+            }
+            
+            public void UseTest()
+            {
+              var p = Test(); 
+              var s = p.ToString(); // Warning: Possible 'System.NullReferenceException' 
+            }
+            </code>
+            </example>
+        </member>
+        <member name="T:JetBrains.Annotations.NotNullAttribute">
+            <summary>
+            Indicates that the value of the marked element could never be <c>null</c>
+            </summary>
+            <example>
+            <code>
+            [NotNull]
+            public object Foo()
+            {
+              return null; // Warning: Possible 'null' assignment
+            } 
+            </code>
+            </example>
+        </member>
+        <member name="T:JetBrains.Annotations.ContractAnnotationAttribute">
+            <summary>
+            Describes dependency between method input and output.
+            </summary>
+            <syntax>
+            <p>Function Definition Table syntax:</p>
+            <list>
+            <item>FDT      ::= FDTRow [;FDTRow]*</item>
+            <item>FDTRow   ::= Input =&gt; Output | Output &lt;= Input</item>
+            <item>Input    ::= ParameterName: Value [, Input]*</item>
+            <item>Output   ::= [ParameterName: Value]* {halt|stop|void|nothing|Value}</item>
+            <item>Value    ::= true | false | null | notnull | canbenull</item>
+            </list>
+            If method has single input parameter, it's name could be omitted. <br/>
+            Using <c>halt</c> (or <c>void</c>/<c>nothing</c>, which is the same) for method output means that the methos doesn't return normally. <br/>
+            <c>canbenull</c> annotation is only applicable for output parameters. <br/>
+            You can use multiple <c>[ContractAnnotation]</c> for each FDT row, or use single attribute with rows separated by semicolon. <br/>
+            </syntax>
+            <examples>
+            <list>
+            <item><code>
+            [ContractAnnotation("=> halt")]
+            public void TerminationMethod()
+            </code></item>
+            <item><code>
+            [ContractAnnotation("halt &lt;= condition: false")]
+            public void Assert(bool condition, string text) // Regular Assertion method
+            </code></item>
+            <item><code>
+            [ContractAnnotation("s:null => true")]
+            public bool IsNullOrEmpty(string s) // String.IsNullOrEmpty
+            </code></item>
+            <item><code>
+            // A method that returns null if the parameter is null, and not null if the parameter is not null
+            [ContractAnnotation("null => null; notnull => notnull")]
+            public object Transform(object data) 
+            </code></item>
+            <item><code>
+            [ContractAnnotation("s:null=>false; =>true,result:notnull; =>false, result:null")]
+            public bool TryParse(string s, out Person result)
+            </code></item>
+            </list>
+            </examples>
+        </member>
+        <member name="T:JetBrains.Annotations.CannotApplyEqualityOperatorAttribute">
+            <summary>
+            Indicates that the value of the marked type (or its derivatives)
+            cannot be compared using '==' or '!=' operators and <c>Equals()</c> should be used instead.
+            However, using '==' or '!=' for comparison with <c>null</c> is always permitted.
+            </summary>
+            <example>
+            <code>
+            [CannotApplyEqualityOperator]
+            class NoEquality
+            {
+            }
+            
+            class UsesNoEquality
+            {
+              public void Test()
+              {
+                var ca1 = new NoEquality();
+                var ca2 = new NoEquality();
+            
+                if (ca1 != null) // OK
+                {
+                  bool condition = ca1 == ca2; // Warning
+                }
+              }
+            }
+            </code>
+            </example>
+        </member>
+        <member name="T:JetBrains.Annotations.BaseTypeRequiredAttribute">
+            <summary>
+            When applied to a target attribute, specifies a requirement for any type marked with 
+            the target attribute to implement or inherit specific type or types.
+            </summary>
+            <example>
+            <code>
+            [BaseTypeRequired(typeof(IComponent)] // Specify requirement
+            public class ComponentAttribute : Attribute 
+            {}
+            
+            [Component] // ComponentAttribute requires implementing IComponent interface
+            public class MyComponent : IComponent
+            {}
+            </code>
+            </example>
+        </member>
+        <member name="M:JetBrains.Annotations.BaseTypeRequiredAttribute.#ctor(System.Type)">
+            <summary>
+            Initializes new instance of BaseTypeRequiredAttribute
+            </summary>
+            <param name="baseType">Specifies which types are required</param>
+        </member>
+        <member name="P:JetBrains.Annotations.BaseTypeRequiredAttribute.BaseTypes">
+            <summary>
+            Gets enumerations of specified base types
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.UsedImplicitlyAttribute">
+            <summary>
+            Indicates that the marked symbol is used implicitly (e.g. via reflection, in external library),
+            so this symbol will not be marked as unused (as well as by other usage inspections)
+            </summary>
+        </member>
+        <member name="P:JetBrains.Annotations.UsedImplicitlyAttribute.TargetFlags">
+            <summary>
+            Gets value indicating what is meant to be used
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.MeansImplicitUseAttribute">
+            <summary>
+            Should be used on attributes and causes ReSharper
+            to not mark symbols marked with such attributes as unused (as well as by other usage inspections)
+            </summary>
+        </member>
+        <member name="P:JetBrains.Annotations.MeansImplicitUseAttribute.TargetFlags">
+            <summary>
+            Gets value indicating what is meant to be used
+            </summary>
+        </member>
+        <member name="F:JetBrains.Annotations.ImplicitUseKindFlags.Access">
+            <summary>
+            Only entity marked with attribute considered used
+            </summary>
+        </member>
+        <member name="F:JetBrains.Annotations.ImplicitUseKindFlags.Assign">
+            <summary>
+            Indicates implicit assignment to a member
+            </summary>
+        </member>
+        <member name="F:JetBrains.Annotations.ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature">
+            <summary>
+            Indicates implicit instantiation of a type with fixed constructor signature.
+            That means any unused constructor parameters won't be reported as such.
+            </summary>
+        </member>
+        <member name="F:JetBrains.Annotations.ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature">
+            <summary>
+            Indicates implicit instantiation of a type
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.ImplicitUseTargetFlags">
+            <summary>
+            Specify what is considered used implicitly when marked with <see cref="T:JetBrains.Annotations.MeansImplicitUseAttribute"/> or <see cref="T:JetBrains.Annotations.UsedImplicitlyAttribute"/>
+            </summary>
+        </member>
+        <member name="F:JetBrains.Annotations.ImplicitUseTargetFlags.Members">
+            <summary>
+            Members of entity marked with attribute are considered used
+            </summary>
+        </member>
+        <member name="F:JetBrains.Annotations.ImplicitUseTargetFlags.WithMembers">
+            <summary>
+            Entity marked with attribute and all its members considered used
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.PublicAPIAttribute">
+            <summary>
+            This attribute is intended to mark publicly available API which should not be removed and so is treated as used.
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.InstantHandleAttribute">
+            <summary>
+            Tells code analysis engine if the parameter is completely handled when the invoked method is on stack. 
+            If the parameter is a delegate, indicates that delegate is executed while the method is executed.
+            If the parameter is an enumerable, indicates that it is enumerated while the method is executed.
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.PureAttribute">
+             <summary>
+             Indicates that a method does not make any observable state changes.
+             The same as <see cref="T:System.Diagnostics.Contracts.PureAttribute"/>
+             </summary>
+             <example>
+             <code>
+             [Pure]
+             private int Multiply(int x, int y)
+             {
+               return x*y;
+             }
+            
+             public void Foo()
+             {
+               const int a=2, b=2;
+               Multiply(a, b); // Waring: Return value of pure method is not used
+             }
+             </code>
+             </example>
+        </member>
+        <member name="T:JetBrains.Annotations.PathReferenceAttribute">
+            <summary>
+            Indicates that a parameter is a path to a file or a folder within a web project.
+            Path can be relative or absolute, starting from web root (~).
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcActionAttribute">
+            <summary>
+            ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is an MVC action.
+            If applied to a method, the MVC action name is calculated implicitly from the context.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcAreaAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC araa.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcControllerAttribute">
+            <summary>
+            ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is an MVC controller.
+            If applied to a method, the MVC controller name is calculated implicitly from the context.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String, String)"/> 
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcMasterAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC Master.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Controller.View(String, String)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcModelTypeAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC model type.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Controller.View(String, Object)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcPartialViewAttribute">
+            <summary>
+            ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is an MVC partial view.
+            If applied to a method, the MVC partial view name is calculated implicitly from the context.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Html.RenderPartialExtensions.RenderPartial(HtmlHelper, String)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcSupressViewErrorAttribute">
+            <summary>
+            ASP.NET MVC attribute. Allows disabling all inspections for MVC views within a class or a method.
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcDisplayTemplateAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC display template.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Html.DisplayExtensions.DisplayForModel(HtmlHelper, String)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcEditorTemplateAttribute">
+            <summary>
+            ASP.NET MVC attribute. Indicates that a parameter is an MVC editor template.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Html.EditorExtensions.EditorForModel(HtmlHelper, String)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcViewAttribute">
+            <summary>
+            ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is an MVC view.
+            If applied to a method, the MVC view name is calculated implicitly from the context.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.Mvc.Controller.View(Object)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.AspMvcActionSelectorAttribute">
+            <summary>
+            ASP.NET MVC attribute. When applied to a parameter of an attribute,
+            indicates that this parameter is an MVC action name.
+            </summary>
+            <example>
+            <code>
+            [ActionName("Foo")]
+            public ActionResult Login(string returnUrl)
+            {
+              ViewBag.ReturnUrl = Url.Action("Foo"); // OK
+              return RedirectToAction("Bar"); // Error: Cannot resolve action
+            }
+            </code>
+            </example>
+        </member>
+        <member name="T:JetBrains.Annotations.RazorSectionAttribute">
+            <summary>
+            Razor attribute. Indicates that a parameter or a method is a Razor section.
+            Use this attribute for custom wrappers similar to 
+            <see cref="!:System.Web.WebPages.WebPageBase.RenderSection(String)"/>
+            </summary>
+        </member>
+        <member name="T:JetBrains.Annotations.NoEnumerationAttribute">
+            <summary>
+            Indicates that IEnumerable, passed as parameter, is not enumerated.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.CacheBase`2.OnDefaultValidityTimeChanged(System.EventArgs)">
+            <summary>
+            Fires the <see cref="E:ImpruvIT.CacheBase`2.DefaultValidityTimeChanged"/> event.
+            </summary>
+            <param name="args">The <see cref="T:System.EventArgs"/> that contains the event data.</param>
+        </member>
+        <member name="M:ImpruvIT.CacheBase`2.OnClearing(System.ComponentModel.CancelEventArgs)">
+            <summary>
+            Fires the <see cref="E:ImpruvIT.CacheBase`2.Clearing"/> event.
+            </summary>
+            <param name="args">The <see cref="T:System.ComponentModel.CancelEventArgs"/> that contains the event data.</param>
+        </member>
+        <member name="M:ImpruvIT.CacheBase`2.OnCleared(System.EventArgs)">
+            <summary>
+            Fires the <see cref="E:ImpruvIT.CacheBase`2.Cleared"/> event.
+            </summary>
+            <param name="args">The <see cref="T:System.EventArgs"/> that contains the event data.</param>
+        </member>
+        <member name="M:ImpruvIT.CacheBase`2.OnDataMissing(ImpruvIT.CacheDataMissingEventArgs{`0})">
+            <summary>
+            Fires the <see cref="E:ImpruvIT.CacheBase`2.DataMissing"/> event.
+            </summary>
+            <param name="args">The <see cref="!:CacheDataMissingEventArgs"/> that contains the event data.</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:ImpruvIT.ComparisonComparer`1" -->
+        <member name="M:ImpruvIT.ComparisonComparer`1.#ctor(System.Comparison{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ImpruvIT.ComparisonComparer`1"/> class.
+            </summary>
+            <param name="comparison">A <see cref="!:Comparison&lt;T&gt;"/> delegate to use for actual comparison.</param>
+        </member>
+        <member name="M:ImpruvIT.ComparisonComparer`1.Compare(`0,`0)">
+            <summary>
+            Performs a comparison of two objects of the same type using supplied <see cref="!:Comparison&lt;T&gt;"/> delegate.
+            </summary>
+            <param name="first">The first object to compare.</param>
+            <param name="second">The second object to compare.</param>
+            <returns>A value indicating whether one object is less than, equal to, or greater than the other object.</returns>
+        </member>
+        <member name="P:ImpruvIT.ComparisonComparer`1.Comparison">
+            <summary>
+            Gets <see cref="!:Comparison&lt;T&gt;"/> delegate used for actual comparison.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.Configuration.ConfigurationElementsBase`1">
+            <summary>
+            Configuration element list base class.
+            </summary>
+            <typeparam name="T">The type of elements in the list.</typeparam>
+        </member>
+        <member name="M:ImpruvIT.Configuration.ConfigurationElementsBase`1.GetElementKey(System.Configuration.ConfigurationElement)">
+            <summary>
+            Gets the element key for a specified configuration element when overridden in a derived class.
+            </summary>
+            <param name="element">The <see cref="T:System.Configuration.ConfigurationElement"/> to return the key for.</param>
+            <returns>An <see cref="T:System.Object"/> that acts as the key for the specified <see cref="T:System.Configuration.ConfigurationElement"/>.</returns>
+        </member>
+        <member name="M:ImpruvIT.Configuration.ConfigurationElementsBase`1.GetElementKey(`0)">
+            <summary>
+            Gets the element key for a specified configuration element when overridden in a derived class.
+            </summary>
+            <param name="element">The configuration element to return the key for.</param>
+            <returns>An <see cref="T:System.Object"/> that acts as the key for the specified configuration element.</returns>
+        </member>
+        <member name="M:ImpruvIT.Configuration.ConfigurationElementsBase`1.CreateNewElement">
+            <summary>
+            Creates a new instance of the typed element of the list.
+            </summary>
+            <returns>A new instance of the typed element.</returns>
+        </member>
+        <member name="P:ImpruvIT.Configuration.ConfigurationElementsBase`1.Item(System.Int32)">
+            <summary>
+            Gets or sets element at specified index.
+            </summary>
+            <param name="index">The index of element.</param>
+            <returns>The typed element.</returns>
+        </member>
+        <member name="P:ImpruvIT.Configuration.ConfigurationElementsBase`1.Item(System.Object)">
+            <summary>
+            Gets element with specified key.
+            </summary>
+            <param name="key">The key of the element.</param>
+            <returns>The typed element.</returns>
+        </member>
+        <member name="M:ImpruvIT.ListBase`1.OnCollectionChanging(System.Collections.Specialized.NotifyCollectionChangedEventArgs)">
+            <summary>
+            Fires the <see cref="E:ImpruvIT.ListBase`1.CollectionChanging"/> event.
+            </summary>
+            <param name="args">The <see cref="T:System.Collections.Specialized.NotifyCollectionChangedEventArgs"/> that contains the event data.</param>
+        </member>
+        <member name="M:ImpruvIT.ListBase`1.OnCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs)">
+            <summary>
+            Fires the <see cref="E:ImpruvIT.ListBase`1.CollectionChanged"/> event.
+            </summary>
+            <param name="args">The <see cref="T:System.Collections.Specialized.NotifyCollectionChangedEventArgs"/> that contains the event data.</param>
+        </member>
+        <member name="M:ImpruvIT.BindingListBase`1.OnListChanged(System.ComponentModel.ListChangedEventArgs)">
+            <summary>
+            Fires the <see cref="!:ListChanged"/> event.
+            </summary>
+            <param name="args">Event data.</param>
+        </member>
+        <member name="T:ImpruvIT.Contracts.ArgumentValueRequirement`1">
+            <summary>
+            Defines contract requirements for method argument.
+            </summary>
+            <typeparam name="T">Type of the method argument.</typeparam>
+        </member>
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.#ctor(`0,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> class with specified value and argument name.
+            </summary>
+            <param name="value">Value of the contract requirement parameter.</param>
+            <param name="argumentName">Name of the contract requirement parameter.</param>
+        </member>
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.IsNotNull">
+            <summary>
+            Validates that argument value is not null. This contract requirement has sense only for reference types.
+            </summary>
+            <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
+        </member>
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.IsNotEmpty">
+            <summary>
+            Validates that argument value is not empty. This contract requirement has sense only for enumerables.
+            </summary>
+            <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
+        </member>
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.IsInRange(System.Func{`0,System.Boolean})">
+            <summary>
+            Validates that argument value is in required range.
+            </summary>
+            <param name="predicate">The predicate validating parameter value.</param>
+            <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
+        </member>
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.OfType``1">
+            <summary>
+            Validates that argument value is of specified type.
+            </summary>
+            <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
+        </member>
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.OfType(System.Type)">
+            <summary>
+            Validates that argument value is of specified type.
+            </summary>
+            <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
+        </member>
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.Satisfy(System.Func{`0,System.Boolean},System.Func{`0,System.Exception})">
+            <summary>
+            Validates that argument value satisfy specified conditions and throws specified exception if not.
+            </summary>
+            <param name="predicate">Predicate that verifies argument value.</param>
+            <param name="exceptionFactory">Factory of exception to throw.</param>
+            <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
+        </member>
+        <member name="P:ImpruvIT.Contracts.ArgumentValueRequirement`1.Value">
+            <summary>
+            Gets the value of the contract requirement parameter.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.Contracts.ArgumentValueRequirement`1.ArgumentName">
+            <summary>
+            Gets the name of the contract requirement parameter.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.Contracts.Contract">
+            <summary>
+            Contract specification factory class.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Contracts.Contract.Requires``1(``0,System.String)">
+            <summary>
+            Creates argument value requirement.
+            </summary>
+            <typeparam name="T">Type of argument value.</typeparam>
+            <param name="value">The actual value of the argument.</param>
+            <param name="argumentName">The name of the argument.</param>
+            <returns>A new <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1">argument value requirement</see>.</returns>
+        </member>
+        <member name="M:ImpruvIT.Contracts.Contract.Requires``1(System.Linq.Expressions.Expression{System.Func{``0}})">
+            <summary>
+            Creates argument value requirement.
+            </summary>
+            <typeparam name="T">Type of argument value.</typeparam>
+            <param name="valueExpression">The argument expression.</param>
+            <returns>A new <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1">argument value requirement</see>.</returns>
+            <exception cref="T:System.ArgumentException">Only member expressions are supported.</exception>
+        </member>
+        <member name="T:ImpruvIT.ISupportsBatchUpdate">
+            <summary>
+            Specifies that the object supports batch updating.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.ISupportsBatchUpdate.BeginUpdate">
+            <summary>
+            Begins an update mode of the object.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.ISupportsBatchUpdate.EndUpdate">
+            <summary>
+            Ends an update mode of the object.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Object <b>can</b> throw this exception if it is not being updated at the moment (<see cref="M:ImpruvIT.ISupportsBatchUpdate.BeginUpdate"/> was not called).</exception>
+        </member>
+        <member name="P:ImpruvIT.ISupportsBatchUpdate.BeingUpdated">
+            <summary>
+            Gets whether object is being updated at the moment.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.IValueChanged`1">
+            <summary>
+            Describes changing value.
+            </summary>
+            <typeparam name="T">Type of value that changed.</typeparam>
+        </member>
+        <member name="P:ImpruvIT.IValueChanged`1.OldValue">
+            <summary>
+            Gets the value before change.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.IValueChanged`1.NewValue">
+            <summary>
+            Gets the value after change.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.PropertyValueChangedEventArgs`1">
+            <summary>
+            Provides data about changed property value.
+            </summary>
+            <typeparam name="T">Type of property that changed.</typeparam>
+        </member>
+        <member name="M:ImpruvIT.PropertyValueChangedEventArgs`1.#ctor(System.Reflection.PropertyInfo,`0,`0)">
+            <summary>
+            Initializes a new <see cref="T:ImpruvIT.PropertyValueChangedEventArgs`1"/> class from changed property, old and new values.
+            </summary>
+            <param name="property">Property that changed.</param>
+            <param name="oldValue">Old value of the property.</param>
+            <param name="newValue">New value of the property.</param>
+        </member>
+        <member name="M:ImpruvIT.PropertyValueChangedEventArgs`1.#ctor(System.String,`0,`0)">
+            <summary>
+            Initializes a new <see cref="T:ImpruvIT.PropertyValueChangedEventArgs`1"/> class from name of changed property, old and new values.
+            </summary>
+            <param name="propertyName">Name of the property that changed.</param>
+            <param name="oldValue">Old value of the property.</param>
+            <param name="newValue">New value of the property.</param>
+        </member>
+        <member name="P:ImpruvIT.PropertyValueChangedEventArgs`1.OldValue">
+            <summary>
+            Gets old value of the changed property.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.PropertyValueChangedEventArgs`1.NewValue">
+            <summary>
+            Gets new value of the changed property.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.Settings.SettingsProviderBase">
+            <summary>
+            Helper base classes for easier settings provider implementation.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.Settings.ISettingsProvider">
+            <summary>
+            Defines provider of settings.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Settings.ISettingsProvider.IsValueDefined(System.String)">
+            <summary>
+            Gets whether setting value for specified key is defined for the provider.
+            </summary>
+            <param name="key">Key of the setting to check.</param>
+            <returns><b>true</b> if setting value is defined for the provider; <b>false</b> otherwise.</returns>
+        </member>
+        <member name="M:ImpruvIT.Settings.ISettingsProvider.GetValue``1(System.String)">
+            <summary>
+            Gets setting value for the specified key.
+            </summary>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <returns>Setting value if defined by the provider; throws <see cref="T:System.Collections.Generic.KeyNotFoundException"/> if value is not defined for the provider.</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">Setting is not defined for the provider.</exception>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>TValue</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.ISettingsProvider.GetValue``1(System.String,``0)">
+            <summary>
+            Gets setting value for the specified key. If value is not found, returns specified default value.
+            </summary>
+            <remarks>
+            Please note that default value is returned only if setting is not defined at all. In case of other failures (eg. wrong format) exception is thrown. 
+            </remarks>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="defaultValue">Default value to return if setting is not defined for the provider.</param>
+            <returns>Setting value if defined by the provider; <i>defaultValue</i> if value is not defined for the provider.</returns>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>TValue</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.ISettingsProvider.TryGetValue``1(System.String,``0@)">
+            <summary>
+            Tries to get setting value for the specified key.
+            </summary>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="value">When this method returns, contains the value associated with the specified setting, if the setting is defined for the provider and can be converted; otherwise, the default value for the type of the <i>value</i> parameter. This parameter is passed uninitialized.</param>
+            <returns><b>true</b> if the setting is defined for the provider and can be converted; otherwise, false.</returns>
+        </member>
+        <member name="M:ImpruvIT.Settings.ISettingsProvider.GetValue(System.String,System.Type)">
+            <summary>
+            Gets setting value for the specified key.
+            </summary>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <returns>Setting value if defined by the provider; throws <see cref="T:System.Collections.Generic.KeyNotFoundException"/> if value is not defined for the provider.</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">Setting is not defined for the provider.</exception>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>targetType</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.ISettingsProvider.GetValue(System.String,System.Type,System.Object)">
+            <summary>
+            Gets setting value for the specified key. If value is not found, returns specified default value.
+            </summary>
+            <remarks>
+            Please note that default value is returned only if setting is not defined at all. In case of other failures (eg. wrong format) exception is thrown. 
+            </remarks>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <param name="defaultValue">Default value to return if setting is not defined for the provider.</param>
+            <returns>Setting value if defined by the provider; <i>defaultValue</i> if value is not defined for the provider.</returns>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>targetType</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.ISettingsProvider.TryGetValue(System.String,System.Type,System.Object@)">
+            <summary>
+            Tries to get setting value for the specified key.
+            </summary>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <param name="value">When this method returns, contains the value associated with the specified setting, if the setting is defined for the provider and can be converted; otherwise, <b>null</b>. This parameter is passed uninitialized.</param>
+            <returns><b>true</b> if the setting is defined for the provider and can be converted; otherwise, false.</returns>
+        </member>
+        <member name="P:ImpruvIT.Settings.ISettingsProvider.ReadOnly">
+            <summary>
+            Gets whether provider can only read setting values.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsProviderBase.IsValueDefined(System.String)">
+            <summary>
+            Gets whether setting value for specified key is defined for the provider.
+            </summary>
+            <param name="key">Key of the setting to check.</param>
+            <returns><b>true</b> if setting value is defined for the provider; <b>false</b> otherwise.</returns>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsProviderBase.GetValue``1(System.String)">
+            <summary>
+            Gets setting value for the specified key.
+            </summary>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <returns>Setting value if defined by the provider; throws <see cref="T:System.Collections.Generic.KeyNotFoundException"/> if value is not defined for the provider.</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">Setting is not defined for the provider.</exception>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>TValue</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsProviderBase.GetValue``1(System.String,``0)">
+            <summary>
+            Gets setting value for the specified key. If value is not found, returns specified default value.
+            </summary>
+            <remarks>
+            Please note that default value is returned only if setting is not defined at all. In case of other failures (eg. wrong format) exception is thrown. 
+            </remarks>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="defaultValue">Default value to return if setting is not defined for the provider.</param>
+            <returns>Setting value if defined by the provider; <i>defaultValue</i> if value is not defined for the provider.</returns>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>TValue</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsProviderBase.TryGetValue``1(System.String,``0@)">
+            <summary>
+            Tries to get setting value for the specified key.
+            </summary>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="value">When this method returns, contains the value associated with the specified setting, if the setting is defined for the provider and can be converted; otherwise, the default value for the type of the <i>value</i> parameter. This parameter is passed uninitialized.</param>
+            <returns><b>true</b> if the setting is defined for the provider and can be converted; otherwise, false.</returns>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsProviderBase.GetValue(System.String,System.Type)">
+            <summary>
+            Gets setting value for the specified key.
+            </summary>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <returns>Setting value if defined by the provider; throws <see cref="T:System.Collections.Generic.KeyNotFoundException"/> if value is not defined for the provider.</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">Setting is not defined for the provider.</exception>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>targetType</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsProviderBase.GetValue(System.String,System.Type,System.Object)">
+            <summary>
+            Gets setting value for the specified key. If value is not found, returns specified default value.
+            </summary>
+            <remarks>
+            Please note that default value is returned only if setting is not defined at all. In case of other failures (eg. wrong format) exception is thrown. 
+            </remarks>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <param name="defaultValue">Default value to return if setting is not defined for the provider.</param>
+            <returns>Setting value if defined by the provider; <i>defaultValue</i> if value is not defined for the provider.</returns>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>targetType</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsProviderBase.TryGetValue(System.String,System.Type,System.Object@)">
+            <summary>
+            Tries to get setting value for the specified key.
+            </summary>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <param name="value">When this method returns, contains the value associated with the specified setting, if the setting is defined for the provider and can be converted; otherwise, <b>null</b>. This parameter is passed uninitialized.</param>
+            <returns><b>true</b> if the setting is defined for the provider and can be converted; otherwise, false.</returns>
+        </member>
+        <member name="P:ImpruvIT.Settings.SettingsProviderBase.ReadOnly">
+            <summary>
+            Gets whether provider can only read setting values.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Settings.CommandLineSettingsProvider.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ImpruvIT.Settings.CommandLineSettingsProvider"/> class.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.Settings.SettingsManager">
+            <summary>
+            Provides configuration settings by delegating to specified list of providers in specified order.
+            </summary>
+            <remarks>
+            Using this class you can design structured (or even hierarchical) setting loading/saving infrastructure. 
+            You can setup manager to look for setting on command line first. If setting is not found, then in config file.
+            If not there then look to a file with default values for example.
+            By creating your own settings provider and adding it to the <see cref="P:ImpruvIT.Settings.SettingsManager.Providers"/>, you can read
+            settings from any source, like web service or shared configuration.
+            </remarks>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ImpruvIT.Settings.SettingsManager"/> class.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.#ctor(System.Collections.Generic.IEnumerable{ImpruvIT.Settings.ISettingsProvider})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ImpruvIT.Settings.SettingsManager"/> class with specified providers.
+            </summary>
+            <param name="providers">Set of providers to use.</param>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.IsValueDefined(System.String)">
+            <summary>
+            Gets whether setting value for specified key is defined in any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.
+            </summary>
+            <param name="key">Key of the setting to check.</param>
+            <returns><b>true</b> if setting value is defined in any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>; <b>false</b> otherwise.</returns>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.GetValueProvider(System.String)">
+            <summary>
+            Gets first provider that defines value for specified setting.
+            </summary>
+            <param name="key">Key of the setting to look for.</param>
+            <returns>First <see cref="T:ImpruvIT.Settings.ISettingsProvider"/> in <see cref="P:ImpruvIT.Settings.SettingsManager.Providers"/> that defines the setting.</returns>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.GetValue``1(System.String)">
+            <summary>
+            Gets setting value for the specified key from first <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> that defines it.
+            </summary>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <returns>Setting value if defined by any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>; throws <see cref="T:System.Collections.Generic.KeyNotFoundException"/> if value is not defined for neither <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">Setting is not defined in any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.</exception>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>TValue</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.GetValue``1(System.String,``0)">
+            <summary>
+            Gets setting value for the specified key from first <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> that defines it. If value is not found, returns specified default value.
+            </summary>
+            <remarks>
+            Please note that default value is returned only if setting is not defined at all. In case of other failures (eg. wrong format) exception is thrown. 
+            </remarks>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="defaultValue">Default value to return if setting is not defined for neither <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.</param>
+            <returns>Setting value if defined by any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>; <i>defaultValue</i> if value is not defined for neither <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.</returns>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>TValue</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.TryGetValue``1(System.String,``0@)">
+            <summary>
+            Tries to get setting value for the specified key from first <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> that defines it.
+            </summary>
+            <typeparam name="TValue">Type of the setting value.</typeparam>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="value">When this method returns, contains the value associated with the specified setting, if the setting is defined for any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> and can be converted; otherwise, the default value for the type of the <i>value</i> parameter. This parameter is passed uninitialized.</param>
+            <returns><b>true</b> if the setting is defined for any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> and can be converted; otherwise, false.</returns>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.GetValue(System.String,System.Type)">
+            <summary>
+            Gets setting value for the specified key from first <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> that defines it.
+            </summary>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <returns>Setting value if defined by any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>; throws <see cref="T:System.Collections.Generic.KeyNotFoundException"/> if value is not defined for neither <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">Setting is not defined for neither <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.</exception>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>targetType</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.GetValue(System.String,System.Type,System.Object)">
+            <summary>
+            Gets setting value for the specified key from first <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> that defines it. If value is not found, returns specified default value.
+            </summary>
+            <remarks>
+            Please note that default value is returned only if setting is not defined at all. In case of other failures (eg. wrong format) exception is thrown. 
+            </remarks>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <param name="defaultValue">Default value to return if setting is not defined for neither <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.</param>
+            <returns>Setting value if defined by any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>; <i>defaultValue</i> if value is not defined for neither <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see>.</returns>
+            <exception cref="T:System.FormatException">Setting value cannot be converted to <i>targetType</i> type.</exception>
+        </member>
+        <member name="M:ImpruvIT.Settings.SettingsManager.TryGetValue(System.String,System.Type,System.Object@)">
+            <summary>
+            Tries to get setting value for the specified key from first <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> that defines it.
+            </summary>
+            <param name="key">Key of the setting to look for.</param>
+            <param name="targetType">Type of the setting value.</param>
+            <param name="value">When this method returns, contains the value associated with the specified setting, if the setting is defined for any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> and can be converted; otherwise, <b>null</b>. This parameter is passed uninitialized.</param>
+            <returns><b>true</b> if the setting is defined for any <see cref="P:ImpruvIT.Settings.SettingsManager.Providers">provider</see> and can be converted; otherwise, false.</returns>
+        </member>
+        <member name="P:ImpruvIT.Settings.SettingsManager.ReadOnly">
+            <summary>
+            Gets whether provider can only read setting values.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.Settings.SettingsManager.Providers">
+            <summary>
+            Gets list of providers to delegate loading/saving operations. Delegation is executed in same order then in list.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.TypeHelper">
+            <summary>
+            Provides helper methods for working with types.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.TypeHelper.GetType(System.String,System.Type[])">
+            <summary>
+            Gets the <see cref="T:System.Type"/> with the specified name, performing a case-sensitive search.
+            </summary>
+            <param name="typeName">The <see cref="P:System.Type.AssemblyQualifiedName">assembly-qualified</see> name of the type to get. If the type is in the currently executing assembly or in Mscorlib.dll, it is sufficient to supply the type name qualified by its namespace.</param>
+            <param name="defaultTypeParameters">A set of type parameters that will be used to make generic type if the type in <i>typeName</i> is <see cref="P:System.Type.IsGenericTypeDefinition">generic type definition</see>.</param>
+            <returns>The <see cref="T:System.Type"/> with the specified name, if found; otherwise, <b>null</b>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TypeHelper.GetType(System.String,System.Boolean,System.Type[])">
+            <summary>
+            Gets the Type with the specified name, performing a case-sensitive search and specifying whether to throw an exception if the type is not found.
+            </summary>
+            <param name="typeName">The <see cref="P:System.Type.AssemblyQualifiedName">assembly-qualified</see> name of the type to get. If the type is in the currently executing assembly or in Mscorlib.dll, it is sufficient to supply the type name qualified by its namespace.</param>
+            <param name="throwOnError"><b>true</b> to throw an exception if the type cannot be found; <b>false</b> to return <b>null</b>.</param>
+            <param name="defaultTypeParameters">A set of type parameters that will be used to make generic type if the type in <i>typeName</i> is <see cref="P:System.Type.IsGenericTypeDefinition">generic type definition</see>.</param>
+            <returns>The <see cref="T:System.Type"/> with the specified name, if found; otherwise, <b>null</b> if <i>throwOnError</i> is <b>false</b> or exception is thrown if <i>throwOnError</i> is <b>true</b>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TypeHelper.GetType(System.String,System.Boolean,System.Boolean,System.Type[])">
+            <summary>
+            Gets the Type with the specified name, specifying whether to perform a case-sensitive search and whether to throw an exception if the type is not found.
+            </summary>
+            <param name="typeName">The <see cref="P:System.Type.AssemblyQualifiedName">assembly-qualified</see> name of the type to get. If the type is in the currently executing assembly or in Mscorlib.dll, it is sufficient to supply the type name qualified by its namespace.</param>
+            <param name="throwOnError"><b>true</b> to throw an exception if the type cannot be found; <b>false</b> to return <b>null</b>.</param>
+            <param name="ignoreCase"><b>true</b> to perform a case-insensitive search for <i>typeName</i>, <b>false</b> to perform a case-sensitive search for <i>typeName</i>.</param>
+            <param name="defaultTypeParameters">A set of type parameters that will be used to make generic type if the type in <i>typeName</i> is <see cref="P:System.Type.IsGenericTypeDefinition">generic type definition</see>.</param>
+            <returns>The <see cref="T:System.Type"/> with the specified name, if found; otherwise, <b>null</b> if <i>throwOnError</i> is <b>false</b> or exception is thrown if <i>throwOnError</i> is <b>true</b>.</returns>
+        </member>
+        <member name="T:ImpruvIT.HashCodeComparer`1">
+            <summary>
+            Comparer that compares two object according to object's hash code.
+            </summary>
+            <typeparam name="T">The type of objects to compare.</typeparam>
+        </member>
+        <member name="M:ImpruvIT.HashCodeComparer`1.Compare(`0,`0)">
+            <summary>
+            Performs a comparison of two objects of the same type according to object's hash value.
+            </summary>
+            <param name="x">The first object to compare.</param>
+            <param name="y">The second object to compare.</param>
+            <returns>A value indicating whether one object is less than, equal to, or greater than the other according to it's hash code.</returns>
+        </member>
+        <member name="M:ImpruvIT.ListView`1.OnCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs)">
+            <summary>
+            Fires the <see cref="E:ImpruvIT.ListView`1.CollectionChanged"/> event.
+            </summary>
+            <param name="args">The <see cref="T:System.Collections.Specialized.NotifyCollectionChangedEventArgs"/> that contains the event data.</param>
+        </member>
+        <member name="T:ImpruvIT.TimeInterval">
+            <summary>
+            Represents date-time interval.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.#ctor(System.DateTime,System.TimeSpan)">
+            <summary>
+            Initializes a new instance of a <see cref="T:ImpruvIT.TimeInterval"/> structure using start time and duration.
+            </summary>
+            <param name="start">The start time of interval.</param>
+            <param name="duration">The duration of interval.</param>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.#ctor(System.TimeSpan,System.DateTime)">
+            <summary>
+            Initializes a new instance of a <see cref="T:ImpruvIT.TimeInterval"/> structure using duration and end time.
+            </summary>
+            <param name="duration">The duration of interval.</param>
+            <param name="end">The end time of interval.</param>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.#ctor(System.DateTime,System.DateTime)">
+            <summary>
+            Initializes a new instance of a <see cref="T:ImpruvIT.TimeInterval"/> structure using start and end time.
+            </summary>
+            <param name="start">The start time of interval.</param>
+            <param name="end">The end time of interval.</param>
+        </member>
+        <member name="F:ImpruvIT.TimeInterval.Empty">
+            <summary>
+            Represents a <see cref="T:ImpruvIT.TimeInterval"/> with start and end time set to <see cref="F:System.DateTime.MinValue"/> (zero duration). 
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.Equals(System.Object)">
+            <summary>
+            Checks whether this <see cref="T:ImpruvIT.TimeInterval"/> represents the same interval as the specified <see cref="T:System.Object"/>.
+            </summary>
+            <param name="obj">The <see cref="T:System.Object"/> to compare.</param>
+            <returns><b>true</b> if <i>obj</i> is a <see cref="T:ImpruvIT.TimeInterval"/> and represents the same interval as this TimeInterval; otherwise, <b>false&gt;</b>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.GetHashCode">
+            <summary>
+            Returns a hash code for this <see cref="T:ImpruvIT.TimeInterval"/>.
+            </summary>
+            <returns>An integer value that specifies a hash value for this <see cref="T:ImpruvIT.TimeInterval"/>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.ToString">
+            <summary>
+            Converts this <see cref="T:ImpruvIT.TimeInterval"/> to a human-readable string.
+            </summary>
+            <returns>A string that represents this <see cref="T:ImpruvIT.TimeInterval"/>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.Contains(System.DateTime)">
+            <summary>
+            Gets whether supplied <see cref="T:System.DateTime"/> is included in this <see cref="T:ImpruvIT.TimeInterval"/>.
+            </summary>
+            <param name="date">A <see cref="T:System.DateTime"/> to check.</param>
+            <returns><b>true</b> if supplied <see cref="T:System.DateTime"/> is included in this <see cref="T:ImpruvIT.TimeInterval"/>; otherwise, <b>false&gt;</b>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.Contains(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets whether whole supplied <see cref="T:ImpruvIT.TimeInterval"/> is contained in this <see cref="T:ImpruvIT.TimeInterval"/>.
+            </summary>
+            <param name="other">A <see cref="T:ImpruvIT.TimeInterval"/> to check.</param>
+            <returns><b>true</b> if whole supplied <see cref="T:ImpruvIT.TimeInterval"/> is contained in this <see cref="T:ImpruvIT.TimeInterval"/>; otherwise, <b>false&gt;</b>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.ContainsDay(System.DateTime)">
+            <summary>
+            Gets whether day of supplied <see cref="T:System.DateTime"/> is included in this <see cref="T:ImpruvIT.TimeInterval"/>. Time part is ignored and only date part is compared.
+            </summary>
+            <remarks>
+            Only date information is compared for both time interval and checked date. Day is included in time interval if it's date part is greater or equal than interval's start date (not time) and less or equal than interval's end date (not time).
+            </remarks>
+            <param name="date">A <see cref="T:System.DateTime"/> to check.</param>
+            <returns><b>true</b> if day of supplied <see cref="T:System.DateTime"/> is included in this <see cref="T:ImpruvIT.TimeInterval"/>; otherwise, <b>false&gt;</b>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.Intersect(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets intersection of supplied <see cref="T:ImpruvIT.TimeInterval"/> with this TimeInterval.
+            </summary>
+            <param name="other">A <see cref="T:ImpruvIT.TimeInterval"/> to intersect with this TimeInterval.</param>
+            <returns>New <see cref="T:ImpruvIT.TimeInterval"/> containing intersection of two intervals, if supplied intervals have any intersection; <see cref="F:ImpruvIT.TimeInterval.Empty"/> otherwise..</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.IntersectsWith(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets whether supplied <see cref="T:ImpruvIT.TimeInterval"/> intersects with this TimeInterval. Intervals are intersecting even when they have only one same time point (i.e 1.1. - 5.1. and 5.1. - 10.1.).
+            </summary>
+            <param name="other">A <see cref="T:ImpruvIT.TimeInterval"/> to check.</param>
+            <returns><b>true</b> if supplied <see cref="T:ImpruvIT.TimeInterval"/> intersects with this TimeInterval; otherwise, <b>false&gt;</b>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.IntersectsWithExcludingBounds(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets whether supplied <see cref="T:ImpruvIT.TimeInterval"/> intersects with this TimeInterval. Intervals are NOT intersecting when they have only one same time point (i.e 1.1. - 5.1. and 5.1. - 10.1.).
+            </summary>
+            <param name="other">A <see cref="T:ImpruvIT.TimeInterval"/> to check.</param>
+            <returns><b>true</b> if supplied <see cref="T:ImpruvIT.TimeInterval"/> intersects with this TimeInterval; otherwise, <b>false&gt;</b>.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.Normalize">
+            <summary>
+            Gets same <see cref="T:ImpruvIT.TimeInterval"/> whose <see cref="P:ImpruvIT.TimeInterval.Start"/> is less or equal than <see cref="P:ImpruvIT.TimeInterval.End"/>
+            </summary>
+            <returns>If <see cref="P:ImpruvIT.TimeInterval.Start"/> is greater than <see cref="P:ImpruvIT.TimeInterval.End"/> new normalized interval; otherwise, current instance.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.Subtract(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets <see cref="T:ImpruvIT.TimeIntervals"/> containing subtraction of supplied <see cref="T:ImpruvIT.TimeInterval"/> from current interval.
+            </summary>
+            <param name="other">A <see cref="T:ImpruvIT.TimeInterval"/> to subtract.</param>
+            <returns>A <see cref="T:ImpruvIT.TimeIntervals"/> containing subtraction of supplied <see cref="T:ImpruvIT.TimeInterval"/> from current interval.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeInterval.Union(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets <see cref="T:ImpruvIT.TimeInterval"/> containing union of current interval and supplied <see cref="T:ImpruvIT.TimeInterval"/> that intersacts with current interval.
+            </summary>
+            <param name="other">A <see cref="T:ImpruvIT.TimeInterval"/> to union.</param>
+            <returns>A <see cref="T:ImpruvIT.TimeInterval"/> containing union of supplied <see cref="T:ImpruvIT.TimeInterval"/> and current interval.</returns>
+            <exception cref="T:System.InvalidOperationException"><i>other</i> does not intersects with current interval.</exception>
+        </member>
+        <member name="P:ImpruvIT.TimeInterval.Start">
+            <summary>
+            Gets start time of the interval.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.TimeInterval.End">
+            <summary>
+            Gets end time of the interval.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.TimeInterval.Duration">
+            <summary>
+            Gets duration of the interval.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.TimeInterval.IsEmpty">
+            <summary>
+            Gets whether the interval has zero duration.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.TimeInterval.SameDay">
+            <summary>
+            Gets whether the interval starts and ends in the same day.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.TimeInterval.LongerThanDay">
+            <summary>
+            Gets whether the interval's duration is more than 24 hours. 
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.TimeIntervals">
+            <summary>
+            A list of <see cref="T:ImpruvIT.TimeInterval">time intervals</see>.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.#ctor">
+            <summary>
+            Initializes a new instance of empty <see cref="T:ImpruvIT.TimeIntervals"/>.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.#ctor(System.Collections.Generic.IEnumerable{ImpruvIT.TimeInterval})">
+            <summary>
+            Initializes a new instance of <see cref="T:ImpruvIT.TimeIntervals"/> and fills it with supplied <see cref="T:ImpruvIT.TimeInterval">intervals</see>.
+            </summary>
+            <param name="intervals">A list of intervals to fill new <see cref="T:ImpruvIT.TimeIntervals"/> with.</param>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.Contains(System.DateTime)">
+            <summary>
+            Gets whether any <see cref="T:ImpruvIT.TimeInterval"/> in the list contains specified <see cref="T:System.DateTime"/>.
+            </summary>
+            <param name="time">A <see cref="T:System.DateTime"/> to check.</param>
+            <returns><b>true</b> if any <see cref="T:ImpruvIT.TimeInterval"/> in the list conatins specified <see cref="T:System.DateTime"/>; <b>false</b> otherwise.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.ContainsInterval(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets whether any <see cref="T:ImpruvIT.TimeInterval"/> in the list contains specified TimeInterval.
+            </summary>
+            <param name="interval">A <see cref="T:ImpruvIT.TimeInterval"/> to check.</param>
+            <returns><b>true</b> if any <see cref="T:ImpruvIT.TimeInterval"/> in the list contains specified TimeInterval; <b>false</b> otherwise.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.ContainsDay(System.DateTime)">
+            <summary>
+            Gets whether any <see cref="T:ImpruvIT.TimeInterval"/> in the list contains day of specified <see cref="T:System.DateTime"/>. Time part is ignored and only date part is compared.
+            </summary>
+            <remarks>
+            Only date information is compared for both time interval and checked date. Day is included in time interval if it's date part is greater or equal than interval's start date (not time) and less or equal than interval's end date (not time).
+            </remarks>
+            <param name="day">A <see cref="T:System.DateTime"/> to check.</param>
+            <returns><b>true</b> if any <see cref="T:ImpruvIT.TimeInterval"/> in the list conatins day of specified <see cref="T:System.DateTime"/>; <b>false</b> otherwise.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.Intersect(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets intersection of supplied <see cref="T:ImpruvIT.TimeInterval"/> with current list of intervals.
+            </summary>
+            <param name="interval">A <see cref="T:ImpruvIT.TimeInterval"/> to intersect with current list of intervals.</param>
+            <returns>New <see cref="T:ImpruvIT.TimeIntervals"/> containing intersections of two intervals, if supplied intervals have any intersection; empty <see cref="T:ImpruvIT.TimeIntervals"/> otherwise..</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.IntersectsWith(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets whether supplied <see cref="T:ImpruvIT.TimeInterval"/> intersects with current list. Intervals are intersecting even when they have only one same time point (i.e 1.1. - 5.1. and 5.1. - 10.1.).
+            </summary>
+            <param name="interval">A <see cref="T:ImpruvIT.TimeInterval"/> to check.</param>
+            <returns><b>true</b> if supplied <see cref="T:ImpruvIT.TimeInterval"/> intersects with current list; <b>false</b> otherwise.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.IntersectsWithExcludingBounds(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets whether supplied <see cref="T:ImpruvIT.TimeInterval"/> intersects with current list. Intervals are NOT intersecting when they have only one same time point (i.e 1.1. - 5.1. and 5.1. - 10.1.).
+            </summary>
+            <param name="interval">A <see cref="T:ImpruvIT.TimeInterval"/> to check.</param>
+            <returns><b>true</b> if supplied <see cref="T:ImpruvIT.TimeInterval"/> intersects with current list; <b>false</b> otherwise.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.Subtract(ImpruvIT.TimeInterval)">
+            <summary>
+            Gets <see cref="T:ImpruvIT.TimeIntervals"/> containing subtraction of supplied <see cref="T:ImpruvIT.TimeInterval"/> from current list.
+            </summary>
+            <param name="interval">A <see cref="T:ImpruvIT.TimeInterval"/> to subtract.</param>
+            <returns>A <see cref="T:ImpruvIT.TimeIntervals"/> containing subtraction of supplied <see cref="T:ImpruvIT.TimeInterval"/> from current list.</returns>
+        </member>
+        <member name="M:ImpruvIT.TimeIntervals.Subtract(ImpruvIT.TimeIntervals)">
+            <summary>
+            Gets <see cref="T:ImpruvIT.TimeIntervals"/> containing subtraction of supplied <see cref="T:ImpruvIT.TimeIntervals"/> from current list.
+            </summary>
+            <param name="intervals">A <see cref="T:ImpruvIT.TimeIntervals"/> to subtract.</param>
+            <returns>A <see cref="T:ImpruvIT.TimeIntervals"/> containing subtraction of supplied <see cref="T:ImpruvIT.TimeIntervals"/> from current list.</returns>
+        </member>
+        <member name="P:ImpruvIT.TimeIntervals.IsEmpty">
+            <summary>
+            Gets whether list contains only <see cref="P:ImpruvIT.TimeInterval.IsEmpty">empty</see> intervals. So also whole list has zero duration.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.TimeIntervals.Duration">
+            <summary>
+            Gets sumary duration of the intervals. If two or more intervals are overlapping, their intersection is counted only once.
+            </summary>
+        </member>
+    </members>
+</doc>
