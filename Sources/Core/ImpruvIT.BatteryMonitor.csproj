@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F4636427-C81B-408B-B67E-2C9B12DBFAE2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ImpruvIT.BatteryMonitor</RootNamespace>
+    <AssemblyName>ImpruvIT.BatteryMonitor</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ImpruvIT.Core">
+      <HintPath>..\WPFApp\bin\Debug\ImpruvIT.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Domain\IProductDefinition.cs" />
+    <Compile Include="Domain\Unit.cs" />
+    <Compile Include="Domain\Voltage.cs" />
+    <Compile Include="OldBattery.cs" />
+    <Compile Include="BatteryConditions.cs" />
+    <Compile Include="BatteryInformation.cs" />
+    <Compile Include="BatteryStatus.cs" />
+    <Compile Include="Communication\IBatteryAdapter.cs" />
+    <Compile Include="TraceBuilder.cs" />
+    <None Include="Communication\BatteryAdapter.cs" />
+    <Compile Include="Communication\CurrentConditionsEventArgs.cs" />
+    <Compile Include="Domain\Battery.cs" />
+    <Compile Include="Domain\BatteryElement.cs" />
+    <Compile Include="Domain\BatteryPack.cs" />
+    <Compile Include="Domain\BatteryHealthWrapper.cs" />
+    <Compile Include="Domain\BatteryActualsWrapper.cs" />
+    <Compile Include="Domain\DataDictionary.cs" />
+    <Compile Include="Domain\DataDictionaryWrapper.cs" />
+    <Compile Include="Domain\EntryIdentifier.cs" />
+    <Compile Include="Domain\IBatteryActuals.cs" />
+    <Compile Include="Domain\IBatteryHealth.cs" />
+    <Compile Include="Domain\IBatteryParameters.cs" />
+    <Compile Include="Domain\BatteryParametersWrapper.cs" />
+    <Compile Include="Domain\SeriesBatteryPack_Actuals.cs" />
+    <Compile Include="Domain\ParallelBatteryPack_Actuals.cs" />
+    <Compile Include="Domain\SeriesBatteryPack_Health.cs" />
+    <Compile Include="Domain\ParallelBatteryPack_Health.cs" />
+    <Compile Include="Domain\SeriesBatteryPack_Parameters.cs" />
+    <Compile Include="Domain\ParallelBatteryPack_Parameters.cs" />
+    <Compile Include="Domain\SeriesBatteryPack.cs" />
+    <Compile Include="Domain\ParallelBatteryPack.cs" />
+    <Compile Include="Domain\ProductDefinitionWrapper.cs" />
+    <Compile Include="Domain\SingleCell.cs" />
+    <Compile Include="ObservableConcurrentCollection.cs" />
+    <Compile Include="ObservableConcurrentDictionary.cs" />
+    <Compile Include="ProducerConsumerCollectionBase.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

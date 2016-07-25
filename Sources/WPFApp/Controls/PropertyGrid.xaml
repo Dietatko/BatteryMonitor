@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="ImpruvIT.BatteryMonitor.WPFApp.Controls.PropertyGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:telerik="http://schemas.telerik.com/2008/xaml/presentation"
+             xmlns:myControls="clr-namespace:ImpruvIT.BatteryMonitor.WPFApp.Controls"
+             xmlns:myLogic="clr-namespace:ImpruvIT.BatteryMonitor.WPFApp.ViewLogic"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <myControls:PropertyValueConverter x:Key="PropertyValueConverter" />
+    </UserControl.Resources>
+    <DockPanel LastChildFill="True">
+        <Grid MinHeight="42"
+              Background="Silver"
+              DockPanel.Dock="Bottom">
+            <TextBlock Text="{Binding SelectedItem.Description, ElementName=PropertyList}" TextWrapping="Wrap"
+                       Width="{Binding ActualWidth, ElementName=grid, Mode=OneWay}" Padding="5" />
+        </Grid>
+        <telerik:RadListBox x:Name="PropertyList"
+                            ItemsSource="{Binding PropertiesSource, RelativeSource={RelativeSource FindAncestor, AncestorType=myControls:PropertyGrid}}">
+            <telerik:RadListBox.ItemTemplate>
+                <DataTemplate DataType="myLogic:ReadingDescription`2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Title}" Grid.Column="0" />
+                        <TextBlock Grid.Column="1">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{StaticResource PropertyValueConverter}">
+                                    <Binding />
+                                    <Binding Path="Item" RelativeSource="{RelativeSource FindAncestor, AncestorType=myControls:PropertyGrid}" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Grid>
+                </DataTemplate>
+            </telerik:RadListBox.ItemTemplate>
+        </telerik:RadListBox>
+    </DockPanel>
+</UserControl>
