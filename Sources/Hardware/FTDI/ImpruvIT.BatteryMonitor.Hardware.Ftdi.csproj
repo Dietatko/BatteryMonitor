@@ -35,8 +35,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Libraries\FTD2XX_NET\FTD2XX_NET.dll</HintPath>
     </Reference>
-    <Reference Include="ImpruvIT.Core">
-      <HintPath>..\..\..\..\..\..\..\ImpruvIT\Projects\Bricks\Output\ImpruvIT.Core.dll</HintPath>
+    <Reference Include="ImpruvIT.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bca168785b6345be, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Libraries\ImpruvIT\ImpruvIT.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
