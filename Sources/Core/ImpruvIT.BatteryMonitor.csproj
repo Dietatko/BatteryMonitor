@@ -62,12 +62,9 @@
     <Compile Include="BatteryConditions.cs" />
     <Compile Include="BatteryInformation.cs" />
     <Compile Include="BatteryStatus.cs" />
-    <Compile Include="Communication\IBatteryAdapter.cs" />
     <Compile Include="Protocols\IBatteryPackAdapter.cs" />
     <Compile Include="Protocols\UpdateFrequency.cs" />
     <Compile Include="TraceBuilder.cs" />
-    <None Include="Communication\BatteryAdapter.cs" />
-    <Compile Include="Communication\CurrentConditionsEventArgs.cs" />
     <Compile Include="Domain\Battery.cs" />
     <Compile Include="Domain\BatteryElement.cs" />
     <Compile Include="Domain\BatteryPack.cs" />
