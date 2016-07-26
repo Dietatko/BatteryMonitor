@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public class BatteryActualsWrapper : DataDictionaryWrapper, IBatteryActuals
+	public class BatteryActualsWrapper : DataDictionaryWrapperBase, IBatteryActuals
 	{
 		public const string NamespaceUri = "BatteryReadingsNS";
 

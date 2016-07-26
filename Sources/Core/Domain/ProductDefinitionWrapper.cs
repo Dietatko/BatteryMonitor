@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public class ProductDefinitionWrapper : DataDictionaryWrapper, IProductDefinition
+	public class ProductDefinitionWrapper : DataDictionaryWrapperBase, IProductDefinition
 	{
 		public const string NamespaceUri = "ProductDefinitionNS";
 		public const string ManufacturerEntryName = "Manufacturer";

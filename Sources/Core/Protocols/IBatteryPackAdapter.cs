@@ -1,10 +1,11 @@
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using ImpruvIT.BatteryMonitor.Domain;
 
 namespace ImpruvIT.BatteryMonitor.Protocols
 {
-	public interface IBatteryPackAdapter
+	public interface IBatteryPackAdapter : INotifyPropertyChanged
 	{
 		BatteryPack Pack { get; }
 

@@ -46,6 +46,8 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 			{
 				FTDI.FT_STATUS status;
 
+				NativeMethods.Init_libMPSSE();
+
 				// Find requested channel
 				uint channelCount;
 				status = NativeMethods.I2C_GetNumChannels(out channelCount);

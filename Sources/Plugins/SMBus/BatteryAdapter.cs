@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -13,7 +14,7 @@ using ImpruvIT.BatteryMonitor.Domain;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
-	public class BatteryAdapter : IBatteryPackAdapter
+	public class BatteryAdapter : IBatteryPackAdapter, INotifyPropertyChanged
 	{
 		private const int RetryCount = 3;
 
@@ -34,7 +35,20 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 	    protected ILog Tracer { get; private set; }
 		protected SMBusInterface Connection { get; private set; }
 		protected uint Address { get; private set; }
-		public BatteryPack Pack { get; private set; }
+
+		public BatteryPack Pack
+		{
+			get { return this.m_pack; }
+			private set
+			{
+				if (Object.ReferenceEquals(this.m_pack, value))
+					return;
+
+				this.m_pack = value;
+				this.OnPropertyChanged("Pack");
+			}
+		}
+		private BatteryPack m_pack;
 
 
 		#region Battery recognition
@@ -203,31 +217,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			}
 		}
 
-		public Task ReadActuals()
-		{
-			return this.ReadActuals((IEnumerable<Expression<Func<BatteryConditions, object>>>)null);
-		}
-
-		public Task ReadActuals(params Expression<Func<BatteryConditions, object>>[] valueSelectors)
-		{
-			return this.ReadActuals((IEnumerable<Expression<Func<BatteryConditions, object>>>)valueSelectors);
-		}
-
-		public async Task ReadActuals(IEnumerable<Expression<Func<BatteryConditions, object>>> valueSelectors)
+		public async Task ReadActuals()
 		{
 			this.Tracer.DebugFormat("Reading battery actuals information of the battery at address 0x{0:X}.", this.Address);
-
-			//if (valueSelectors != null)
-			//{
-			//	valueSelectors = valueSelectors.ToList();
-
-			//	var valueSelector = valueSelectors.First();
-			//	UnaryExpression body = valueSelector.Body as UnaryExpression;
-
-			//	Expression<Func<BatteryConditions, object>> expected = x => x.Voltage;
-
-			//	var same = valueSelector.Equals(expected);
-			//}
 
 			var pack = this.Pack;
 			if (pack == null)
@@ -504,5 +496,19 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		}
 
 		#endregion Reading primitives
+
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		/// <summary>
+		/// Fires the <see cref="PropertyChanged"/> event.
+		/// </summary>
+		/// <param name="propertyName">The name of the chnaged property.</param>
+		protected virtual void OnPropertyChanged(string propertyName)
+		{
+			PropertyChangedEventHandler handlers = this.PropertyChanged;
+			if (handlers != null)
+				handlers(this, new PropertyChangedEventArgs(propertyName));
+		}
     }
 }

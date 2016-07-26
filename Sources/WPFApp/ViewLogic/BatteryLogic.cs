@@ -1,64 +1,115 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
-using System.Windows.Threading;
-using ImpruvIT.BatteryMonitor.Communication;
+using System.Threading.Tasks;
+using LiveCharts;
+
+using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Protocols;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 {
-	public class BatteryLogic : INotifyPropertyChanged
+	public class BatteryLogic : ViewLogicBase
 	{
 		public static DateTime BaseTime = DateTime.UtcNow;
 
-		public BatteryLogic(IBatteryAdapter batteryAdapter)
+		public BatteryLogic(IBatteryPackAdapter batteryAdapter)
 		{
+			this.ActualsHistory = new ChartValues<ActualsSnapshot>();
 			this.BatteryAdapter = batteryAdapter;
-			this.Readings = new ObservableCollection<ConditionsRecord>();
 		}
 
-		protected IBatteryAdapter BatteryAdapter
+		protected IBatteryPackAdapter BatteryAdapter
 		{
 			get { return this.m_batteryAdapter; }
-			set
+			private set
 			{
 				if (Object.ReferenceEquals(this.m_batteryAdapter, value))
 					return;
 
-				if (this.m_batteryAdapter != null)
-				{
-					this.m_batteryAdapter.CurrentConditionsUpdated -= BatteryAdapter_CurrentConditionsUpdated;
-					this.Readings.Clear();
-				}
-
 				this.m_batteryAdapter = value;
 
-				if (this.m_batteryAdapter != null)
-				{
-					this.m_batteryAdapter.CurrentConditionsUpdated += BatteryAdapter_CurrentConditionsUpdated;
-					this.m_batteryAdapter.RecognizeBattery();
-					this.m_batteryAdapter.StartMonitoringConditions(TimeSpan.FromSeconds(1));
-				}
-				this.BatteryInformationDescriptions = new ListBase<IReadingDescription<OldBattery, object>>(this.GetInformationDescriptions());
-				this.BatteryConditionsDescriptions = new ListBase<IReadingDescription<OldBattery, object>>(this.GetConditionsDescriptions());
-				
-				this.OnPropertyChanged(new PropertyChangedEventArgs("BatteryAdapter"));
+				this.BatteryInformationDescriptions = new ListBase<IReadingDescription<BatteryPack, object>>(this.GetInformationDescriptions());
+				this.BatteryConditionsDescriptions = new ListBase<IReadingDescription<BatteryPack, object>>(this.GetConditionsDescriptions());
+
+				this.OnPropertyChanged("BatteryAdapter");
+				this.OnPropertyChanged("Pack");
+
+				this.BypassPropertyNotification(() => this.m_batteryAdapter, "Pack", "Pack");
 			}
 		}
+		private IBatteryPackAdapter m_batteryAdapter;
 
-		private IBatteryAdapter m_batteryAdapter;
-
-		public OldBattery Battery
+		public BatteryPack Pack
 		{
-			get { return this.BatteryAdapter.Battery; }
+			get { return this.BatteryAdapter.Pack; }
 		}
 
 
-		#region Battery information
+		#region Monitoring
 
-		public ListBase<IReadingDescription<OldBattery, object>> BatteryInformationDescriptions
+		private ISubscription m_updatesSubscription;
+
+		public ChartValues<ActualsSnapshot> ActualsHistory { get; private set; }
+
+		public Task StartMonitoring()
+		{
+			this.ActualsHistory.Clear();
+
+			return this.BatteryAdapter.RecognizeBattery()
+				.ContinueWith(t =>
+				{
+					this.m_updatesSubscription = this.m_batteryAdapter.SubscribeToUpdates(this.UpdateActuals, UpdateFrequency.Normal);
+				});
+		}
+
+		public void StopMonitoring()
+		{
+			var subscription = Interlocked.Exchange(ref this.m_updatesSubscription, null);
+			if (subscription != null)
+				subscription.Unsubscribe();
+		}
+
+		private void UpdateActuals(BatteryPack pack)
+		{
+			if (pack == null)
+				return;
+
+			//Dispatcher.CurrentDispatcher.Invoke(() =>
+			//{
+			this.ActualsHistory.Add(new ActualsSnapshot(CloneActuals(pack)));
+
+			if (this.ActualsHistory.Count > 120)
+			{
+				var recordsToDelete = this.ActualsHistory.OrderBy(x => x.Timestamp).Take(this.ActualsHistory.Count - 110).ToList();
+				foreach (var record in recordsToDelete)
+					this.ActualsHistory.Remove(record);
+			}
+			//});
+		}
+
+		private static Actuals CloneActuals(BatteryPack pack)
+		{
+			return new Actuals
+				{
+					PackVoltage = pack.Actuals.Voltage,
+					Cell1Voltage = pack.SubElements.ElementAt(0).Actuals.Voltage,
+					Cell2Voltage = pack.SubElements.ElementAt(1).Actuals.Voltage,
+					Cell3Voltage = pack.SubElements.ElementAt(2).Actuals.Voltage,
+					ActualCurrent = pack.Actuals.ActualCurrent,
+					Capacity = pack.Actuals.RemainingCapacity,
+					Temperature = pack.Actuals.Temperature
+				};
+		}
+
+		#endregion Monitoring
+
+
+		#region Descriptions
+
+		public ListBase<IReadingDescription<BatteryPack, object>> BatteryInformationDescriptions
 		{
 			get { return this.m_batteryInformationDescriptions; }
 			set
@@ -68,43 +119,37 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 				this.m_batteryInformationDescriptions = value;
 
-				this.OnPropertyChanged(new PropertyChangedEventArgs("BatteryInformationDescriptions"));
+				this.OnPropertyChanged("BatteryInformationDescriptions");
 			}
 		}
-		private ListBase<IReadingDescription<OldBattery, object>> m_batteryInformationDescriptions;
+		private ListBase<IReadingDescription<BatteryPack, object>> m_batteryInformationDescriptions;
 
-		protected virtual IEnumerable<IReadingDescription<OldBattery, object>> GetInformationDescriptions()
+		protected virtual IEnumerable<IReadingDescription<BatteryPack, object>> GetInformationDescriptions()
 		{
-			if (this.Battery == null)
-				yield break;
+			// Product
+			yield return new ReadingDescription<BatteryPack, string>(b => b.Product.Manufacturer, "Information.Manufacturer", "Manufacturer", "The manufacturer of the battery pack.");
+			yield return new ReadingDescription<BatteryPack, string>(b => b.Product.Product, "Information.Product", "Product", "The battery pack product identifier.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.Product.ManufactureDate, "Information.ManufactureDate", "{0:d}", "Manufacture date", "The battery pack manufacture date.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.Product.SerialNumber, "Information.SerialNumber", "Serial number", "The battery pack serial number.");
+			yield return new ReadingDescription<BatteryPack, string>(b => b.Product.Chemistry, "Information.Chemistry", "Chemistry", "The battery pack chemistry.");
+			//yield return new ReadingDescription<BatteryPack, Version>(b => b.Information.SpecificationVersion, "Information.SpecificationVersion", "SpecificationVersion", "The SMBus specification version the battery pack conforms to.");
+			//yield return new ReadingDescription<BatteryPack, object>(b => b.Information.CellCount, "Information.CellCount", "{0} cells", "Cells", "A number of cells in the battery pack.");
 
-			// Information
-			yield return new ReadingDescription<OldBattery, string>(b => b.Information.Manufacturer, "Information.Manufacturer", "Manufacturer", "The manufacturer of the battery pack.");
-			yield return new ReadingDescription<OldBattery, string>(b => b.Information.Product, "Information.Product", "Product", "The battery pack product identifier.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Information.ManufactureDate, "Information.ManufactureDate", "{0:d}", "Manufacture date", "The battery pack manufacture date.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Information.SerialNumber, "Information.SerialNumber", "Serial number", "The battery pack serial number.");
-			yield return new ReadingDescription<OldBattery, string>(b => b.Information.Chemistry, "Information.Chemistry", "Chemistry", "The battery pack chemistry.");
-			yield return new ReadingDescription<OldBattery, Version>(b => b.Information.SpecificationVersion, "Information.SpecificationVersion", "SpecificationVersion", "The SMBus specification version the battery pack conforms to.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Information.CellCount, "Information.CellCount", "{0} cells", "Cells", "A number of cells in the battery pack.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Information.NominalVoltage, "Information.NominalVoltage", "{0} V", "Nominal voltage", "The nominal voltage of the battery pack.");
-			//yield return new ReadingDescription<Battery, float>(b => b.Information.DesignedDischargeCurrent, "Information.DesignedDischargeCurrent", "{0} A", "Discharge current", "A continuos discharge current of the battery pack.");
-			//yield return new ReadingDescription<Battery, float>(b => b.Information.MaxDischargeCurrent, "Information.MaxDischargeCurrent", "{0} A", "Max discharge current", "A maximal short-time (pulse) discharge current of the battery pack.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Information.DesignedCapacity * 1000, "Information.DesignedCapacity", "{0} mAh", "Nominal capacity", "A designed capacity of the battery pack.");
+			// Parameters
+			yield return new ReadingDescription<BatteryPack, object>(b => b.ProductionParameters.NominalVoltage, "Information.NominalVoltage", "{0} V", "Nominal voltage", "The nominal voltage of the battery pack.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.ProductionParameters.DesignedDischargeCurrent, "Information.DesignedDischargeCurrent", "{0} A", "Discharge current", "A continuos discharge current of the battery pack.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.ProductionParameters.MaxDischargeCurrent, "Information.MaxDischargeCurrent", "{0} A", "Max discharge current", "A maximal short-time (pulse) discharge current of the battery pack.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.ProductionParameters.DesignedCapacity * 1000, "Information.DesignedCapacity", "{0} mAh", "Nominal capacity", "A designed capacity of the battery pack.");
 
-			// Status
-			yield return new ReadingDescription<OldBattery, object>(b => b.Status.FullChargeCapacity * 1000, "Status.FullChargeCapacity", "{0} mAh", "Full charge capacity", "A capacity of the full-charged battery pack.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Status.CycleCount, "Status.CycleCount", "{0} cycles", "Cycles", "A number of charge-discharge cycles in life time of the battery pack.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Status.MaxError, "Status.MaxError", "{0} %", "Value error", "A maximum value error of measured and calculated values.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Status.RemainingCapacityAlarm * 1000, "Status.RemainingCapacityAlarm", "{0} mAh", "Capacity alarm threshold", "A remaining capacity of the battery pack that will trigger alarm notification.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Status.RemainingTimeAlarm, "Status.RemainingTimeAlarm", "Time alarm threshold", "A remaining usage time of the battery pack that will trigger alarm notification.");
+			// Health
+			yield return new ReadingDescription<BatteryPack, object>(b => b.Health.FullChargeCapacity * 1000, "Status.FullChargeCapacity", "{0} mAh", "Full charge capacity", "A capacity of the full-charged battery pack.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.Health.CycleCount, "Status.CycleCount", "{0} cycles", "Cycles", "A number of charge-discharge cycles in life time of the battery pack.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.Health.CalculationPrecision * 100, "Status.MaxError", "{0} %", "Value error", "A maximum value error of measured and calculated values.");
+			//yield return new ReadingDescription<BatteryPack, object>(b => b.Status.RemainingCapacityAlarm * 1000, "Status.RemainingCapacityAlarm", "{0} mAh", "Capacity alarm threshold", "A remaining capacity of the battery pack that will trigger alarm notification.");
+			//yield return new ReadingDescription<BatteryPack, object>(b => b.Status.RemainingTimeAlarm, "Status.RemainingTimeAlarm", "Time alarm threshold", "A remaining usage time of the battery pack that will trigger alarm notification.");
 		}
 
-		#endregion Battery information
-
-
-		#region Battery monitoring
-
-		public ListBase<IReadingDescription<OldBattery, object>> BatteryConditionsDescriptions
+		public ListBase<IReadingDescription<BatteryPack, object>> BatteryConditionsDescriptions
 		{
 			get { return this.m_batteryConditionsDescriptions; }
 			set
@@ -114,76 +159,23 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 				this.m_batteryConditionsDescriptions = value;
 
-				this.OnPropertyChanged(new PropertyChangedEventArgs("BatteryConditionsDescriptions"));
+				this.OnPropertyChanged("BatteryConditionsDescriptions");
 			}
 		}
-		private ListBase<IReadingDescription<OldBattery, object>> m_batteryConditionsDescriptions;
+		private ListBase<IReadingDescription<BatteryPack, object>> m_batteryConditionsDescriptions;
 
-		public ObservableCollection<ConditionsRecord> Readings { get; private set; }
-
-		protected virtual IEnumerable<IReadingDescription<OldBattery, object>> GetConditionsDescriptions()
+		protected virtual IEnumerable<IReadingDescription<BatteryPack, object>> GetConditionsDescriptions()
 		{
-			if (this.Battery == null)
-				yield break;
-
-			yield return new ReadingDescription<OldBattery, object>(b => b.Conditions.Voltage, "Conditions.Voltage", "{0} V", "Voltage", "The current battery pack voltage.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Conditions.CellVoltages[0], "Conditions.CellVoltages[0]", "{0} V", "Cell 1 voltage", "The current voltage of the cell 1.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Conditions.CellVoltages[1], "Conditions.CellVoltages[1]", "{0} V", "Cell 2 voltage", "The current voltage of the cell 2.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Conditions.CellVoltages[2], "Conditions.CellVoltages[2]", "{0} V", "Cell 3 voltage", "The current voltage of the cell 3.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Conditions.CellVoltages[3], "Conditions.CellVoltages[3]", "{0} V", "Cell 4 voltage", "The current voltage of the cell 4.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Conditions.Current, "Conditions.Current", "{0} A", "Current", "The current load current.");
-			yield return new ReadingDescription<OldBattery, object>(b => b.Conditions.AverageCurrent, "Conditions.AverageCurrent", "{0} A", "Average current", "The average load current.");
-			yield return new ReadingDescription<OldBattery, object>(b => (int)(b.Conditions.Temperature - 273.15), "Conditions.Temperature", "{0} C", "Temperature", "The current pack temperature.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.Actuals.Voltage, "Conditions.Voltage", "{0} V", "Voltage", "The current battery pack voltage.");
+			//yield return new ReadingDescription<BatteryPack, object>(b => b.Conditions.CellVoltages[0], "Conditions.CellVoltages[0]", "{0} V", "Cell 1 voltage", "The current voltage of the cell 1.");
+			//yield return new ReadingDescription<BatteryPack, object>(b => b.Conditions.CellVoltages[1], "Conditions.CellVoltages[1]", "{0} V", "Cell 2 voltage", "The current voltage of the cell 2.");
+			//yield return new ReadingDescription<BatteryPack, object>(b => b.Conditions.CellVoltages[2], "Conditions.CellVoltages[2]", "{0} V", "Cell 3 voltage", "The current voltage of the cell 3.");
+			//yield return new ReadingDescription<BatteryPack, object>(b => b.Conditions.CellVoltages[3], "Conditions.CellVoltages[3]", "{0} V", "Cell 4 voltage", "The current voltage of the cell 4.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.Actuals.ActualCurrent, "Conditions.Current", "{0} A", "Current", "The current load current.");
+			yield return new ReadingDescription<BatteryPack, object>(b => b.Actuals.AverageCurrent, "Conditions.AverageCurrent", "{0} A", "Average current", "The average load current.");
+			yield return new ReadingDescription<BatteryPack, object>(b => (int)(b.Actuals.Temperature - 273.15), "Conditions.Temperature", "{0} C", "Temperature", "The current pack temperature.");
 		}
 
-		private void BatteryAdapter_CurrentConditionsUpdated(object sender, CurrentConditionsEventArgs currentConditionsEventArgs)
-		{
-			if (currentConditionsEventArgs.Conditions == null)
-				return;
-			
-			//Dispatcher.CurrentDispatcher.Invoke(() =>
-			//{
-				this.Readings.Add(new ConditionsRecord((currentConditionsEventArgs.Conditions).Clone()));
-
-				if (this.Readings.Count > 120)
-				{
-					var recordsToDelete = this.Readings.OrderBy(x => x.Timestamp).Take(this.Readings.Count - 110).ToList();
-					foreach (var record in recordsToDelete)
-						this.Readings.Remove(record);
-				}
-			//});
-		}
-
-		#endregion Battery monitoring
-
-
-		public event PropertyChangedEventHandler PropertyChanged;
-		/// <summary>
-		/// Fires the <see cref="PropertyChanged"/> event.
-		/// </summary>
-		/// <param name="args">The <see cref="PropertyChangedEventArgs"/> that contains the event data.</param>
-		protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
-		{
-			PropertyChangedEventHandler handlers = this.PropertyChanged;
-			if (handlers != null)
-				handlers(this, args);
-		}
-	}
-
-	public class ConditionReadings
-	{
-		public ConditionReadings(DateTime timestamp, BatteryConditions conditions)
-		{
-			this.Timestamp = timestamp;
-			this.Conditions = conditions;
-		}
-
-		public DateTime Timestamp { get; set; }
-		public int TimestampSecs
-		{
-			get { return (int)(this.Timestamp - BatteryLogic.BaseTime).TotalSeconds; }
-		}
-
-		public BatteryConditions Conditions { get; set; }
+		#endregion Descriptions
 	}
 }

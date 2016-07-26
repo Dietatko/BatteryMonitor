@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
-using ImpruvIT.BatteryMonitor.Communication;
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
 using ImpruvIT.BatteryMonitor.Protocols.SMBus;
@@ -78,7 +76,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			return discoveryTask.ContinueWith(t =>
 			{
 				var devices = new ListBase<IBusDevice>();
-				if (!t.IsFaulted && ! t.IsCanceled)
+				if (!t.IsFaulted && !t.IsCanceled)
 					devices.AddRange(t.Result.SelectMany(x => x));
 
 				this.BusDevices = devices;
@@ -146,9 +144,14 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				if (Object.ReferenceEquals(this.m_firstBatteryLogic, value))
 					return;
 
-				this.m_firstBatteryLogic = value;
+				if (this.m_firstBatteryLogic != null)
+					this.m_firstBatteryLogic.StopMonitoring();
 
+				this.m_firstBatteryLogic = value;
 				this.OnPropertyChanged(new PropertyChangedEventArgs("FirstBatteryLogic"));
+
+				if (this.m_firstBatteryLogic != null)
+					this.m_firstBatteryLogic.StartMonitoring();
 			}
 		}
 		private BatteryLogic m_firstBatteryLogic;
@@ -159,7 +162,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 			var connection = this.Connection as ICommunicateToAddressableBus;
 			if (connection != null)
-				batteries.Add(new BatteryLogic(new BatteryAdapter(new ImpruvIT.BatteryMonitor.Protocols.SMBus.SMBusInterface(connection), 0x2a)));
+				batteries.Add(new BatteryLogic(new BatteryAdapter(new SMBusInterface(connection), 0x2a)));
 
 			this.Batteries = batteries;
 		}

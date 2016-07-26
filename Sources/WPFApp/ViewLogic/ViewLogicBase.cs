@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 {
@@ -26,6 +24,19 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			PropertyChangedEventHandler handlers = this.PropertyChanged;
 			if (handlers != null)
 				handlers(this, args);
+		}
+
+		protected virtual void BypassPropertyNotification(Func<INotifyPropertyChanged> sourceFunc, string sourcePropertyName, string thisPropertyName)
+		{
+			var source = sourceFunc();
+			if (source == null)
+				return;
+
+			source.PropertyChanged += (sender, args) =>
+			{
+				if (args.PropertyName == sourcePropertyName)
+					this.OnPropertyChanged(thisPropertyName);
+			};
 		}
 	}
 }

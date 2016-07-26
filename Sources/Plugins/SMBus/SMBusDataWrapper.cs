@@ -6,7 +6,7 @@ using ImpruvIT.BatteryMonitor.Domain;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
-	public class SMBusDataWrapper : DataDictionaryWrapper
+	public class SMBusDataWrapper : DataDictionaryWrapperBase
 	{
 		public const string NamespaceUri = "SMBus";
 		public const string SpecificationVersionEntryName = "SpecificationVersion";

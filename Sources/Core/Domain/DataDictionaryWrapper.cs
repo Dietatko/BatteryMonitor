@@ -4,9 +4,9 @@ using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public abstract class DataDictionaryWrapper
+	public abstract class DataDictionaryWrapperBase
 	{
-		protected DataDictionaryWrapper(DataDictionary data)
+		protected DataDictionaryWrapperBase(DataDictionary data)
 		{
 			Contract.Requires(data, "data").IsNotNull();
 
@@ -17,14 +17,18 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		protected abstract string DefaultNamespaceUri { get; }
 
-		protected virtual T GetValue<T>(string entryName)
+		protected virtual T GetValue<T>(string entryName, T defaultValue = default(T))
 		{
-			return this.GetValue<T>(this.DefaultNamespaceUri, entryName);
+			return this.GetValue<T>(this.DefaultNamespaceUri, entryName, defaultValue);
 		}
 
-		protected virtual T GetValue<T>(string namespaceUri, string entryName)
+		protected virtual T GetValue<T>(string namespaceUri, string entryName, T defaultValue = default(T))
 		{
-			return this.Data.GetValue<T>(namespaceUri, entryName);
+			T result;
+			if (!this.Data.TryGetValue(namespaceUri, entryName, out result))
+				result = defaultValue;
+
+			return result;
 		}
 
 		protected virtual void SetValue<T>(string entryName, T value)

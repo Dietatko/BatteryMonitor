@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public class BatteryHealthWrapper : DataDictionaryWrapper, IBatteryHealth
+	public class BatteryHealthWrapper : DataDictionaryWrapperBase, IBatteryHealth
 	{
 		public const string NamespaceUri = "BatteryHealthNS";
 		public const string FullChargeCapacityEntryName = "FullChargeCapacity";

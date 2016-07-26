@@ -132,10 +132,10 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			Console.WriteLine();
 		}
 
-		private static void ReportAlarmSettings(OldBattery battery)
+		private static void ReportAlarmSettings(Battery battery)
 		{
-			Console.WriteLine("Remaining capacity alarm: {0}", (battery.Status.RemainingCapacityAlarm > 0 ? String.Format("{0:N0} mAh", battery.Status.RemainingCapacityAlarm * 1000) : DisabledText));
-			Console.WriteLine("Remaining time alarm:     {0}", (battery.Status.RemainingTimeAlarm > TimeSpan.Zero ? battery.Status.RemainingTimeAlarm.ToString() : DisabledText));
+			//Console.WriteLine("Remaining capacity alarm: {0}", (battery.Health.RemainingCapacityAlarm > 0 ? String.Format("{0:N0} mAh", battery.Status.RemainingCapacityAlarm * 1000) : DisabledText));
+			//Console.WriteLine("Remaining time alarm:     {0}", (battery.Health.RemainingTimeAlarm > TimeSpan.Zero ? battery.Status.RemainingTimeAlarm.ToString() : DisabledText));
 		}
 
 		private static void TestAllCommands(SMBusInterface connection, uint address)

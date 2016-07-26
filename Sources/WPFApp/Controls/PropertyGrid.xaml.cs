@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-
+using System.Windows.Media;
+using ImpruvIT.BatteryMonitor.Domain;
 using ImpruvIT.BatteryMonitor.WPFApp.ViewLogic;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.Controls
@@ -30,7 +31,6 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.Controls
 		}
 		protected virtual void OnItemChanged(object oldValue, object newValue)
 		{
-
 		}
 
 		public ItemCollection Properties
@@ -38,17 +38,17 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.Controls
 			get { return this.PropertyList.Items; }
 		}
 
-		public static readonly DependencyProperty PropertiesSourceProperty = DependencyProperty.Register("PropertiesSource", typeof(ListBase<IReadingDescription<OldBattery, object>>), typeof(PropertyGrid), new UIPropertyMetadata(null, PropertiesSource_Changed));
-		public ListBase<IReadingDescription<OldBattery, object>> PropertiesSource
+		public static readonly DependencyProperty PropertiesSourceProperty = DependencyProperty.Register("PropertiesSource", typeof(ListBase<IReadingDescription<BatteryPack, object>>), typeof(PropertyGrid), new UIPropertyMetadata(null, PropertiesSource_Changed));
+		public ListBase<IReadingDescription<BatteryPack, object>> PropertiesSource
 		{
-			get { return (ListBase<IReadingDescription<OldBattery, object>>)GetValue(PropertiesSourceProperty); }
+			get { return (ListBase<IReadingDescription<BatteryPack, object>>)GetValue(PropertiesSourceProperty); }
 			set { SetValue(PropertiesSourceProperty, value); }
 		}
 		private static void PropertiesSource_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			((PropertyGrid)obj).OnPropertiesSourceChanged((ListBase<IReadingDescription<OldBattery, object>>)args.OldValue, (ListBase<IReadingDescription<OldBattery, object>>)args.NewValue);
+			((PropertyGrid)obj).OnPropertiesSourceChanged((ListBase<IReadingDescription<BatteryPack, object>>)args.OldValue, (ListBase<IReadingDescription<BatteryPack, object>>)args.NewValue);
 		}
-		protected virtual void OnPropertiesSourceChanged(ListBase<IReadingDescription<OldBattery, object>> oldValue, ListBase<IReadingDescription<OldBattery, object>> newValue)
+		protected virtual void OnPropertiesSourceChanged(ListBase<IReadingDescription<BatteryPack, object>> oldValue, ListBase<IReadingDescription<BatteryPack, object>> newValue)
 		{
 		}
 	}
