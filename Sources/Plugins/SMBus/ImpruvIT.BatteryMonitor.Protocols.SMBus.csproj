@@ -4,13 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3A6E17C7-DBFB-4D01-9349-F50D62AC93A2}</ProjectGuid>
+    <ProjectGuid>{95C36704-9E09-44DD-AA78-C013E746BE61}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ImpruvIT.BatteryMonitor.Hardware.Ftdi</RootNamespace>
-    <AssemblyName>ImpruvIT.BatteryMonitor.Hardware.Ftdi</AssemblyName>
+    <RootNamespace>ImpruvIT.BatteryMonitor.Protocols.SMBus</RootNamespace>
+    <AssemblyName>ImpruvIT.BatteryMonitor.Protocols.SMBus</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,7 +22,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,13 +32,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FTD2XX_NET, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Libraries\FTD2XX_NET\FTD2XX_NET.dll</HintPath>
-    </Reference>
     <Reference Include="ImpruvIT.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bca168785b6345be, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Libraries\ImpruvIT\ImpruvIT.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -48,23 +49,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Constants.cs" />
-    <Compile Include="DeviceManagerConnection.cs" />
-    <Compile Include="DeviceManagerConnector.cs" />
-    <Compile Include="MpsseConnection.cs" />
-    <Compile Include="MpsseDevice.cs" />
-    <Compile Include="MpsseDiscoveryService.cs" />
-    <None Include="DeviceManagerDiscoveryService.cs" />
-    <Compile Include="NativeMethods.cs" />
+    <Compile Include="BatteryAdapter.cs" />
+    <Compile Include="RecurrentTask.cs" />
+    <Compile Include="SMBusDataWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SMBusCommandIds.cs" />
+    <Compile Include="SMBusInterface.cs" />
+    <Compile Include="UpdatesSubscription.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hardware\ImpruvIT.BatteryMonitor.Hardware.csproj">
-      <Project>{d268180b-0a39-4595-a988-0e0be6a26de6}</Project>
-      <Name>ImpruvIT.BatteryMonitor.Hardware</Name>
+    <ProjectReference Include="..\..\Core\ImpruvIT.BatteryMonitor.csproj">
+      <Project>{f4636427-c81b-408b-b67e-2c9b12dbfae2}</Project>
+      <Name>ImpruvIT.BatteryMonitor</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

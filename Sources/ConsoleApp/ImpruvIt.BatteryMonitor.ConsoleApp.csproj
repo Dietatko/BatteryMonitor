@@ -67,15 +67,11 @@
       <Project>{F4636427-C81B-408B-B67E-2C9B12DBFAE2}</Project>
       <Name>ImpruvIT.BatteryMonitor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hardware\FTDI\ImpruvIT.BatteryMonitor.Hardware.Ftdi.csproj">
+    <ProjectReference Include="..\Plugins\FTDI\ImpruvIT.BatteryMonitor.Hardware.Ftdi.csproj">
       <Project>{3a6e17c7-dbfb-4d01-9349-f50d62ac93a2}</Project>
       <Name>ImpruvIT.BatteryMonitor.Hardware.Ftdi</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hardware\Hardware\ImpruvIT.BatteryMonitor.Hardware.csproj">
-      <Project>{d268180b-0a39-4595-a988-0e0be6a26de6}</Project>
-      <Name>ImpruvIT.BatteryMonitor.Hardware</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Protocols\SMBus\ImpruvIT.BatteryMonitor.Protocols.SMBus.csproj">
+    <ProjectReference Include="..\Plugins\SMBus\ImpruvIT.BatteryMonitor.Protocols.SMBus.csproj">
       <Project>{95c36704-9e09-44dd-aa78-c013e746be61}</Project>
       <Name>ImpruvIT.BatteryMonitor.Protocols.SMBus</Name>
     </ProjectReference>

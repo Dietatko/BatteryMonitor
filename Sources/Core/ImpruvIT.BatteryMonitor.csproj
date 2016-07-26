@@ -52,6 +52,11 @@
     <Compile Include="Domain\IProductDefinition.cs" />
     <Compile Include="Domain\Unit.cs" />
     <Compile Include="Domain\Voltage.cs" />
+    <Compile Include="Hardware\IBusConnection.cs" />
+    <Compile Include="Hardware\IBusDevice.cs" />
+    <Compile Include="Hardware\ICommunicateToAddressableBus.cs" />
+    <Compile Include="Hardware\ICommunicateToBus.cs" />
+    <Compile Include="Hardware\IDiscoverDevices.cs" />
     <Compile Include="OldBattery.cs" />
     <Compile Include="BatteryConditions.cs" />
     <Compile Include="BatteryInformation.cs" />

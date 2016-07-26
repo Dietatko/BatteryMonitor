@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D268180B-0A39-4595-A988-0E0BE6A26DE6}</ProjectGuid>
+    <ProjectGuid>{3A6E17C7-DBFB-4D01-9349-F50D62AC93A2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ImpruvIT.BatteryMonitor.Hardware</RootNamespace>
-    <AssemblyName>ImpruvIT.BatteryMonitor.Hardware</AssemblyName>
+    <RootNamespace>ImpruvIT.BatteryMonitor.Hardware.Ftdi</RootNamespace>
+    <AssemblyName>ImpruvIT.BatteryMonitor.Hardware.Ftdi</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FTD2XX_NET, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Libraries\FTD2XX_NET\FTD2XX_NET.dll</HintPath>
+    </Reference>
+    <Reference Include="ImpruvIT.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bca168785b6345be, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Libraries\ImpruvIT\ImpruvIT.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -40,12 +48,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IBusConnection.cs" />
-    <Compile Include="IBusDevice.cs" />
-    <Compile Include="ICommunicateToAddressableBus.cs" />
-    <Compile Include="ICommunicateToBus.cs" />
-    <Compile Include="IDiscoverDevices.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="DeviceManagerConnection.cs" />
+    <Compile Include="DeviceManagerConnector.cs" />
+    <Compile Include="MpsseConnection.cs" />
+    <Compile Include="MpsseDevice.cs" />
+    <Compile Include="MpsseDiscoveryService.cs" />
+    <None Include="DeviceManagerDiscoveryService.cs" />
+    <Compile Include="NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\ImpruvIT.BatteryMonitor.csproj">
+      <Project>{f4636427-c81b-408b-b67e-2c9b12dbfae2}</Project>
+      <Name>ImpruvIT.BatteryMonitor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
