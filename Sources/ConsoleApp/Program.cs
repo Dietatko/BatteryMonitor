@@ -9,6 +9,7 @@ using ImpruvIT.BatteryMonitor;
 using ImpruvIT.BatteryMonitor.Domain;
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
+using ImpruvIT.BatteryMonitor.Protocols;
 using ImpruvIT.BatteryMonitor.Protocols.SMBus;
 using NativeMethods = ImpruvIT.BatteryMonitor.Hardware.Ftdi.NativeMethods;
 
@@ -18,7 +19,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 	{
 		public static string DisabledText = "Disabled";
 
-		static void Main(string[] args)
+		static void Main()
 		{
 			log4net.Config.XmlConfigurator.Configure();
 
@@ -52,18 +53,18 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 				var batteryAdapter = new BatteryAdapter(new SMBusInterface((ICommunicateToAddressableBus)connection), address);
 				batteryAdapter.RecognizeBattery().Wait();
-				var battery = batteryAdapter.Battery;
+				var batteryPack = batteryAdapter.Pack;
 
 				Console.WriteLine("Battery found at address {0}:", address);
-				var product = battery.Product;
-				var parameters = battery.ProductionParameters;
+				var product = batteryPack.Product;
+				var parameters = batteryPack.ProductionParameters;
 				Console.WriteLine("Manufacturer:             {0}", product.Manufacturer);
 				Console.WriteLine("Product:                  {0}", product.Product);
 				Console.WriteLine("Chemistry:                {0}", product.Chemistry);
 				Console.WriteLine("Manufacture date:         {0}", product.ManufactureDate.ToShortDateString());
 				Console.WriteLine("Serial number:            {0}", product.SerialNumber);
 				//Console.WriteLine("Specification version:    {0}", battery.Information.SpecificationVersion.ToString(2));
-				Console.WriteLine("Cell count:               {0} cells", ((SeriesBatteryPack)battery.Configuration).SubElements.Count());
+				Console.WriteLine("Cell count:               {0} cells", batteryPack.SubElements.Count());
 				Console.WriteLine("Nominal voltage:          {0} V", parameters.NominalVoltage);
 				Console.WriteLine("DesignedDischargeCurrent: {0} A", parameters.DesignedDischargeCurrent);
 				Console.WriteLine("MaxDischargeCurrent:      {0} A", parameters.MaxDischargeCurrent);
@@ -73,7 +74,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				Console.WriteLine();
 
 				batteryAdapter.ReadHealth().Wait();
-				var health = battery.Health;
+				var health = batteryPack.Health;
 				Console.WriteLine("Current battery status:");
 				Console.WriteLine("Full charge capacity:     {0:N0} mAh", health.FullChargeCapacity * 1000);
 				Console.WriteLine("Cycle count:              {0}", health.CycleCount);
@@ -110,13 +111,14 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			}
 		}
 
-		private static void PrintActuals(Battery battery)
+		private static void PrintActuals(BatteryPack batteryPack)
 		{
-			var actuals = battery.Actuals;
+			var actuals = batteryPack.Actuals;
 
 			Console.WriteLine("Current battery conditions:");
-			Console.WriteLine("Voltage:                  {0} V", actuals.Voltage);
-			//Console.WriteLine("Cell voltages:            {0} V / {1} V / {2} V / {3} V", actuals.CellVoltages[0], actuals.CellVoltages[1], actuals.CellVoltages[2], actuals.CellVoltages[3]);
+			Console.WriteLine("Voltage:             {0} V ({1})", 
+				actuals.Voltage, 
+				batteryPack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals.Voltage)).Join(", "));
 			Console.WriteLine("Current:                  {0} mA", actuals.ActualCurrent * 1000f);
 			Console.WriteLine("Average current:          {0} mA", actuals.AverageCurrent * 1000f);
 			Console.WriteLine("Temperature:              {0:f2} °C", actuals.Temperature - 273.15f);

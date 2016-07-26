@@ -13,7 +13,7 @@ using ImpruvIT.BatteryMonitor.Domain;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
-	public class BatteryAdapter
+	public class BatteryAdapter : IBatteryPackAdapter
 	{
 		private const int RetryCount = 3;
 
@@ -34,7 +34,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 	    protected ILog Tracer { get; private set; }
 		protected SMBusInterface Connection { get; private set; }
 		protected uint Address { get; private set; }
-		public Battery Battery { get; private set; }
+		public BatteryPack Pack { get; private set; }
 
 
 		#region Battery recognition
@@ -47,11 +47,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			{
 				var pack = await this.RecognizeGeometry().ConfigureAwait(false);
 				await this.ReadManufactureData(pack);
+				await this.ReadProtocolParams(pack);
 
-				var battery = new Battery(pack);
-				await this.ReadProtocolParams(battery);
-
-				this.Battery = battery;
+				this.Pack = pack;
 				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.Product.Manufacturer, pack.Product.Product, pack.ProductionParameters.NominalVoltage, pack.ProductionParameters.DesignedCapacity * 1000);
 			}
 			catch (Exception ex)
@@ -67,16 +65,16 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			}
         }
 
-		private async Task<BatteryElement> RecognizeGeometry()
+		private async Task<BatteryPack> RecognizeGeometry()
 		{
-			var cellCount = (int)(await this.ReadUShortValueAsync(SMBusCommandIds.CellCount).ConfigureAwait(false));
-			var nominalVoltage = (await this.ReadUShortValueAsync(SMBusCommandIds.DesignVoltage).ConfigureAwait(false)) / 1000f;
+			var cellCount = (int)(await this.ReadUShortValue(SMBusCommandIds.CellCount).ConfigureAwait(false));
+			var nominalVoltage = (await this.ReadUShortValue(SMBusCommandIds.DesignVoltage).ConfigureAwait(false)) / 1000f;
 			var cellVoltage = nominalVoltage / cellCount;
 			const float designedDischargeCurrent = 0.0f;
 			const float maxDischargeCurrent = 0.0f;
 			//var designedDischargeCurrent = (await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
 			//var maxDischargeCurrent = (await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
-			var designedCapacity = (await this.ReadUShortValueAsync(SMBusCommandIds.DesignCapacity).ConfigureAwait(false)) / 1000f;
+			var designedCapacity = (await this.ReadUShortValue(SMBusCommandIds.DesignCapacity).ConfigureAwait(false)) / 1000f;
 
 			var cells = Enumerable.Range(0, cellCount)
 				.Select(i => new SingleCell(cellVoltage, designedDischargeCurrent, maxDischargeCurrent, designedCapacity));
@@ -94,16 +92,16 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			return pack;
 		}
 
-		private async Task ReadManufactureData(BatteryElement pack)
+		private async Task ReadManufactureData(BatteryPack pack)
 		{
 			this.Tracer.DebugFormat("Reading manufacturer data of battery at address 0x{0:X} ...", this.Address);
 
 			var productDefinitionWrapper = new ProductDefinitionWrapper(pack.CustomData);
-			productDefinitionWrapper.Manufacturer = await this.ReadStringValueAsync(SMBusCommandIds.ManufacturerName, 16).ConfigureAwait(false);
-			productDefinitionWrapper.Product = await this.ReadStringValueAsync(SMBusCommandIds.DeviceName, 16).ConfigureAwait(false);
-			productDefinitionWrapper.Chemistry = await this.ReadStringValueAsync(SMBusCommandIds.DeviceChemistry, 5).ConfigureAwait(false);
-			productDefinitionWrapper.ManufactureDate = ParseDate(await this.ReadUShortValueAsync(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
-			var serialNumber = await this.ReadUShortValueAsync(SMBusCommandIds.SerialNumber).ConfigureAwait(false);
+			productDefinitionWrapper.Manufacturer = await this.ReadStringValue(SMBusCommandIds.ManufacturerName, 16).ConfigureAwait(false);
+			productDefinitionWrapper.Product = await this.ReadStringValue(SMBusCommandIds.DeviceName, 16).ConfigureAwait(false);
+			productDefinitionWrapper.Chemistry = await this.ReadStringValue(SMBusCommandIds.DeviceChemistry, 5).ConfigureAwait(false);
+			productDefinitionWrapper.ManufactureDate = ParseDate(await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
+			var serialNumber = await this.ReadUShortValue(SMBusCommandIds.SerialNumber).ConfigureAwait(false);
 			productDefinitionWrapper.SerialNumber = serialNumber.ToString(CultureInfo.InvariantCulture);
 
 			this.Tracer.Debug(new TraceBuilder()
@@ -117,14 +115,14 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					.Trace());
 		}
 
-		private async Task ReadProtocolParams(Battery battery)
+		private async Task ReadProtocolParams(BatteryPack pack)
 		{
 			this.Tracer.DebugFormat("Reading SMBus protocol parameters of the battery at address 0x{0:X} ...", this.Address);
 
-			var batterySMBusWrapper = new SMBusDataWrapper(battery.CustomData);
+			var batterySMBusWrapper = new SMBusDataWrapper(pack.CustomData);
 
 			// Read SMBus specification info
-			var specificationInfo = await this.ReadUShortValueAsync(SMBusCommandIds.SpecificationInfo).ConfigureAwait(false);
+			var specificationInfo = await this.ReadUShortValue(SMBusCommandIds.SpecificationInfo).ConfigureAwait(false);
 			switch (specificationInfo & 0xFF)
 			{
 			case 0x11:
@@ -158,7 +156,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		public async Task ReadHealth()
 		{
-			var pack = this.Battery.Configuration as BatteryPack;
+			var pack = this.Pack;
 			if (pack == null)
 				return;
 
@@ -167,9 +165,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			try
 			{
 				// Read health information
-				var fullChargeCapacity = (await this.ReadUShortValueAsync(SMBusCommandIds.FullChargeCapacity).ConfigureAwait(false)) / 1000f;
-				var cycleCount = await this.ReadUShortValueAsync(SMBusCommandIds.CycleCount).ConfigureAwait(false);
-				var calculationPrecision = await this.ReadUShortValueAsync(SMBusCommandIds.MaxError).ConfigureAwait(false) / 100f;
+				var fullChargeCapacity = (await this.ReadUShortValue(SMBusCommandIds.FullChargeCapacity).ConfigureAwait(false)) / 1000f;
+				var cycleCount = await this.ReadUShortValue(SMBusCommandIds.CycleCount).ConfigureAwait(false);
+				var calculationPrecision = await this.ReadUShortValue(SMBusCommandIds.MaxError).ConfigureAwait(false) / 100f;
 
 				// Read settings
 				//status.RemainingCapacityAlarm = (float)await this.ReadUShortValue(SMBusCommandIds.RemainingCapacityAlarm) / 1000;
@@ -205,12 +203,17 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			}
 		}
 
+		public Task ReadActuals()
+		{
+			return this.ReadActuals((IEnumerable<Expression<Func<BatteryConditions, object>>>)null);
+		}
+
 		public Task ReadActuals(params Expression<Func<BatteryConditions, object>>[] valueSelectors)
 		{
 			return this.ReadActuals((IEnumerable<Expression<Func<BatteryConditions, object>>>)valueSelectors);
 		}
 
-		public async Task ReadActuals(IEnumerable<Expression<Func<BatteryConditions, object>>> valueSelectors = null)
+		public async Task ReadActuals(IEnumerable<Expression<Func<BatteryConditions, object>>> valueSelectors)
 		{
 			this.Tracer.DebugFormat("Reading battery actuals information of the battery at address 0x{0:X}.", this.Address);
 
@@ -226,34 +229,34 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			//	var same = valueSelector.Equals(expected);
 			//}
 
-			var pack = this.Battery.Configuration as BatteryPack;
+			var pack = this.Pack;
 			if (pack == null)
 				return;
 
 			try
 			{
-				//var packVoltage = (await this.ReadUShortValueAsync(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
-				var actualCurrent = (await this.ReadShortValueAsync(SMBusCommandIds.Current).ConfigureAwait(false)) / 1000f;
-				var averageCurrent = (await this.ReadShortValueAsync(SMBusCommandIds.AverageCurrent).ConfigureAwait(false)) / 1000f;
-				var temperature = (await this.ReadUShortValueAsync(SMBusCommandIds.Temperature).ConfigureAwait(false)) / 10f;
+				//var packVoltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
+				var actualCurrent = (await this.ReadShortValue(SMBusCommandIds.Current).ConfigureAwait(false)) / 1000f;
+				var averageCurrent = (await this.ReadShortValue(SMBusCommandIds.AverageCurrent).ConfigureAwait(false)) / 1000f;
+				var temperature = (await this.ReadUShortValue(SMBusCommandIds.Temperature).ConfigureAwait(false)) / 10f;
 
-				var remainingCapacity = (await this.ReadUShortValueAsync(SMBusCommandIds.RemainingCapacity).ConfigureAwait(false)) / 1000f;
-				var absoluteStateOfCharge = (await this.ReadUShortValueAsync(SMBusCommandIds.AbsoluteStateOfCharge).ConfigureAwait(false)) / 100f;
-				var relativeStateOfCharge = (await this.ReadUShortValueAsync(SMBusCommandIds.RelativeStateOfCharge).ConfigureAwait(false)) / 100f;
+				var remainingCapacity = (await this.ReadUShortValue(SMBusCommandIds.RemainingCapacity).ConfigureAwait(false)) / 1000f;
+				var absoluteStateOfCharge = (await this.ReadUShortValue(SMBusCommandIds.AbsoluteStateOfCharge).ConfigureAwait(false)) / 100f;
+				var relativeStateOfCharge = (await this.ReadUShortValue(SMBusCommandIds.RelativeStateOfCharge).ConfigureAwait(false)) / 100f;
 				TimeSpan actualRunTime, averageRunTime;
 				if (actualCurrent >= 0)
 				{
-					actualRunTime = TimeSpan.FromMinutes(await this.ReadUShortValueAsync(SMBusCommandIds.RunTimeToEmpty).ConfigureAwait(false));
-					averageRunTime = TimeSpan.FromMinutes(await this.ReadUShortValueAsync(SMBusCommandIds.AverageTimeToEmpty).ConfigureAwait(false));
+					actualRunTime = TimeSpan.FromMinutes(await this.ReadUShortValue(SMBusCommandIds.RunTimeToEmpty).ConfigureAwait(false));
+					averageRunTime = TimeSpan.FromMinutes(await this.ReadUShortValue(SMBusCommandIds.AverageTimeToEmpty).ConfigureAwait(false));
 				}
 				else
 				{
-					actualRunTime = TimeSpan.FromMinutes(await this.ReadUShortValueAsync(SMBusCommandIds.AverageTimeToFull).ConfigureAwait(false));
+					actualRunTime = TimeSpan.FromMinutes(await this.ReadUShortValue(SMBusCommandIds.AverageTimeToFull).ConfigureAwait(false));
 					averageRunTime = actualRunTime;
 				}
 
-				//conditions.ChargingVoltage = (await this.ReadUShortValueAsync(SMBusCommandIds.ChargingVoltage).ConfigureAwait(false)) / 1000f;
-				//conditions.ChargingCurrent = (await this.ReadUShortValueAsync(SMBusCommandIds.ChargingCurrent).ConfigureAwait(false)) / 1000f;
+				//conditions.ChargingVoltage = (await this.ReadUShortValue(SMBusCommandIds.ChargingVoltage).ConfigureAwait(false)) / 1000f;
+				//conditions.ChargingCurrent = (await this.ReadUShortValue(SMBusCommandIds.ChargingCurrent).ConfigureAwait(false)) / 1000f;
 
 				var cells = pack.SubElements.OfType<SingleCell>().ToList();
 				for (int i = 0; i < cells.Count; i++)
@@ -263,7 +266,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					//try
 					//{
 
-					var cellVoltage = (await this.ReadUShortValueAsync(this.GetCellVoltageCommandId(i)).ConfigureAwait(false)) / 1000f;
+					var cellVoltage = (await this.ReadUShortValue(this.GetCellVoltageCommandId(i)).ConfigureAwait(false)) / 1000f;
 					cell.SetVoltage(cellVoltage);
 					cell.SetActualCurrent(actualCurrent);
 					cell.SetAverageCurrent(averageCurrent);
@@ -282,13 +285,23 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					//}
 				}
 
+				var actuals = pack.Actuals;
+
 				this.Tracer.Debug(new TraceBuilder()
 					.AppendLine("The actuals of the battery at address 0x{0:X} successfully read:", this.Address)
 					.Indent()
-						.AppendLine("Full-charge capacity: {0} mAh", pack.Health.FullChargeCapacity * 1000f)
-						.AppendLine("Cycle count: {0}", pack.Health.CycleCount)
-						.AppendLine("Calculation precision: {0}%", (int)(pack.Health.CalculationPrecision * 100f))
+						.AppendLine("Voltage:                 {0} V ({1})", actuals.Voltage, pack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals.Voltage)).Join(", "))
+						.AppendLine("Actual current:          {0} mA", actuals.ActualCurrent * 1000f)
+						.AppendLine("Average current:         {0} mA", actuals.AverageCurrent * 1000f)
+						.AppendLine("Temperature:             {0:f2} °C", actuals.Temperature - 273.15f)
+						.AppendLine("Remaining capacity:      {0:N0} mAh", actuals.RemainingCapacity * 1000f)
+						.AppendLine("Absolute StateOfCharge:  {0} %", actuals.AbsoluteStateOfCharge * 100f)
+						.AppendLine("Relative StateOfCharge:  {0} %", actuals.RelativeStateOfCharge * 100f)
+						.AppendLine("Actual run time:         {0}", actuals.ActualRunTime.ToString())
+						.AppendLine("Average run time:        {0}", actuals.AverageRunTime.ToString())
 					.Trace());
+
+				
 			}
 			catch (Exception ex)
 			{
@@ -322,7 +335,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		private readonly List<UpdatesSubscription> m_subscriptions = new List<UpdatesSubscription>();
 		private int m_measurementCount;
 
-		public ISubscription SubscribeToUpdates(Action<Battery> notificationConsumer, UpdateFrequency frequency = UpdateFrequency.Normal)
+		public ISubscription SubscribeToUpdates(Action<BatteryPack> notificationConsumer, UpdateFrequency frequency = UpdateFrequency.Normal)
 		{
 			lock (this.m_lock)
 			{
@@ -374,7 +387,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			List<Task> tasks;
 			lock (this.m_lock)
 			{
-				tasks = this.m_subscriptions.Select(x => x.Consumer).Select(x => Task.Factory.StartNew(() => x(this.Battery))).ToList();
+				tasks = this.m_subscriptions.Select(x => x.Consumer).Select(x => Task.Factory.StartNew(() => x(this.Pack))).ToList();
 			}
 
 			Task.WhenAll(tasks).ContinueWith(this.ConsumerErrorHandler, TaskContinuationOptions.OnlyOnFaulted);
@@ -383,7 +396,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		private void ConsumerErrorHandler(Task task)
 		{
 			var ex = task.Exception;
-			// Intentionally swallowed
+			this.Tracer.Warn("Update notification consumer failed.", ex);
+
+			// Exception intentionally swallowed
 		}
 
 		#endregion Monitoring
@@ -420,14 +435,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		#region Reading primitives
 
-		private short ReadShortValue(uint commandId)
+		private Task<short> ReadShortValue(uint commandId)
 		{
-			return this.ReadShortValueAsync(commandId).Result;
-		}
-
-		private Task<short> ReadShortValueAsync(uint commandId)
-		{
-			return this.ReadUShortValueAsync(commandId)
+			return this.ReadUShortValue(commandId)
 				.ContinueWith(t =>
 				{
 					ushort value = t.Result;
@@ -439,28 +449,18 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				}, TaskContinuationOptions.OnlyOnRanToCompletion);
 		}
 
-		private ushort ReadUShortValue(uint commandId)
-		{
-			return ReadUShortValueAsync(commandId).Result;
-		}
-
-		private Task<ushort> ReadUShortValueAsync(uint commandId)
+		private Task<ushort> ReadUShortValue(uint commandId)
 		{
 			return this.RetryOperation(() => this.Connection.ReadWordCommand(this.Address, commandId));
 		}
 
-		private Task<string> ReadStringValueAsync(uint commandId, int stringLength)
+		private Task<string> ReadStringValue(uint commandId, int stringLength)
 		{
-			return this.ReadBlockCommandAsync(commandId, stringLength)
+			return this.ReadBlockCommand(commandId, stringLength)
 				.ContinueWith(t => Encoding.ASCII.GetString(t.Result), TaskContinuationOptions.OnlyOnRanToCompletion);
 		}
 
-		private byte[] ReadBlockCommand(uint commandId, int blockSize)
-		{
-			return this.ReadBlockCommandAsync(commandId, blockSize).Result;
-		}
-
-		private Task<byte[]> ReadBlockCommandAsync(uint commandId, int blockSize)
+		private Task<byte[]> ReadBlockCommand(uint commandId, int blockSize)
 		{
 			return this.RetryOperation(() => this.Connection.ReadBlockCommand(this.Address, commandId, blockSize));
 		}
@@ -505,11 +505,4 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		#endregion Reading primitives
     }
-
-	public enum UpdateFrequency
-	{
-		Aggresive,
-		Normal,
-		Lazy
-	}
 }

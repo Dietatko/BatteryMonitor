@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BricksExtensions.cs" />
     <Compile Include="Domain\IProductDefinition.cs" />
     <Compile Include="Domain\Unit.cs" />
     <Compile Include="Domain\Voltage.cs" />
@@ -62,6 +63,8 @@
     <Compile Include="BatteryInformation.cs" />
     <Compile Include="BatteryStatus.cs" />
     <Compile Include="Communication\IBatteryAdapter.cs" />
+    <Compile Include="Protocols\IBatteryPackAdapter.cs" />
+    <Compile Include="Protocols\UpdateFrequency.cs" />
     <Compile Include="TraceBuilder.cs" />
     <None Include="Communication\BatteryAdapter.cs" />
     <Compile Include="Communication\CurrentConditionsEventArgs.cs" />

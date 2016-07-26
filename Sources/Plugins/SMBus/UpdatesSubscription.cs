@@ -9,7 +9,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
 	public class UpdatesSubscription : ISubscription
 	{
-		public UpdatesSubscription(Action<Battery> consumer, UpdateFrequency frequency, Action<UpdatesSubscription> unsubscribeAction)
+		public UpdatesSubscription(Action<BatteryPack> consumer, UpdateFrequency frequency, Action<UpdatesSubscription> unsubscribeAction)
 		{
 			Contract.Requires(consumer, "consumer").IsNotNull();
 			Contract.Requires(frequency, "frequency").ToBeDefinedEnumValue();
@@ -19,7 +19,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			this.UnsubscribeAction = unsubscribeAction;
 		}
 
-		public Action<Battery> Consumer { get; private set; }
+		public Action<BatteryPack> Consumer { get; private set; }
 		public UpdateFrequency Frequency { get; private set; }
 		public Action<UpdatesSubscription> UnsubscribeAction { get; private set; }
 
@@ -33,21 +33,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		{
 			this.Unsubscribe();
 			GC.SuppressFinalize(this);
-		}
-	}
-
-	// TODO: extract to Bricks
-	public static class ContractExtensions
-	{
-		public static ArgumentValueRequirement<T> ToBeDefinedEnumValue<T>(this ArgumentValueRequirement<T> req)
-		{
-			Contract.Requires(req, "req").IsNotNull();
-
-			var argType = typeof(T);
-			if (!argType.IsEnumDefined(req.Value))
-				throw new ArgumentOutOfRangeException(req.ArgumentName, req.Value, "The specified enum valule is not defined in the enumeration.");
-
-			return req;
 		}
 	}
 }
