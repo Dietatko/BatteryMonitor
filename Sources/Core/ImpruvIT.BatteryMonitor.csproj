@@ -58,10 +58,6 @@
     <Compile Include="Hardware\ICommunicateToAddressableBus.cs" />
     <Compile Include="Hardware\ICommunicateToBus.cs" />
     <Compile Include="Hardware\IDiscoverDevices.cs" />
-    <Compile Include="BatteryConditions.cs" />
-    <Compile Include="BatteryInformation.cs" />
-    <Compile Include="BatteryStatus.cs" />
-    <Compile Include="OldBattery.cs" />
     <Compile Include="Protocols\IBatteryPackAdapter.cs" />
     <Compile Include="Protocols\UpdateFrequency.cs" />
     <Compile Include="TraceBuilder.cs" />
