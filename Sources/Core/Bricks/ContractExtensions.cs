@@ -19,15 +19,5 @@ namespace ImpruvIT.BatteryMonitor
 
 			return req;
 		}
-
-		public static string Concat(this IEnumerable<string> items)
-		{
-			return String.Concat(items);
-		}
-
-		public static string Join(this IEnumerable<string> items, string separator)
-		{
-			return String.Join(separator, items);
-		}
 	}
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,12 +13,12 @@ using ImpruvIT.BatteryMonitor.Domain;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
-	public class BatteryAdapter : IBatteryPackAdapter, INotifyPropertyChanged
+	public class BatteryAdapter : IBatteryPackAdapter
 	{
 		private const int RetryCount = 3;
 
 		private readonly object m_lock = new object();
-		private readonly RecurrentTask m_monitoringTask;
+		private readonly RepeatableTask m_monitoringTask;
 
 		public BatteryAdapter(SMBusInterface connection, uint address)
         {
@@ -29,7 +28,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			
 			this.Connection = connection;
 			this.Address = address;
-			this.m_monitoringTask = new RecurrentTask(this.MonitoringAction, TimeSpan.FromSeconds(1));
+			this.m_monitoringTask = new RepeatableTask(this.MonitoringAction, String.Format("SMBus Adapter - 0x{0:X}", address))
+			{
+				MinTriggerTime =  TimeSpan.FromSeconds(1)
+			};
         }
 
 	    protected ILog Tracer { get; private set; }

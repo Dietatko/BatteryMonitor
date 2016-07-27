@@ -49,7 +49,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BricksExtensions.cs" />
+    <Compile Include="Bricks\EnumerableExtensions.cs" />
+    <Compile Include="Bricks\ContractExtensions.cs" />
+    <Compile Include="Bricks\RepeatableTask.cs" />
     <Compile Include="Domain\IProductDefinition.cs" />
     <Compile Include="Domain\Unit.cs" />
     <Compile Include="Domain\Voltage.cs" />
@@ -60,7 +62,7 @@
     <Compile Include="Hardware\IDiscoverDevices.cs" />
     <Compile Include="Protocols\IBatteryPackAdapter.cs" />
     <Compile Include="Protocols\UpdateFrequency.cs" />
-    <Compile Include="TraceBuilder.cs" />
+    <Compile Include="Bricks\TraceBuilder.cs" />
     <Compile Include="Domain\Battery.cs" />
     <Compile Include="Domain\BatteryElement.cs" />
     <Compile Include="Domain\BatteryPack.cs" />

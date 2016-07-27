@@ -89,7 +89,10 @@ namespace ImpruvIT.BatteryMonitor
 			Contract.Requires(format, "format").IsNotNull();
 
 			foreach (T item in set)
-				this.AppendLine(format, args.Select(f => f(item)).ToArray());
+			{
+				var tmpItem = item;
+				this.AppendLine(format, args.Select(f => f(tmpItem)));
+			}
 
 			return this;
 		}
@@ -157,6 +160,7 @@ namespace ImpruvIT.BatteryMonitor
 			for (int i = this.m_indent; i > 0; i--)
 				this.m_stringBuilder.Append("   ");
 		}
+
 
 		public string Trace()
 		{
