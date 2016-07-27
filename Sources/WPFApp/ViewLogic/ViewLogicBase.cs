@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 {
@@ -10,33 +14,64 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		protected virtual void OnPropertyChanged(string propertyName)
-		{
-			this.OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
-		}
-
 		/// <summary>
 		/// Fires the <see cref="PropertyChanged"/> event.
 		/// </summary>
-		/// <param name="args">The <see cref="PropertyChangedEventArgs"/> that contains the event data.</param>
-		protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
+		/// <param name="propertyName">The name of the chnaged property.</param>
+		protected virtual void OnPropertyChanged(string propertyName)
 		{
 			PropertyChangedEventHandler handlers = this.PropertyChanged;
 			if (handlers != null)
-				handlers(this, args);
+				handlers(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		protected virtual void BypassPropertyNotification(Func<INotifyPropertyChanged> sourceFunc, string sourcePropertyName, string thisPropertyName)
+		protected void SetPropertyValue<T>(ref T currentValue, T newValue, [CallerMemberName] string propertyName = "")
 		{
-			var source = sourceFunc();
-			if (source == null)
-				return;
-
-			source.PropertyChanged += (sender, args) =>
+			bool flag;
+			T oldValue = currentValue;
+			if (!typeof(T).IsValueType || !object.Equals(oldValue, newValue))
 			{
-				if (args.PropertyName == sourcePropertyName)
-					this.OnPropertyChanged(thisPropertyName);
-			};
+				flag = (typeof(T).IsValueType ? true : !object.ReferenceEquals(oldValue, newValue));
+			}
+			else
+			{
+				flag = false;
+			}
+			if (flag)
+			{
+				currentValue = newValue;
+				this.OnPropertyChanged(propertyName);
+			}
+		}
+
+		protected void PassThroughPropertyChangeNotification<TObject, TSource, TTarget>(TObject sourceObject, Expression<Func<TObject, TSource>> sourcePropertyExpr, Expression<Func<TTarget>> thisPropertyExpr)
+			where TObject : INotifyPropertyChanged
+		{
+			Contract.Requires(sourcePropertyExpr, "sourcePropertyExpr").IsNotNull();
+			Contract.Requires(thisPropertyExpr, "thisPropertyExpr").IsNotNull();
+
+			string sourcePropertyName = ((MemberExpression)sourcePropertyExpr.Body).Member.Name;
+			string thisPropertyName = ((MemberExpression)thisPropertyExpr.Body).Member.Name;
+			this.PassThroughPropertyChangeNotification(sourceObject, sourcePropertyName, thisPropertyName);
+		}
+
+		protected void PassThroughPropertyChangeNotification<TObject>(TObject sourceObject, string sourcePropertyName, string thisPropertyName)
+			where TObject : INotifyPropertyChanged
+		{
+			Contract.Requires(sourceObject, "sourceObject").IsNotNull();
+			Contract.Requires(sourcePropertyName, "sourcePropertyName").IsNotNull().IsNotEmpty();
+			Contract.Requires(thisPropertyName, "thisPropertyName").IsNotNull().IsNotEmpty();
+
+			sourceObject.PropertyChanged += (sender, args) =>
+				{
+					if (args.PropertyName == sourcePropertyName)
+					{
+						if (Application.Current == null || Application.Current.Dispatcher == null)
+							this.OnPropertyChanged(thisPropertyName);
+						else
+							Application.Current.Dispatcher.InvokeAsync(() => this.OnPropertyChanged(thisPropertyName));
+					}
+				};
 		}
 	}
 }

@@ -26,7 +26,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				this.SelectedBusDevice = null;
 
 				this.m_busDevices = value;
-				this.OnPropertyChanged(new PropertyChangedEventArgs("BusDevices"));
+				this.OnPropertyChanged("BusDevices");
 
 				if (this.m_busDevices.Count >= 1)
 					this.SelectedBusDevice = this.m_busDevices[0];
@@ -45,7 +45,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				this.Connection = null;
 
 				this.m_selectedBusDevice = value;
-				this.OnPropertyChanged(new PropertyChangedEventArgs("SelectedBusDevice"));
+				this.OnPropertyChanged("SelectedBusDevice");
 
 				this.ConnectToBus();
 			}
@@ -63,7 +63,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				this.DisconnectFromBus();
 
 				this.m_connection = value;
-				this.OnPropertyChanged(new PropertyChangedEventArgs("Connection"));
+				this.OnPropertyChanged("Connection");
 
 				this.DiscoverBatteries();
 			}
@@ -129,7 +129,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 					return;
 
 				this.m_batteries = value;
-				this.OnPropertyChanged(new PropertyChangedEventArgs("Batteries"));
+				this.OnPropertyChanged("Batteries");
 
 				this.FirstBatteryLogic = (this.m_batteries != null ? this.m_batteries.FirstOrDefault() : null);
 			}
@@ -148,7 +148,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 					this.m_firstBatteryLogic.StopMonitoring();
 
 				this.m_firstBatteryLogic = value;
-				this.OnPropertyChanged(new PropertyChangedEventArgs("FirstBatteryLogic"));
+				this.OnPropertyChanged("FirstBatteryLogic");
 
 				if (this.m_firstBatteryLogic != null)
 					this.m_firstBatteryLogic.StartMonitoring();

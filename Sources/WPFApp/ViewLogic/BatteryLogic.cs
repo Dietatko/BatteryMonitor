@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using LiveCharts;
 
 using ImpruvIT.BatteryMonitor.Domain;
@@ -19,6 +19,9 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 		{
 			this.ActualsHistory = new ChartValues<ActualsSnapshot>();
 			this.BatteryAdapter = batteryAdapter;
+
+			this.BatteryInformationDescriptions = new ListBase<IReadingDescription<BatteryPack, object>>(this.GetInformationDescriptions());
+			this.BatteryConditionsDescriptions = new ListBase<IReadingDescription<BatteryPack, object>>(this.GetConditionsDescriptions());
 		}
 
 		protected IBatteryPackAdapter BatteryAdapter
@@ -31,13 +34,10 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 				this.m_batteryAdapter = value;
 
-				this.BatteryInformationDescriptions = new ListBase<IReadingDescription<BatteryPack, object>>(this.GetInformationDescriptions());
-				this.BatteryConditionsDescriptions = new ListBase<IReadingDescription<BatteryPack, object>>(this.GetConditionsDescriptions());
-
 				this.OnPropertyChanged("BatteryAdapter");
-				this.OnPropertyChanged("Pack");
 
-				this.BypassPropertyNotification(() => this.m_batteryAdapter, "Pack", "Pack");
+				this.PassThroughPropertyChangeNotification(this.m_batteryAdapter, x => Pack, () => Pack);
+				this.OnPropertyChanged("Pack");
 			}
 		}
 		private IBatteryPackAdapter m_batteryAdapter;
