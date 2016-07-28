@@ -12,7 +12,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.Controls
 	/// <summary>
 	/// Interaction logic for PropertyGrid.xaml
 	/// </summary>
-	public partial class PropertyGrid : UserControl
+	public partial class PropertyGrid
 	{
 		public PropertyGrid()
 		{
