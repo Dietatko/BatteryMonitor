@@ -23,9 +23,9 @@ namespace ImpruvIT.BatteryMonitor.Domain
 			get { return this.Configuration.Product; }
 		}
 
-		public override IBatteryParameters ProductionParameters
+		public override IDesignParameters DesignParameters
 		{
-			get { return this.Configuration.ProductionParameters; }
+			get { return this.Configuration.DesignParameters; }
 		}
 
 		public override IBatteryHealth Health

@@ -6,19 +6,19 @@ namespace ImpruvIT.BatteryMonitor.Domain
 {
 	public partial class SeriesBatteryPack : BatteryPack
 	{
-		private readonly SeriesPackParameters m_params;
+		private readonly SeriesPackDesignParameters m_params;
 		private readonly SeriesPackHealth m_health;
 		private readonly SeriesPackActuals m_actuals;
 
 		public SeriesBatteryPack(IEnumerable<BatteryElement> subElements)
 			: base(subElements)
 		{
-			this.m_params = new SeriesPackParameters(this.SubElements);
+			this.m_params = new SeriesPackDesignParameters(this.SubElements);
 			this.m_health = new SeriesPackHealth(this.SubElements);
 			this.m_actuals = new SeriesPackActuals(this.SubElements);
 		}
 
-		public override IBatteryParameters ProductionParameters
+		public override IDesignParameters DesignParameters
 		{
 			get { return this.m_params; }
 		}

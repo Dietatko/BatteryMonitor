@@ -10,40 +10,40 @@ namespace ImpruvIT.BatteryMonitor.Domain
 	{
 		public DataDictionary()
 		{
-			this.Storage = new ConcurrentDictionary<EntryIdentifier, object>();
+			this.Storage = new ConcurrentDictionary<EntryKey, object>();
 		}
 
-		protected ConcurrentDictionary<EntryIdentifier, object> Storage { get; private set; }
+		protected ConcurrentDictionary<EntryKey, object> Storage { get; private set; }
 
 		public bool HasValue(string namespaceUri, string entryName)
 		{
-			var entryId = new EntryIdentifier(namespaceUri, entryName);
-			return this.Storage.ContainsKey(entryId);
+			var key = new EntryKey(namespaceUri, entryName);
+			return this.Storage.ContainsKey(key);
 		}
 
-		public IEnumerable<EntryIdentifier> GetValues(string namespaceUri = null)
+		public IEnumerable<EntryKey> GetKeys(string namespaceUri = null)
 		{
-			IEnumerable<EntryIdentifier> entryIds = this.Storage.Keys;
+			IEnumerable<EntryKey> keys = this.Storage.Keys;
 			if (namespaceUri != null)
-				entryIds = entryIds.Where(x => x.NamespaceUri == namespaceUri);
+				keys = keys.Where(x => x.NamespaceUri == namespaceUri);
 
-			return entryIds;
+			return keys;
 		}
 
 		public T GetValue<T>(string namespaceUri, string entryName)
 		{
-			var entryId = new EntryIdentifier(namespaceUri, entryName);
-			var entryValue = this.Storage[entryId];
+			var key = new EntryKey(namespaceUri, entryName);
+			var value = this.Storage[key];
 
-			return (T)Convert.ChangeType(entryValue, typeof(T));
+			return (T)Convert.ChangeType(value, typeof(T));
 		}
 
 		public bool TryGetValue<T>(string namespaceUri, string entryName, out T value)
 		{
-			var entryId = new EntryIdentifier(namespaceUri, entryName);
+			var key = new EntryKey(namespaceUri, entryName);
 
 			object tmpValue;
-			if (!this.Storage.TryGetValue(entryId, out tmpValue))
+			if (!this.Storage.TryGetValue(key, out tmpValue))
 			{
 				value = default(T);
 				return false;
@@ -55,18 +55,27 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public void SetValue<T>(string namespaceUri, string entryName, T value)
 		{
-			var entryId = new EntryIdentifier(namespaceUri, entryName);
-			this.Storage[entryId] = value;
+			var key = new EntryKey(namespaceUri, entryName);
+			this.Storage[key] = value;
+
+			this.OnValueChanged(key);
 		}
 
 		public void Merge(DataDictionary source)
 		{
 			Contract.Requires(source, "source").IsNotNull();
 
-			foreach (var entryId in source.GetValues())
-			{
-				this.SetValue(entryId.NamespaceUri, entryId.EntryName, source.GetValue<object>(entryId.NamespaceUri, entryId.EntryName));
-			}
+			foreach (var key in source.GetKeys())
+				this.SetValue(key.NamespaceUri, key.Name, source.GetValue<object>(key.NamespaceUri, key.Name));
+		}
+
+		public event EventHandler<EntryKey> ValueChanged;
+
+		protected virtual void OnValueChanged(EntryKey key)
+		{
+			var handlers = this.ValueChanged;
+			if (handlers != null)
+				handlers(this, key);
 		}
 	}
 }

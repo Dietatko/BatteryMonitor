@@ -16,5 +16,11 @@ namespace ImpruvIT.BatteryMonitor
 		{
 			return String.Join(separator, items);
 		}
+
+		public static void ForEach<T>(this IEnumerable<T> items, Action<T> action)
+		{
+			foreach (var item in items)
+				action(item);
+		}
 	}
 }

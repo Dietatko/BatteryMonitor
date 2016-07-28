@@ -6,10 +6,10 @@ namespace ImpruvIT.BatteryMonitor.Domain
 {
 	public class BatteryActualsWrapper : DataDictionaryWrapperBase, IBatteryActuals
 	{
-		public const string NamespaceUri = "BatteryReadingsNS";
+		public const string NamespaceUriName = "BatteryReadingsNS";
 
 		public const string VoltageEntryName = "Voltage";
-		public const string CurrentCurrentEntryName = "ActualCurrent";
+		public const string ActualCurrentEntryName = "ActualCurrent";
 		public const string AverageCurrentEntryName = "AverageCurrent";
 		public const string TemperatureEntryName = "Temperature";
 
@@ -25,9 +25,9 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		{
 		}
 
-		protected override string DefaultNamespaceUri 
+		protected override string NamespaceUri 
 		{
-			get { return NamespaceUri; }
+			get { return NamespaceUriName; }
 		}
 
 
@@ -41,8 +41,8 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public float ActualCurrent
 		{
-			get { return this.GetValue<float>(CurrentCurrentEntryName); }
-			set { this.SetValue(CurrentCurrentEntryName, value); }
+			get { return this.GetValue<float>(ActualCurrentEntryName); }
+			set { this.SetValue(ActualCurrentEntryName, value); }
 		}
 
 		public float AverageCurrent
@@ -98,5 +98,10 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		}
 
 		#endregion Run time estimations
+
+		public static EntryKey CreateKey(string entryName)
+		{
+			return new EntryKey(NamespaceUriName, entryName);
+		}
 	}
 }

@@ -9,12 +9,13 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		protected BatteryElement()
 		{
 			this.CustomData = new DataDictionary();
+			this.CustomData.ValueChanged += (s, a) => this.OnValueChanged(a);
 		}
 
 		public DataDictionary CustomData { get; private set; }
 
 		public abstract IProductDefinition Product { get; }
-		public abstract IBatteryParameters ProductionParameters { get; }
+		public abstract IDesignParameters DesignParameters { get; }
 		public abstract IBatteryHealth Health { get; }
 		public abstract IBatteryActuals Actuals { get; }
 
@@ -26,5 +27,14 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		//public abstract float ChargingCurrent { get; }		// ???
 
 		//#endregion Commands
+
+		public event EventHandler<EntryKey> ValueChanged;
+
+		protected virtual void OnValueChanged(EntryKey key)
+		{
+			var handlers = this.ValueChanged;
+			if (handlers != null)
+				handlers(this, key);
+		}
 	}
 }

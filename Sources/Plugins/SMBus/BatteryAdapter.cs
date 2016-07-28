@@ -66,7 +66,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				await this.ReadProtocolParams(pack);
 
 				this.Pack = pack;
-				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.Product.Manufacturer, pack.Product.Product, pack.ProductionParameters.NominalVoltage, pack.ProductionParameters.DesignedCapacity * 1000);
+				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.Product.Manufacturer, pack.Product.Product, pack.DesignParameters.NominalVoltage, pack.DesignParameters.DesignedCapacity * 1000);
 			}
 			catch (Exception ex)
 			{
@@ -100,8 +100,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					.AppendLine("A series battery with {1} cells recognized at address 0x{0:X}:", this.Address, cellCount)
 					.Indent()
 						.AppendLine("Nominal voltage: {0} V (Cell voltage: {1} V)", nominalVoltage, cellVoltage)
-						.AppendLine("Designed discharge current: {0} A", pack.ProductionParameters.DesignedDischargeCurrent)
-						.AppendLine("Maximal discharge current: {0} A", pack.ProductionParameters.MaxDischargeCurrent)
+						.AppendLine("Designed discharge current: {0} A", pack.DesignParameters.DesignedDischargeCurrent)
+						.AppendLine("Maximal discharge current: {0} A", pack.DesignParameters.MaxDischargeCurrent)
 						.AppendLine("Designed Capacity: {0} Ah", designedCapacity)
 					.Trace());
 

@@ -6,7 +6,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 {
 	public class BatteryHealthWrapper : DataDictionaryWrapperBase, IBatteryHealth
 	{
-		public const string NamespaceUri = "BatteryHealthNS";
+		public const string NamespaceUriName = "BatteryHealthNS";
 		public const string FullChargeCapacityEntryName = "FullChargeCapacity";
 		public const string CycleCountEntryName = "CycleCount";
 		public const string CalculationPrecisionEntryName = "CalculationPrecision";
@@ -16,9 +16,9 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		{
 		}
 
-		protected override string DefaultNamespaceUri 
+		protected override string NamespaceUri 
 		{
-			get { return NamespaceUri; }
+			get { return NamespaceUriName; }
 		}
 
 		public float FullChargeCapacity
@@ -37,6 +37,11 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		{
 			get { return this.GetValue<float>(CalculationPrecisionEntryName); }
 			set { this.SetValue(CalculationPrecisionEntryName, value); }
+		}
+
+		public static EntryKey CreateKey(string entryName)
+		{
+			return new EntryKey(NamespaceUriName, entryName);
 		}
 	}
 }

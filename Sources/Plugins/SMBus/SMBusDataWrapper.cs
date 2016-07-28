@@ -8,7 +8,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
 	public class SMBusDataWrapper : DataDictionaryWrapperBase
 	{
-		public const string NamespaceUri = "SMBus";
+		public const string NamespaceUriName = "SMBus";
 		public const string SpecificationVersionEntryName = "SpecificationVersion";
 		public const string VoltageScaleEntryName = "VoltageScale";
 		public const string CurrentScaleEntryName = "CurrentScale";
@@ -18,9 +18,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		{
 		}
 
-		protected override string DefaultNamespaceUri
+		protected override string NamespaceUri
 		{
-			get { return NamespaceUri; }
+			get { return NamespaceUriName; }
 		}
 
 
@@ -40,6 +40,11 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		{
 			get { return this.GetValue<int>(CurrentScaleEntryName); }
 			set { this.SetValue(CurrentScaleEntryName, value); }
+		}
+
+		public static EntryKey CreateKey(string entryName)
+		{
+			return new EntryKey(NamespaceUriName, entryName);
 		}
 	}
 }

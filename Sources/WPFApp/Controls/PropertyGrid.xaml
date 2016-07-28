@@ -6,18 +6,34 @@
              xmlns:myControls="clr-namespace:ImpruvIT.BatteryMonitor.WPFApp.Controls"
              xmlns:myLogic="clr-namespace:ImpruvIT.BatteryMonitor.WPFApp.ViewLogic"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="300"
+			 x:Name="Control">
     <UserControl.Resources>
-        <myControls:PropertyValueConverter x:Key="PropertyValueConverter" />
+		<myControls:ReadingValueConverter x:Key="ReadingValueConverter" />
     </UserControl.Resources>
-    <DockPanel LastChildFill="True">
+    <DockPanel LastChildFill="True" DataContext="{Binding ViewLogic, ElementName=Control}">
         <Grid MinHeight="42"
               Background="Silver"
               DockPanel.Dock="Bottom">
-            <TextBlock Text="{Binding SelectedItem.Description, ElementName=PropertyList}" TextWrapping="Wrap"
-                       Width="{Binding ActualWidth, ElementName=grid, Mode=OneWay}" Padding="5" />
+			<TextBlock Text="{Binding SelectedItem.Descriptor.Description.Description, ElementName=PropertyList}" TextWrapping="Wrap"
+                       Padding="5" />
         </Grid>
-        <ListBox x:Name="PropertyList"
+		<ListBox x:Name="PropertyList"
+                 ItemsSource="{Binding Values}">
+            <ListBox.ItemTemplate>
+				<DataTemplate DataType="myLogic:BatteryReadingProvider">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+						<TextBlock Text="{Binding Descriptor.Description.Title}" Grid.Column="0" />
+						<TextBlock Text="{Binding FormattedValue}" Grid.Column="1" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <!--<ListBox x:Name="PropertyList"
                  ItemsSource="{Binding PropertiesSource, RelativeSource={RelativeSource FindAncestor, AncestorType=myControls:PropertyGrid}}">
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="myLogic:ReadingDescription`2">
@@ -38,6 +54,6 @@
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
-        </ListBox>
+        </ListBox>-->
     </DockPanel>
 </UserControl>

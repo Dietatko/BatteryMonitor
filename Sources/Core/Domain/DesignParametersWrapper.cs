@@ -4,22 +4,22 @@ using System.Linq;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public class BatteryParametersWrapper : DataDictionaryWrapperBase, IBatteryParameters
+	public class DesignParametersWrapper : DataDictionaryWrapperBase, IDesignParameters
 	{
-		public const string NamespaceUri = "BatteryParametersNS";
+		public const string NamespaceUriName = "BatteryParametersNS";
 		public const string NominalVoltageEntryName = "NominalVoltage";
 		public const string DesignedDischargeCurrentEntryName = "DesignedDischargeCurrent";
 		public const string MaxDischargeCurrentEntryName = "MaxDischargeCurrent";
 		public const string DesignedCapacityEntryName = "DesignedCapacity";
 
-		public BatteryParametersWrapper(DataDictionary data)
+		public DesignParametersWrapper(DataDictionary data)
 			: base(data)
 		{
 		}
 
-		protected override string DefaultNamespaceUri 
+		protected override string NamespaceUri 
 		{
-			get { return NamespaceUri; }
+			get { return NamespaceUriName; }
 		}
 
 		public float NominalVoltage
@@ -44,6 +44,11 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		{
 			get { return this.GetValue<float>(DesignedCapacityEntryName); }
 			set { this.SetValue(DesignedCapacityEntryName, value); }
+		}
+
+		public static EntryKey CreateKey(string entryName)
+		{
+			return new EntryKey(NamespaceUriName, entryName);
 		}
 	}
 }

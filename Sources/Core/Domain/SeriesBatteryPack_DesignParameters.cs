@@ -6,9 +6,9 @@ namespace ImpruvIT.BatteryMonitor.Domain
 {
 	public partial class SeriesBatteryPack
 	{
-		private class SeriesPackParameters : IBatteryParameters
+		private class SeriesPackDesignParameters : IDesignParameters
 		{
-			public SeriesPackParameters(IEnumerable<BatteryElement> subElements)
+			public SeriesPackDesignParameters(IEnumerable<BatteryElement> subElements)
 			{
 				this.SubElements = subElements;
 			}
@@ -18,22 +18,22 @@ namespace ImpruvIT.BatteryMonitor.Domain
 			
 			public float NominalVoltage
 			{
-				get { return this.SubElements.Sum(x => x.ProductionParameters.NominalVoltage); }
+				get { return this.SubElements.Sum(x => x.DesignParameters.NominalVoltage); }
 			}
 
 			public float DesignedDischargeCurrent
 			{
-				get { return this.SubElements.Min(x => x.ProductionParameters.DesignedDischargeCurrent); }
+				get { return this.SubElements.Min(x => x.DesignParameters.DesignedDischargeCurrent); }
 			}
 
 			public float MaxDischargeCurrent
 			{
-				get { return this.SubElements.Min(x => x.ProductionParameters.MaxDischargeCurrent); }
+				get { return this.SubElements.Min(x => x.DesignParameters.MaxDischargeCurrent); }
 			}
 
 			public float DesignedCapacity
 			{
-				get { return this.SubElements.Min(x => x.ProductionParameters.DesignedCapacity); }
+				get { return this.SubElements.Min(x => x.DesignParameters.DesignedCapacity); }
 			}
 		}
 	}
