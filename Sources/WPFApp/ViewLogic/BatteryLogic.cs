@@ -23,6 +23,12 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			this.ActualsHistory = new ChartValues<ActualsSnapshot>();
 			this.BatteryAdapter = batteryAdapter;
 
+			this.BatteryAdapter.DescriptorsChanged += (s, a) => this.OnDescriptorsChanged();
+			this.OnDescriptorsChanged();
+		}
+
+		private void OnDescriptorsChanged()
+		{
 			this.Descriptors = this.BatteryAdapter.GetDescriptors().ToList();
 		}
 

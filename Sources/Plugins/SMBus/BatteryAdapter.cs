@@ -79,6 +79,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				if (!(thrownEx is InvalidOperationException))
 					throw;
 			}
+
+			this.OnDescriptorsChanged();
         }
 
 		private async Task<BatteryPack> RecognizeGeometry()
@@ -517,6 +519,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		public IEnumerable<ReadingDescriptorGrouping> GetDescriptors()
 		{
+			if (this.Pack == null)
+				yield break;
+
 			yield return new ReadingDescriptorGrouping(
 				"Product",
 				new[] {
@@ -550,7 +555,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 			var actualDescriptors = new List<ReadingDescriptor>();
 			actualDescriptors.Add(ReadingDescriptors.PackVoltage);
-			actualDescriptors.AddRange(Enumerable.Range(0, 3).Select(SMBusReadingDescriptors.CreateCellVoltageDescriptor));
+			actualDescriptors.AddRange(Enumerable.Range(0, this.Pack.SubElements.Count()).Select(SMBusReadingDescriptors.CreateCellVoltageDescriptor));
 			actualDescriptors.Add(ReadingDescriptors.ActualCurrent);
 			actualDescriptors.Add(ReadingDescriptors.AverageCurrent);
 			actualDescriptors.Add(ReadingDescriptors.Temperature);
@@ -561,6 +566,19 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			{
 				IsDefault = true
 			};
+		}
+
+		/// <inheritdoc />
+		public event EventHandler DescriptorsChanged;
+
+		/// <summary>
+		/// Fires the <see cref="DescriptorsChanged"/> event.
+		/// </summary>
+		protected virtual void OnDescriptorsChanged()
+		{
+			EventHandler handlers = this.DescriptorsChanged;
+			if (handlers != null)
+				handlers(this, EventArgs.Empty);
 		}
 
 		#endregion Descriptions

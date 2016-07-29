@@ -83,7 +83,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 			},
 			new ReadingValueAccessor(
 				b => b.DesignParameters.NominalVoltage,
-				"{0} V"
+				"{0:N1} V"
 			),
 			new ReadingVisualizer(
 				x => (double)x
@@ -203,7 +203,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 			},
 			new ReadingValueAccessor(
 				b => b.Actuals.Voltage,
-				"{0} V"
+				"{0:N3} V"
 			),
 			new ReadingVisualizer(
 				x => (double)x

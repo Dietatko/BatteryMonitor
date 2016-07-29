@@ -18,5 +18,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols
 		ISubscription SubscribeToUpdates(Action<BatteryPack> notificationConsumer, UpdateFrequency frequency = UpdateFrequency.Normal);
 
 		IEnumerable<ReadingDescriptorGrouping> GetDescriptors();
+		event EventHandler DescriptorsChanged;
 	}
 }
