@@ -12,8 +12,8 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 	{
 		public ReadingsGroupViewLogic(BatteryElement battery, ReadingDescriptorGrouping group)
 		{
-			Contract.Requires(battery, "battery").IsNotNull();
-			Contract.Requires(group, "group").IsNotNull();
+			Contract.Requires(battery, "battery").NotToBeNull();
+			Contract.Requires(group, "group").NotToBeNull();
 
 			this.Battery = battery;
 			this.Group = group;

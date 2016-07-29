@@ -18,7 +18,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		public BatteryLogic(IBatteryPackAdapter batteryAdapter)
 		{
-			Contract.Requires(batteryAdapter, "batteryAdapter").IsNotNull();
+			Contract.Requires(batteryAdapter, "batteryAdapter").NotToBeNull();
 
 			this.ActualsHistory = new ChartValues<ActualsSnapshot>();
 			this.BatteryAdapter = batteryAdapter;

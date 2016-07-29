@@ -63,7 +63,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public void Merge(DataDictionary source)
 		{
-			Contract.Requires(source, "source").IsNotNull();
+			Contract.Requires(source, "source").NotToBeNull();
 
 			foreach (var key in source.GetKeys())
 				this.SetValue(key.NamespaceUri, key.Name, source.GetValue<object>(key.NamespaceUri, key.Name));

@@ -4,6 +4,34 @@
         <name>ImpruvIT.Core</name>
     </assembly>
     <members>
+        <member name="T:ImpruvIT.EnumerableExtensions">
+            <summary>
+            Extension methods for generic enumerations.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.EnumerableExtensions.Concat(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Concats the specified strings without separator.
+            </summary>
+            <param name="items">The strings to concat.</param>
+            <returns>The concatenated string.</returns>
+        </member>
+        <member name="M:ImpruvIT.EnumerableExtensions.Join(System.Collections.Generic.IEnumerable{System.String},System.String)">
+            <summary>
+            Joins the specified strings with separators.
+            </summary>
+            <param name="items">The strings to concat.</param>
+            <param name="separator">The separator used between joined strings.</param>
+            <returns>The joined string.</returns>
+        </member>
+        <member name="M:ImpruvIT.EnumerableExtensions.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
+            <summary>
+            Executes specified action for every element in the enumeration.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="items">The items.</param>
+            <param name="action">The action.</param>
+        </member>
         <member name="T:ImpruvIT.IAsyncSubscription">
             <summary>
             Represents a generic subscription.
@@ -626,43 +654,50 @@
             <param name="value">Value of the contract requirement parameter.</param>
             <param name="argumentName">Name of the contract requirement parameter.</param>
         </member>
-        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.IsNotNull">
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.NotToBeNull">
             <summary>
             Validates that argument value is not null. This contract requirement has sense only for reference types.
             </summary>
             <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
         </member>
-        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.IsNotEmpty">
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.NotToBeEmpty">
             <summary>
             Validates that argument value is not empty. This contract requirement has sense only for enumerables.
             </summary>
             <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
         </member>
-        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.IsInRange(System.Func{`0,System.Boolean})">
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.ToBeInRange(System.Func{`0,System.Boolean})">
             <summary>
             Validates that argument value is in required range.
             </summary>
             <param name="predicate">The predicate validating parameter value.</param>
             <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
         </member>
-        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.OfType``1">
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.ToBeOfType``1">
             <summary>
             Validates that argument value is of specified type.
             </summary>
             <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
         </member>
-        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.OfType(System.Type)">
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.ToBeOfType(System.Type)">
             <summary>
             Validates that argument value is of specified type.
             </summary>
             <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
         </member>
-        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.Satisfy(System.Func{`0,System.Boolean},System.Func{`0,System.Exception})">
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.ToSatisfy(System.Func{`0,System.Boolean},System.Func{`0,System.Exception})">
             <summary>
             Validates that argument value satisfy specified conditions and throws specified exception if not.
             </summary>
             <param name="predicate">Predicate that verifies argument value.</param>
             <param name="exceptionFactory">Factory of exception to throw.</param>
+            <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
+        </member>
+        <member name="M:ImpruvIT.Contracts.ArgumentValueRequirement`1.ToBeDefinedEnumValue">
+            <summary>
+            Validates that argument value is a defined enumeration value.
+            </summary>
+            <typeparam name="T">The type of enum.</typeparam>
             <returns>This <see cref="T:ImpruvIT.Contracts.ArgumentValueRequirement`1"/> instance.</returns>
         </member>
         <member name="P:ImpruvIT.Contracts.ArgumentValueRequirement`1.Value">
@@ -1043,6 +1078,71 @@
         <member name="P:ImpruvIT.Settings.SettingsManager.Providers">
             <summary>
             Gets list of providers to delegate loading/saving operations. Delegation is executed in same order then in list.
+            </summary>
+        </member>
+        <member name="T:ImpruvIT.Threading.RepeatableTask">
+            <summary>
+            A repeatable task that is executed regularly (time based) and/or by manual trigger.
+            </summary>
+            <seealso cref="T:System.IDisposable"/>
+        </member>
+        <member name="M:ImpruvIT.Threading.RepeatableTask.#ctor(System.Action)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ImpruvIT.Threading.RepeatableTask"/> class.
+            </summary>
+            <param name="taskBody">The task body.</param>
+        </member>
+        <member name="M:ImpruvIT.Threading.RepeatableTask.#ctor(System.Action,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ImpruvIT.Threading.RepeatableTask"/> class.
+            </summary>
+            <param name="taskBody">The task body.</param>
+            <param name="threadName">Name of the thread for easy debugging.</param>
+        </member>
+        <member name="M:ImpruvIT.Threading.RepeatableTask.Start">
+            <summary>
+            Starts the repeatable task.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Threading.RepeatableTask.Stop">
+            <summary>
+            Stops the repeatable task. Method waits until current run of task body is finished before stopping the repeatable task.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Threading.RepeatableTask.Trigger">
+            <summary>
+            Manually triggers the task body execution.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Threading.RepeatableTask.Dispose">
+            <summary>
+            Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Threading.RepeatableTask.Dispose(System.Boolean)">
+            <summary>
+            Releases unmanaged and - optionally - managed resources.
+            </summary>
+            <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        </member>
+        <member name="P:ImpruvIT.Threading.RepeatableTask.ThreadName">
+            <summary>
+            Gets or sets the name of the thread.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.Threading.RepeatableTask.MinTriggerTime">
+            <summary>
+            Gets or sets how often is the task triggered.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.Threading.RepeatableTask.ThrottleTime">
+            <summary>
+            Gets or sets the time how long to wait for manual triggers until the task is triggered. This allows to group several manual triggers to one task execution.
+            </summary>
+        </member>
+        <member name="P:ImpruvIT.Threading.RepeatableTask.IsRunning">
+            <summary>
+            Gets a value indicating whether the task is automatically and/or can be manually triggered. Does not need to mean that the task body is executing.
             </summary>
         </member>
         <member name="T:ImpruvIT.TypeHelper">

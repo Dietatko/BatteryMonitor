@@ -15,7 +15,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 			ReadingVisualizer chartVisualizer)
 			: base(description, sourceKeys, accessor)
 		{
-			Contract.Requires(chartVisualizer, "chartVisualizer").IsNotNull();
+			Contract.Requires(chartVisualizer, "chartVisualizer").NotToBeNull();
 
 			this.ChartVisualizer = chartVisualizer;
 		}

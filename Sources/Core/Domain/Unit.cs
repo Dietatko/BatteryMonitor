@@ -22,8 +22,8 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public static string ToString(float value, string unit, int precision, int minPower = -12, int maxPower = 12)
 		{
-			Contract.Requires(unit, "unit").IsNotNull();
-			Contract.Requires(precision, "precision").IsInRange(x => 0 <= x);
+			Contract.Requires(unit, "unit").NotToBeNull();
+			Contract.Requires(precision, "precision").ToBeInRange(x => 0 <= x);
 			minPower = Math.Min(0, Math.Max(minPower, -12));
 			maxPower = Math.Max(0, Math.Min(maxPower, 12));
 

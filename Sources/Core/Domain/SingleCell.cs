@@ -14,10 +14,10 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public SingleCell(float nominalVoltage, float designedDischargeCurrent, float maxDischargeCurrent, float designedCapacity)
 		{
-			Contract.Requires(nominalVoltage, "nominalVoltage").IsInRange(x => x >= 0);
-			Contract.Requires(designedDischargeCurrent, "designedDischargeCurrent").IsInRange(x => x >= 0);
-			Contract.Requires(maxDischargeCurrent, "maxDischargeCurrent").IsInRange(x => x >= 0);
-			Contract.Requires(designedCapacity, "designedCapacity").IsInRange(x => x >= 0);
+			Contract.Requires(nominalVoltage, "nominalVoltage").ToBeInRange(x => x >= 0);
+			Contract.Requires(designedDischargeCurrent, "designedDischargeCurrent").ToBeInRange(x => x >= 0);
+			Contract.Requires(maxDischargeCurrent, "maxDischargeCurrent").ToBeInRange(x => x >= 0);
+			Contract.Requires(designedCapacity, "designedCapacity").ToBeInRange(x => x >= 0);
 
 			this.m_productWrapper = new ProductDefinitionWrapper(this.CustomData);
 
@@ -51,21 +51,21 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public void SetFullChargeCapacity(float fullChargeCapacity)
 		{
-			Contract.Requires(fullChargeCapacity, "fullChargeCapacity").IsInRange(x => x >= 0);
+			Contract.Requires(fullChargeCapacity, "fullChargeCapacity").ToBeInRange(x => x >= 0);
 
 			this.m_healthWrapper.FullChargeCapacity = fullChargeCapacity;
 		}
 
 		public void SetCycleCount(int cycleCount)
 		{
-			Contract.Requires(cycleCount, "cycleCount").IsInRange(x => x >= 0);
+			Contract.Requires(cycleCount, "cycleCount").ToBeInRange(x => x >= 0);
 
 			this.m_healthWrapper.CycleCount = cycleCount;
 		}
 
 		public void SetCalculationPrecision(float calculationPrecision)
 		{
-			Contract.Requires(calculationPrecision, "calculationPrecision").IsInRange(x => 0f <= x && x <= 1f);
+			Contract.Requires(calculationPrecision, "calculationPrecision").ToBeInRange(x => 0f <= x && x <= 1f);
 
 			this.m_healthWrapper.CalculationPrecision = calculationPrecision;
 		}
@@ -82,7 +82,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public void SetVoltage(float voltage)
 		{
-			Contract.Requires(voltage, "voltage").IsInRange(x => x >= 0f);
+			Contract.Requires(voltage, "voltage").ToBeInRange(x => x >= 0f);
 
 			this.m_actualsWrapper.Voltage = voltage;
 		}
@@ -104,35 +104,35 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public void SetRemainingCapacity(float remainingCapacity)
 		{
-			Contract.Requires(remainingCapacity, "remainingCapacity").IsInRange(x => x >= 0f);
+			Contract.Requires(remainingCapacity, "remainingCapacity").ToBeInRange(x => x >= 0f);
 
 			this.m_actualsWrapper.RemainingCapacity = remainingCapacity;
 		}
 
 		public void SetAbsoluteStateOfCharge(float absoluteStateOfCharge)
 		{
-			Contract.Requires(absoluteStateOfCharge, "cycleCount").IsInRange(x => x >= 0f);
+			Contract.Requires(absoluteStateOfCharge, "cycleCount").ToBeInRange(x => x >= 0f);
 
 			this.m_actualsWrapper.AbsoluteStateOfCharge = absoluteStateOfCharge;
 		}
 
 		public void SetRelativeStateOfCharge(float relativeStateOfCharge)
 		{
-			Contract.Requires(relativeStateOfCharge, "relativeStateOfCharge").IsInRange(x => 0f <= x && x <= 1f);
+			Contract.Requires(relativeStateOfCharge, "relativeStateOfCharge").ToBeInRange(x => 0f <= x && x <= 1f);
 
 			this.m_actualsWrapper.RelativeStateOfCharge = relativeStateOfCharge;
 		}
 
 		public void SetActualRunTime(TimeSpan actualRunTime)
 		{
-			Contract.Requires(actualRunTime, "currentRunTime").IsInRange(x => x >= TimeSpan.Zero);
+			Contract.Requires(actualRunTime, "currentRunTime").ToBeInRange(x => x >= TimeSpan.Zero);
 
 			this.m_actualsWrapper.ActualRunTime = actualRunTime;
 		}
 
 		public void SetAverageRunTime(TimeSpan averageRunTime)
 		{
-			Contract.Requires(averageRunTime, "averageRunTime").IsInRange(x => x >= TimeSpan.Zero);
+			Contract.Requires(averageRunTime, "averageRunTime").ToBeInRange(x => x >= TimeSpan.Zero);
 
 			this.m_actualsWrapper.AverageRunTime = averageRunTime;
 		}

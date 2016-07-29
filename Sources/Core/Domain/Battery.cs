@@ -9,7 +9,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 	{
 		public Battery(BatteryElement configuration)
 		{
-			Contract.Requires(configuration, "configuration").IsNotNull();
+			Contract.Requires(configuration, "configuration").NotToBeNull();
 
 			this.Configuration = configuration;
 		}

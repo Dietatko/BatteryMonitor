@@ -15,8 +15,8 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		public BatteryReadingProvider(BatteryElement batteryElement, ReadingDescriptor descriptor)
 		{
-			Contract.Requires(batteryElement, "batteryElement").IsNotNull();
-			Contract.Requires(descriptor, "descriptor").IsNotNull();
+			Contract.Requires(batteryElement, "batteryElement").NotToBeNull();
+			Contract.Requires(descriptor, "descriptor").NotToBeNull();
 
 			this.BatteryElement = batteryElement;
 			this.Descriptor = descriptor;

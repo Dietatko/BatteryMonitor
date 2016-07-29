@@ -12,8 +12,8 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 
 		public ReadingValueAccessor(Func<BatteryElement, object> valueSelector, string formatString = DefaultFormatString)
 		{
-			Contract.Requires(valueSelector, "valueSelector").IsNotNull();
-			Contract.Requires(formatString, "formatString").IsNotNull();
+			Contract.Requires(valueSelector, "valueSelector").NotToBeNull();
+			Contract.Requires(formatString, "formatString").NotToBeNull();
 
 			this.ValueSelector = valueSelector;
 			this.FormatString = formatString;

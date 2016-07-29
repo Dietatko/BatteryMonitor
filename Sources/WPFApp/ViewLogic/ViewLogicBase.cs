@@ -51,8 +51,8 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 		protected void PassThroughPropertyChangeNotification<TObject, TSource, TTarget>(TObject sourceObject, Expression<Func<TObject, TSource>> sourcePropertyExpr, Expression<Func<TTarget>> thisPropertyExpr)
 			where TObject : INotifyPropertyChanged
 		{
-			Contract.Requires(sourcePropertyExpr, "sourcePropertyExpr").IsNotNull();
-			Contract.Requires(thisPropertyExpr, "thisPropertyExpr").IsNotNull();
+			Contract.Requires(sourcePropertyExpr, "sourcePropertyExpr").NotToBeNull();
+			Contract.Requires(thisPropertyExpr, "thisPropertyExpr").NotToBeNull();
 
 			string sourcePropertyName = ((MemberExpression)sourcePropertyExpr.Body).Member.Name;
 			string thisPropertyName = ((MemberExpression)thisPropertyExpr.Body).Member.Name;
@@ -62,9 +62,9 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 		protected void PassThroughPropertyChangeNotification<TObject>(TObject sourceObject, string sourcePropertyName, string thisPropertyName)
 			where TObject : INotifyPropertyChanged
 		{
-			Contract.Requires(sourceObject, "sourceObject").IsNotNull();
-			Contract.Requires(sourcePropertyName, "sourcePropertyName").IsNotNull().IsNotEmpty();
-			Contract.Requires(thisPropertyName, "thisPropertyName").IsNotNull().IsNotEmpty();
+			Contract.Requires(sourceObject, "sourceObject").NotToBeNull();
+			Contract.Requires(sourcePropertyName, "sourcePropertyName").NotToBeNull().NotToBeEmpty();
+			Contract.Requires(thisPropertyName, "thisPropertyName").NotToBeNull().NotToBeEmpty();
 
 			sourceObject.PropertyChanged += (sender, args) =>
 				{

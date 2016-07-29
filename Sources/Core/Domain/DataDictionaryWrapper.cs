@@ -8,7 +8,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 	{
 		protected DataDictionaryWrapperBase(DataDictionary data)
 		{
-			Contract.Requires(data, "data").IsNotNull();
+			Contract.Requires(data, "data").NotToBeNull();
 
 			this.Data = data;
 		}

@@ -10,8 +10,8 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 	{
 		public ReadingDescription(string title, string description)
 		{
-			Contract.Requires(title, "title").IsNotNull().IsNotEmpty();
-			Contract.Requires(description, "description").IsNotNull();
+			Contract.Requires(title, "title").NotToBeNull().NotToBeEmpty();
+			Contract.Requires(description, "description").NotToBeNull();
 
 			this.Title = title;
 			this.Description = description;

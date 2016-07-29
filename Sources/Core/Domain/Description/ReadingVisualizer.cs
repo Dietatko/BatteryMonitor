@@ -10,7 +10,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 	{
 		public ReadingVisualizer(Func<object, double> graphValueConverter)
 		{
-			Contract.Requires(graphValueConverter, "graphValueConverter").IsNotNull();
+			Contract.Requires(graphValueConverter, "graphValueConverter").NotToBeNull();
 
 			this.GraphValueConverter = graphValueConverter;
 		}

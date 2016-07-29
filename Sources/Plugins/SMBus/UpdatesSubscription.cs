@@ -11,7 +11,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 	{
 		public UpdatesSubscription(Action<BatteryPack> consumer, UpdateFrequency frequency, Action<UpdatesSubscription> unsubscribeAction)
 		{
-			Contract.Requires(consumer, "consumer").IsNotNull();
+			Contract.Requires(consumer, "consumer").NotToBeNull();
 			Contract.Requires(frequency, "frequency").ToBeDefinedEnumValue();
 
 			this.Consumer = consumer;

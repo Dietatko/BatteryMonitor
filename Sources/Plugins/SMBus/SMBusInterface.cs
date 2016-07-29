@@ -76,7 +76,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		public Task<byte[]> ReadBlockCommand(uint address, uint commandId, int blockSize)
 		{
-			Contract.Requires(blockSize, "blockSize").IsInRange(x => x > 0);
+			Contract.Requires(blockSize, "blockSize").ToBeInRange(x => x > 0);
 
 			var sendBuffer = new[] { (byte)commandId };
 			return this.Bus.Transceive(address, sendBuffer, blockSize);

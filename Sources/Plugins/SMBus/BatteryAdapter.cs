@@ -5,11 +5,14 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ImpruvIT.BatteryMonitor.Domain.Description;
+
 using ImpruvIT.Contracts;
+using ImpruvIT.Diagnostics;
+using ImpruvIT.Threading;
 using log4net;
 
 using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Description;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
@@ -24,7 +27,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		{
 			this.Tracer = LogManager.GetLogger(this.GetType());
 
-			Contract.Requires(connection, "connection").IsNotNull();
+			Contract.Requires(connection, "connection").NotToBeNull();
 			
 			this.Connection = connection;
 			this.Address = address;

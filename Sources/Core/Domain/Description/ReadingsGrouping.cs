@@ -14,8 +14,8 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 		/// <param name="descriptors">The descriptors in the group.</param>
 		public ReadingDescriptorGrouping(string title, IEnumerable<ReadingDescriptor> descriptors)
 		{
-			Contract.Requires(title, "title").IsNotNull();
-			Contract.Requires(descriptors, "descriptors").IsNotNull();
+			Contract.Requires(title, "title").NotToBeNull();
+			Contract.Requires(descriptors, "descriptors").NotToBeNull();
 
 			this.Title = title;
 			this.Descriptors = descriptors;

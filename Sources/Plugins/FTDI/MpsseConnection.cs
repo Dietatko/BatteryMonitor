@@ -118,7 +118,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 		public Task Send(uint address, byte[] data)
 		{
 			Contract.Requires(data, "data")
-				.IsNotNull();
+				.NotToBeNull();
 
 			return Task.Run(() =>
 			{
@@ -140,7 +140,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 		public Task<byte[]> Receive(uint address, int dataLength)
 		{
 			Contract.Requires(dataLength, "dataLength")
-				.IsInRange(x => x > 0);
+				.ToBeInRange(x => x > 0);
 
 			return Task.Run(() =>
 			{
@@ -172,8 +172,8 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 
 		public Task<byte[]> Transceive(uint address, byte[] dataToSend, int receiveLength)
 		{
-			Contract.Requires(dataToSend, "dataToSend").IsNotNull();
-			Contract.Requires(receiveLength, "receiveLength").IsInRange(x => x > 0);
+			Contract.Requires(dataToSend, "dataToSend").NotToBeNull();
+			Contract.Requires(receiveLength, "receiveLength").ToBeInRange(x => x > 0);
 
 			return Task.Run(() =>
 			{

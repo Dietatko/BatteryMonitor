@@ -13,10 +13,10 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		protected BatteryPack(IEnumerable<BatteryElement> subElements)
 		{
 			Contract.Requires(subElements, "subElements")
-				.IsNotNull();
+				.NotToBeNull();
 			subElements = subElements.ToList();
 			Contract.Requires(subElements, "subElements")
-				.IsNotEmpty();
+				.NotToBeEmpty();
 
 			this.m_productWrapper = new ProductDefinitionWrapper(this.CustomData);
 			this.SubElements = subElements;

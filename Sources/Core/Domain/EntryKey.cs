@@ -15,10 +15,10 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		public EntryKey(string namespaceUri, string name)
 		{
 			Contract.Requires(namespaceUri, "NamespaceUriName")
-				.IsNotNull();
+				.NotToBeNull();
 			Contract.Requires(name, "Name")
-				.IsNotNull()
-				.IsNotEmpty();
+				.NotToBeNull()
+				.NotToBeEmpty();
 
 			this.NamespaceUri = namespaceUri;
 			this.Name = name;

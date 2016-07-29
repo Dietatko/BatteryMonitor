@@ -13,9 +13,9 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 			IDictionary<Func<BatteryElement, BatteryElement>, EntryKey> sourceKeys, 
 			ReadingValueAccessor accessor)
 		{
-			Contract.Requires(description, "description").IsNotNull();
-			Contract.Requires(sourceKeys, "sourceKeys").IsNotNull();
-			Contract.Requires(accessor, "accessor").IsNotNull();
+			Contract.Requires(description, "description").NotToBeNull();
+			Contract.Requires(sourceKeys, "sourceKeys").NotToBeNull();
+			Contract.Requires(accessor, "accessor").NotToBeNull();
 
 			this.Description = description;
 			this.SourceKeys = sourceKeys;
