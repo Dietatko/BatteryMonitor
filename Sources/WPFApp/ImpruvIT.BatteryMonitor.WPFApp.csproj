@@ -106,10 +106,7 @@
     <Compile Include="ViewLogic\MainViewLogic.cs" />
     <Compile Include="ViewLogic\CustomFormatConverter.cs" />
     <Compile Include="ViewLogic\ReadingsGridViewLogic.cs" />
-    <Compile Include="ViewLogic\ReadingDescriptor.cs" />
-    <Compile Include="ViewLogic\ReadingDescriptors.cs" />
     <Compile Include="ViewLogic\ReadingsGroupViewLogic.cs" />
-    <Compile Include="ViewLogic\ReadingsGrouping.cs" />
     <Compile Include="ViewLogic\ViewLogicBase.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

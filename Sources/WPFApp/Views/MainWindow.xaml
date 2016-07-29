@@ -56,7 +56,7 @@
                       Height="220" HorizontalAlignment="Stretch">
 				<DockPanel LastChildFill="True">
 					<myControls:ReadingsGrid Width="300" DockPanel.Dock="Right"
-											 Item="{Binding Pack, Mode=OneWay}" PropertiesSource="{Binding ReadingDescriptors, Mode=OneWay}" />
+											 Item="{Binding Pack, Mode=OneWay}" PropertiesSource="{Binding Descriptors, Mode=OneWay}" />
 					<charts:CartesianChart x:Name="Chart" Initialized="Chart_OnInitialized" DataContextChanged="Chart_OnDataContextChanged">
 						<charts:CartesianChart.AxisX>
 							<charts:Axis Title="Time" Labels="{Binding Labels}">

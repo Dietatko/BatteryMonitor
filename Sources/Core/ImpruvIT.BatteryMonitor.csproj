@@ -52,6 +52,13 @@
     <Compile Include="Bricks\EnumerableExtensions.cs" />
     <Compile Include="Bricks\ContractExtensions.cs" />
     <Compile Include="Bricks\RepeatableTask.cs" />
+    <Compile Include="Domain\Description\ChartReadingDescriptor.cs" />
+    <Compile Include="Domain\Description\ReadingDescription.cs" />
+    <Compile Include="Domain\Description\ReadingDescriptor.cs" />
+    <Compile Include="Domain\Description\ReadingDescriptors.cs" />
+    <Compile Include="Domain\Description\ReadingsGrouping.cs" />
+    <Compile Include="Domain\Description\ReadingVisualizer.cs" />
+    <Compile Include="Domain\Description\ReadingValueAccessor.cs" />
     <Compile Include="Domain\IProductDefinition.cs" />
     <Compile Include="Domain\Unit.cs" />
     <Compile Include="Domain\Voltage.cs" />

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using LiveCharts;
 
 using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Description;
 using ImpruvIT.BatteryMonitor.Protocols;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
@@ -20,7 +21,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			this.ActualsHistory = new ChartValues<ActualsSnapshot>();
 			this.BatteryAdapter = batteryAdapter;
 
-			this.ReadingDescriptors = this.GetDescriptors().ToList();
+			this.Descriptors = this.GetDescriptors().ToList();
 		}
 
 		protected IBatteryPackAdapter BatteryAdapter
@@ -108,42 +109,42 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		#region Descriptions
 
-		public IEnumerable<ReadingDescriptorGrouping> ReadingDescriptors
+		public IEnumerable<ReadingDescriptorGrouping> Descriptors
 		{
-			get { return this.m_readingDescriptors; }
-			set { this.SetPropertyValue(ref this.m_readingDescriptors, value); }
+			get { return this.m_descriptors; }
+			set { this.SetPropertyValue(ref this.m_descriptors, value); }
 		}
-		private IEnumerable<ReadingDescriptorGrouping> m_readingDescriptors;
+		private IEnumerable<ReadingDescriptorGrouping> m_descriptors;
 
 		protected IEnumerable<ReadingDescriptorGrouping> GetDescriptors()
 		{
 			yield return new ReadingDescriptorGrouping(
 					"Product",
 					new[] {
-						ViewLogic.ReadingDescriptors.Manufacturer,
-						ViewLogic.ReadingDescriptors.Product,
-						ViewLogic.ReadingDescriptors.ManufactureDate,
-						ViewLogic.ReadingDescriptors.SerialNumber,
-						ViewLogic.ReadingDescriptors.Chemistry
-						//ReadingDescriptors.Manufacturer new ReadingDescriptor<BatteryPack, Version>(b => b.Information.SpecificationVersion, "Information.SpecificationVersion", "SpecificationVersion", "The SMBus specification version the battery pack conforms to.");
-						//ReadingDescriptors.Manufacturer new ReadingDescriptor<BatteryPack, object>(b => b.Information.CellCount, "Information.CellCount", "{0} cells", "Cells", "A number of cells in the battery pack.");
+						ReadingDescriptors.Manufacturer,
+						ReadingDescriptors.Product,
+						ReadingDescriptors.ManufactureDate,
+						ReadingDescriptors.SerialNumber,
+						ReadingDescriptors.Chemistry
+						//Descriptors.Manufacturer new ReadingDescriptor<BatteryPack, Version>(b => b.Information.SpecificationVersion, "Information.SpecificationVersion", "SpecificationVersion", "The SMBus specification version the battery pack conforms to.");
+						//Descriptors.Manufacturer new ReadingDescriptor<BatteryPack, object>(b => b.Information.CellCount, "Information.CellCount", "{0} cells", "Cells", "A number of cells in the battery pack.");
 					});
 
 			yield return new ReadingDescriptorGrouping(
 					"Design",
 					new[] {
-						ViewLogic.ReadingDescriptors.NominalVoltage,
-						ViewLogic.ReadingDescriptors.DesignedDischargeCurrent,
-						ViewLogic.ReadingDescriptors.MaxDischargeCurrent,
-						ViewLogic.ReadingDescriptors.DesignedCapacity
+						ReadingDescriptors.NominalVoltage,
+						ReadingDescriptors.DesignedDischargeCurrent,
+						ReadingDescriptors.MaxDischargeCurrent,
+						ReadingDescriptors.DesignedCapacity
 					});
 
 			yield return new ReadingDescriptorGrouping(
 					"Health",
 					new[] {
-						ViewLogic.ReadingDescriptors.FullChargeCapacity,
-						ViewLogic.ReadingDescriptors.CycleCount,
-						ViewLogic.ReadingDescriptors.CalculationPrecision
+						ReadingDescriptors.FullChargeCapacity,
+						ReadingDescriptors.CycleCount,
+						ReadingDescriptors.CalculationPrecision
 						////new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingCapacityAlarm * 1000, "Status.RemainingCapacityAlarm", "{0} mAh", "Capacity alarm threshold", "A remaining capacity of the battery pack that will trigger alarm notification."),
 						////new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingTimeAlarm, "Status.RemainingTimeAlarm", "Time alarm threshold", "A remaining usage time of the battery pack that will trigger alarm notification.")
 					});
@@ -151,10 +152,10 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			yield return new ReadingDescriptorGrouping(
 					"Actuals",
 					new[] {
-						ViewLogic.ReadingDescriptors.PackVoltage,
-						ViewLogic.ReadingDescriptors.ActualCurrent,
-						ViewLogic.ReadingDescriptors.AverageCurrent,
-						ViewLogic.ReadingDescriptors.Temperature
+						ReadingDescriptors.PackVoltage,
+						ReadingDescriptors.ActualCurrent,
+						ReadingDescriptors.AverageCurrent,
+						ReadingDescriptors.Temperature
 					})
 				{
 					IsDefault = true

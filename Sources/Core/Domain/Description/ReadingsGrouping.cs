@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using ImpruvIT.Contracts;
 
-namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
+namespace ImpruvIT.BatteryMonitor.Domain.Description
 {
 	public class ReadingDescriptorGrouping : IEnumerable<ReadingDescriptor>
 	{

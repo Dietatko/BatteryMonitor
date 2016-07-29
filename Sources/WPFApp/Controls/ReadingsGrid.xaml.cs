@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Description;
 using ImpruvIT.BatteryMonitor.WPFApp.ViewLogic;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.Controls

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using ImpruvIT.BatteryMonitor.Domain;
-
-namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
+namespace ImpruvIT.BatteryMonitor.Domain.Description
 {
 	public static class ReadingDescriptors
 	{
@@ -76,7 +74,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		#region Design parameters
 
-		public static readonly ReadingDescriptor NominalVoltage = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor NominalVoltage = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Nominal voltage", 
 				"The nominal voltage of the battery pack."
@@ -92,7 +90,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				x => (double)x
 			));
 
-		public static readonly ReadingDescriptor DesignedDischargeCurrent = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor DesignedDischargeCurrent = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Discharge current", 
 				"A continuos discharge current of the battery pack."
@@ -108,7 +106,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				x => (double)x
 			));
 
-		public static readonly ReadingDescriptor MaxDischargeCurrent = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor MaxDischargeCurrent = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Max discharge current", 
 				"A maximal short-time (pulse) discharge current of the battery pack."
@@ -124,7 +122,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				x => (double)x
 			));
 
-		public static readonly ReadingDescriptor DesignedCapacity = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor DesignedCapacity = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Nominal capacity", 
 				"A designed capacity of the battery pack."
@@ -144,7 +142,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		#region Health
 
-		public static readonly ReadingDescriptor FullChargeCapacity = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor FullChargeCapacity = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Full charge capacity", 
 				"A capacity of the full-charged battery pack."
@@ -160,7 +158,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				x => (double)x
 			));
 
-		public static readonly ReadingDescriptor CycleCount = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor CycleCount = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Cycles", 
 				"A number of charge-discharge cycles in life time of the battery pack."
@@ -176,7 +174,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				x => (double)x
 			));
 
-		public static readonly ReadingDescriptor CalculationPrecision = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor CalculationPrecision = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Calculation precision", 
 				"A maximum value error of measured and calculated values."
@@ -196,7 +194,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		#region Actuals
 
-		public static readonly ReadingDescriptor PackVoltage = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor PackVoltage = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Voltage", 
 				"The actual battery pack voltage."
@@ -212,7 +210,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				x => (double)x
 			));
 
-		public static readonly ReadingDescriptor ActualCurrent = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor ActualCurrent = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Current", 
 				"The current load current."
@@ -228,7 +226,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				x => (double)x
 			));
 
-		public static readonly ReadingDescriptor AverageCurrent = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor AverageCurrent = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Average current", 
 				"The average load current."
@@ -244,7 +242,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				x => (double)x
 			));
 
-		public static readonly ReadingDescriptor Temperature = new GraphReadingDescriptor(
+		public static readonly ReadingDescriptor Temperature = new ChartReadingDescriptor(
 			new ReadingDescription(
 				"Temperature", 
 				"The current pack temperature."

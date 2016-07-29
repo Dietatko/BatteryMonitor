@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 
 using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Description;
 using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic

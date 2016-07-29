@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Description;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 {

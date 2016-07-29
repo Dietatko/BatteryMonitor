@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 
 using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public abstract class BatteryPack : BatteryElement, INotifyPropertyChanged
+	public abstract class BatteryPack : BatteryElement
 	{
 		private readonly ProductDefinitionWrapper m_productWrapper;
 
@@ -30,11 +29,5 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		}
 
 		public IEnumerable<BatteryElement> SubElements { get; private set; }
-
-		#region INotifyPropertyChanged Members
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		#endregion
 	}
 }
