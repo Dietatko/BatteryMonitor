@@ -18,8 +18,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Description
 			},
 			new ReadingValueAccessor(
 				b => b.Product.Manufacturer
-			)
-			);
+			));
 
 		public static readonly ReadingDescriptor Product = new ReadingDescriptor(
 			new ReadingDescription(

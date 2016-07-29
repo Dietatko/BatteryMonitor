@@ -10,6 +10,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 	{
 		public const string NamespaceUriName = "SMBus";
 		public const string SpecificationVersionEntryName = "SpecificationVersion";
+		public const string CellCountEntryName = "CellCount";
 		public const string VoltageScaleEntryName = "VoltageScale";
 		public const string CurrentScaleEntryName = "CurrentScale";
 
@@ -28,6 +29,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		{
 			get { return this.GetValue<Version>(SpecificationVersionEntryName); }
 			set { this.SetValue(SpecificationVersionEntryName, value); }
+		}
+
+		public int CellCount
+		{
+			get { return this.GetValue<int>(CellCountEntryName); }
+			set { this.SetValue(CellCountEntryName, value); }
 		}
 
 		public int VoltageScale

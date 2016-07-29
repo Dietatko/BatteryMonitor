@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
+using ImpruvIT.Contracts;
 using LiveCharts;
 
 using ImpruvIT.BatteryMonitor.Domain;
@@ -18,10 +18,12 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		public BatteryLogic(IBatteryPackAdapter batteryAdapter)
 		{
+			Contract.Requires(batteryAdapter, "batteryAdapter").IsNotNull();
+
 			this.ActualsHistory = new ChartValues<ActualsSnapshot>();
 			this.BatteryAdapter = batteryAdapter;
 
-			this.Descriptors = this.GetDescriptors().ToList();
+			this.Descriptors = this.BatteryAdapter.GetDescriptors().ToList();
 		}
 
 		protected IBatteryPackAdapter BatteryAdapter
@@ -47,6 +49,13 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			get { return this.BatteryAdapter.Pack; }
 		}
 
+		public IEnumerable<ReadingDescriptorGrouping> Descriptors
+		{
+			get { return this.m_descriptors; }
+			set { this.SetPropertyValue(ref this.m_descriptors, value); }
+		}
+		private IEnumerable<ReadingDescriptorGrouping> m_descriptors;
+
 
 		#region Monitoring
 
@@ -61,7 +70,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			return this.BatteryAdapter.RecognizeBattery()
 				.ContinueWith(t =>
 				{
-					this.m_updatesSubscription = this.m_batteryAdapter.SubscribeToUpdates(this.UpdateActuals, UpdateFrequency.Normal);
+					this.m_updatesSubscription = this.BatteryAdapter.SubscribeToUpdates(this.UpdateActuals, UpdateFrequency.Normal);
 				});
 		}
 
@@ -77,17 +86,15 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			if (pack == null)
 				return;
 
-			//Dispatcher.CurrentDispatcher.Invoke(() =>
-			//{
 			this.ActualsHistory.Add(new ActualsSnapshot(CloneActuals(pack)));
 
+			// Clenaup old values
 			if (this.ActualsHistory.Count > 120)
 			{
 				var recordsToDelete = this.ActualsHistory.OrderBy(x => x.Timestamp).Take(this.ActualsHistory.Count - 110).ToList();
 				foreach (var record in recordsToDelete)
 					this.ActualsHistory.Remove(record);
 			}
-			//});
 		}
 
 		private static Actuals CloneActuals(BatteryPack pack)
@@ -105,63 +112,5 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 		}
 
 		#endregion Monitoring
-
-
-		#region Descriptions
-
-		public IEnumerable<ReadingDescriptorGrouping> Descriptors
-		{
-			get { return this.m_descriptors; }
-			set { this.SetPropertyValue(ref this.m_descriptors, value); }
-		}
-		private IEnumerable<ReadingDescriptorGrouping> m_descriptors;
-
-		protected IEnumerable<ReadingDescriptorGrouping> GetDescriptors()
-		{
-			yield return new ReadingDescriptorGrouping(
-					"Product",
-					new[] {
-						ReadingDescriptors.Manufacturer,
-						ReadingDescriptors.Product,
-						ReadingDescriptors.ManufactureDate,
-						ReadingDescriptors.SerialNumber,
-						ReadingDescriptors.Chemistry
-						//Descriptors.Manufacturer new ReadingDescriptor<BatteryPack, Version>(b => b.Information.SpecificationVersion, "Information.SpecificationVersion", "SpecificationVersion", "The SMBus specification version the battery pack conforms to.");
-						//Descriptors.Manufacturer new ReadingDescriptor<BatteryPack, object>(b => b.Information.CellCount, "Information.CellCount", "{0} cells", "Cells", "A number of cells in the battery pack.");
-					});
-
-			yield return new ReadingDescriptorGrouping(
-					"Design",
-					new[] {
-						ReadingDescriptors.NominalVoltage,
-						ReadingDescriptors.DesignedDischargeCurrent,
-						ReadingDescriptors.MaxDischargeCurrent,
-						ReadingDescriptors.DesignedCapacity
-					});
-
-			yield return new ReadingDescriptorGrouping(
-					"Health",
-					new[] {
-						ReadingDescriptors.FullChargeCapacity,
-						ReadingDescriptors.CycleCount,
-						ReadingDescriptors.CalculationPrecision
-						////new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingCapacityAlarm * 1000, "Status.RemainingCapacityAlarm", "{0} mAh", "Capacity alarm threshold", "A remaining capacity of the battery pack that will trigger alarm notification."),
-						////new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingTimeAlarm, "Status.RemainingTimeAlarm", "Time alarm threshold", "A remaining usage time of the battery pack that will trigger alarm notification.")
-					});
-
-			yield return new ReadingDescriptorGrouping(
-					"Actuals",
-					new[] {
-						ReadingDescriptors.PackVoltage,
-						ReadingDescriptors.ActualCurrent,
-						ReadingDescriptors.AverageCurrent,
-						ReadingDescriptors.Temperature
-					})
-				{
-					IsDefault = true
-				};
-		}
-
-		#endregion Descriptions
 	}
 }
