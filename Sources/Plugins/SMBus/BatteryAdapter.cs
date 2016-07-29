@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using ImpruvIT.BatteryMonitor.Domain.Description;
 using ImpruvIT.Contracts;
 using log4net;
 
@@ -62,11 +62,11 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			try
 			{
 				var pack = await this.RecognizeGeometry().ConfigureAwait(false);
-				await this.ReadManufactureData(pack);
+				await this.ReadProductData(pack);
 				await this.ReadProtocolParams(pack);
 
 				this.Pack = pack;
-				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.Product.Manufacturer, pack.Product.Product, pack.ProductionParameters.NominalVoltage, pack.ProductionParameters.DesignedCapacity * 1000);
+				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.Product.Manufacturer, pack.Product.Product, pack.DesignParameters.NominalVoltage, pack.DesignParameters.DesignedCapacity * 1000);
 			}
 			catch (Exception ex)
 			{
@@ -79,6 +79,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				if (!(thrownEx is InvalidOperationException))
 					throw;
 			}
+
+			this.OnDescriptorsChanged();
         }
 
 		private async Task<BatteryPack> RecognizeGeometry()
@@ -96,19 +98,22 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				.Select(i => new SingleCell(cellVoltage, designedDischargeCurrent, maxDischargeCurrent, designedCapacity));
 			var pack = new SeriesBatteryPack(cells);
 
+			var batterySMBusWrapper = new SMBusDataWrapper(pack.CustomData);
+			batterySMBusWrapper.CellCount = cellCount;
+
 			this.Tracer.Debug(new TraceBuilder()
 					.AppendLine("A series battery with {1} cells recognized at address 0x{0:X}:", this.Address, cellCount)
 					.Indent()
 						.AppendLine("Nominal voltage: {0} V (Cell voltage: {1} V)", nominalVoltage, cellVoltage)
-						.AppendLine("Designed discharge current: {0} A", pack.ProductionParameters.DesignedDischargeCurrent)
-						.AppendLine("Maximal discharge current: {0} A", pack.ProductionParameters.MaxDischargeCurrent)
+						.AppendLine("Designed discharge current: {0} A", pack.DesignParameters.DesignedDischargeCurrent)
+						.AppendLine("Maximal discharge current: {0} A", pack.DesignParameters.MaxDischargeCurrent)
 						.AppendLine("Designed Capacity: {0} Ah", designedCapacity)
 					.Trace());
 
 			return pack;
 		}
 
-		private async Task ReadManufactureData(BatteryPack pack)
+		private async Task ReadProductData(BatteryPack pack)
 		{
 			this.Tracer.DebugFormat("Reading manufacturer data of battery at address 0x{0:X} ...", this.Address);
 
@@ -431,6 +436,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		//#endregion Settings
 
+
 		#region Reading primitives
 
 		private Task<short> ReadShortValue(uint commandId)
@@ -507,6 +513,75 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		}
 
 		#endregion Reading primitives
+
+
+		#region Descriptions
+
+		public IEnumerable<ReadingDescriptorGrouping> GetDescriptors()
+		{
+			if (this.Pack == null)
+				yield break;
+
+			yield return new ReadingDescriptorGrouping(
+				"Product",
+				new[] {
+					ReadingDescriptors.Manufacturer,
+					ReadingDescriptors.Product,
+					ReadingDescriptors.ManufactureDate,
+					ReadingDescriptors.SerialNumber,
+					ReadingDescriptors.Chemistry,
+					SMBusReadingDescriptors.SpecificationVersion
+				});
+
+			yield return new ReadingDescriptorGrouping(
+				"Design",
+				new[] {
+					SMBusReadingDescriptors.CellCount,
+					ReadingDescriptors.NominalVoltage,
+					ReadingDescriptors.DesignedDischargeCurrent,
+					ReadingDescriptors.MaxDischargeCurrent,
+					ReadingDescriptors.DesignedCapacity,
+				});
+
+			yield return new ReadingDescriptorGrouping(
+				"Health",
+				new[] {
+					ReadingDescriptors.FullChargeCapacity,
+					ReadingDescriptors.CycleCount,
+					ReadingDescriptors.CalculationPrecision
+					////new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingCapacityAlarm * 1000, "Status.RemainingCapacityAlarm", "{0} mAh", "Capacity alarm threshold", "A remaining capacity of the battery pack that will trigger alarm notification."),
+					////new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingTimeAlarm, "Status.RemainingTimeAlarm", "Time alarm threshold", "A remaining usage time of the battery pack that will trigger alarm notification.")
+				});
+
+			var actualDescriptors = new List<ReadingDescriptor>();
+			actualDescriptors.Add(ReadingDescriptors.PackVoltage);
+			actualDescriptors.AddRange(Enumerable.Range(0, this.Pack.SubElements.Count()).Select(SMBusReadingDescriptors.CreateCellVoltageDescriptor));
+			actualDescriptors.Add(ReadingDescriptors.ActualCurrent);
+			actualDescriptors.Add(ReadingDescriptors.AverageCurrent);
+			actualDescriptors.Add(ReadingDescriptors.Temperature);
+			
+			yield return new ReadingDescriptorGrouping(
+				"Actuals",
+				actualDescriptors)
+			{
+				IsDefault = true
+			};
+		}
+
+		/// <inheritdoc />
+		public event EventHandler DescriptorsChanged;
+
+		/// <summary>
+		/// Fires the <see cref="DescriptorsChanged"/> event.
+		/// </summary>
+		protected virtual void OnDescriptorsChanged()
+		{
+			EventHandler handlers = this.DescriptorsChanged;
+			if (handlers != null)
+				handlers(this, EventArgs.Empty);
+		}
+
+		#endregion Descriptions
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;

@@ -6,7 +6,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 {
 	public class ProductDefinitionWrapper : DataDictionaryWrapperBase, IProductDefinition
 	{
-		public const string NamespaceUri = "ProductDefinitionNS";
+		public const string NamespaceUriName = "ProductDefinitionNS";
 		public const string ManufacturerEntryName = "Manufacturer";
 		public const string ProductEntryName = "Product";
 		public const string ChemistryEntryName = "Chemistry";
@@ -18,9 +18,9 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		{
 		}
 
-		protected override string DefaultNamespaceUri
+		protected override string NamespaceUri
 		{
-			get { return NamespaceUri; }
+			get { return NamespaceUriName; }
 		}
 
 
@@ -52,6 +52,11 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		{
 			get { return this.GetValue<string>(SerialNumberEntryName); }
 			set { this.SetValue(SerialNumberEntryName, value); }
+		}
+
+		public static EntryKey CreateKey(string entryName)
+		{
+			return new EntryKey(NamespaceUriName, entryName);
 		}
 	}
 }

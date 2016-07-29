@@ -57,7 +57,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 				Console.WriteLine("Battery found at address {0}:", address);
 				var product = batteryPack.Product;
-				var parameters = batteryPack.ProductionParameters;
+				var parameters = batteryPack.DesignParameters;
 				Console.WriteLine("Manufacturer:             {0}", product.Manufacturer);
 				Console.WriteLine("Product:                  {0}", product.Product);
 				Console.WriteLine("Chemistry:                {0}", product.Chemistry);

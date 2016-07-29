@@ -55,14 +55,8 @@
                       DataContext="{Binding FirstBatteryLogic}"
                       Height="220" HorizontalAlignment="Stretch">
 				<DockPanel LastChildFill="True">
-					<TabControl SelectedIndex="1" Width="300" DockPanel.Dock="Right">
-						<TabItem Header="Information">
-							<myControls:PropertyGrid Item="{Binding Pack, Mode=OneWay}" PropertiesSource="{Binding BatteryInformationDescriptions, Mode=OneWay}" />
-						</TabItem>
-						<TabItem Header="Conditions">
-							<myControls:PropertyGrid Item="{Binding Pack, Mode=OneWay}" PropertiesSource="{Binding BatteryConditionsDescriptions, Mode=OneWay}" />
-						</TabItem>
-					</TabControl>
+					<myControls:ReadingsGrid Width="300" DockPanel.Dock="Right"
+											 Item="{Binding Pack, Mode=OneWay}" PropertiesSource="{Binding Descriptors, Mode=OneWay}" />
 					<charts:CartesianChart x:Name="Chart" Initialized="Chart_OnInitialized" DataContextChanged="Chart_OnDataContextChanged">
 						<charts:CartesianChart.AxisX>
 							<charts:Axis Title="Time" Labels="{Binding Labels}">

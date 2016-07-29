@@ -20,6 +20,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 			this.m_productWrapper = new ProductDefinitionWrapper(this.CustomData);
 			this.SubElements = subElements;
+			this.SubElements.ForEach(x => x.ValueChanged += (s, a) => this.OnValueChanged(a));
 		}
 
 		public override IProductDefinition Product

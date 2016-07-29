@@ -15,30 +15,20 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		public DataDictionary Data { get; private set; }
 
-		protected abstract string DefaultNamespaceUri { get; }
+		protected abstract string NamespaceUri { get; }
 
-		protected virtual T GetValue<T>(string entryName, T defaultValue = default(T))
-		{
-			return this.GetValue<T>(this.DefaultNamespaceUri, entryName, defaultValue);
-		}
-
-		protected virtual T GetValue<T>(string namespaceUri, string entryName, T defaultValue = default(T))
+		public T GetValue<T>(string entryName, T defaultValue = default(T))
 		{
 			T result;
-			if (!this.Data.TryGetValue(namespaceUri, entryName, out result))
+			if (!this.Data.TryGetValue(this.NamespaceUri, entryName, out result))
 				result = defaultValue;
 
 			return result;
 		}
 
-		protected virtual void SetValue<T>(string entryName, T value)
+		public void SetValue<T>(string entryName, T value)
 		{
-			this.SetValue(this.DefaultNamespaceUri, entryName, value);
-		}
-
-		protected virtual void SetValue<T>(string namespaceUri, string entryName, T value)
-		{
-			this.Data.SetValue(namespaceUri, entryName, value);
+			this.Data.SetValue(this.NamespaceUri, entryName, value);
 		}
 	}
 }

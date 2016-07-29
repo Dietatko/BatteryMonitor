@@ -8,7 +8,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 	public class SingleCell : BatteryElement
 	{
 		private readonly ProductDefinitionWrapper m_productWrapper;
-		private readonly BatteryParametersWrapper m_paramsWrapper;
+		private readonly DesignParametersWrapper m_paramsWrapper;
 		private readonly BatteryHealthWrapper m_healthWrapper;
 		private readonly BatteryActualsWrapper m_actualsWrapper;
 
@@ -21,7 +21,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 			this.m_productWrapper = new ProductDefinitionWrapper(this.CustomData);
 
-			this.m_paramsWrapper = new BatteryParametersWrapper(this.CustomData);
+			this.m_paramsWrapper = new DesignParametersWrapper(this.CustomData);
 			this.m_paramsWrapper.NominalVoltage = nominalVoltage;
 			this.m_paramsWrapper.DesignedDischargeCurrent = designedDischargeCurrent;
 			this.m_paramsWrapper.MaxDischargeCurrent = maxDischargeCurrent;
@@ -36,7 +36,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 			get { return this.m_productWrapper; }
 		}
 
-		public override IBatteryParameters ProductionParameters
+		public override IDesignParameters DesignParameters
 		{
 			get { return this.m_paramsWrapper; }
 		}

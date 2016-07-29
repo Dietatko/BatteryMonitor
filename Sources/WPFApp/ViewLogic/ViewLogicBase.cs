@@ -25,23 +25,27 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				handlers(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		protected void SetPropertyValue<T>(ref T currentValue, T newValue, [CallerMemberName] string propertyName = "")
+		protected bool SetPropertyValue<T>(ref T currentValue, T newValue, Action<T> oldValueAction = null, Action<T> newValueAction = null, [CallerMemberName] string propertyName = "")
 		{
-			bool flag;
 			T oldValue = currentValue;
-			if (!typeof(T).IsValueType || !object.Equals(oldValue, newValue))
+
+			// Check equality
+			if ((typeof(T).IsValueType && Object.Equals(oldValue, newValue))
+				|| (!typeof(T).IsValueType && Object.ReferenceEquals(oldValue, newValue)))
 			{
-				flag = (typeof(T).IsValueType ? true : !object.ReferenceEquals(oldValue, newValue));
+				return false;
 			}
-			else
-			{
-				flag = false;
-			}
-			if (flag)
-			{
-				currentValue = newValue;
-				this.OnPropertyChanged(propertyName);
-			}
+
+			if (oldValueAction != null)
+				oldValueAction(oldValue);
+			
+			currentValue = newValue;
+
+			if (newValueAction != null)
+				newValueAction(newValue);
+
+			this.OnPropertyChanged(propertyName);
+			return true;
 		}
 
 		protected void PassThroughPropertyChangeNotification<TObject, TSource, TTarget>(TObject sourceObject, Expression<Func<TObject, TSource>> sourcePropertyExpr, Expression<Func<TTarget>> thisPropertyExpr)

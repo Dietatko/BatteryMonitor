@@ -1,30 +1,31 @@
 ﻿using System;
-
+using System.Diagnostics;
 using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public class EntryIdentifier : IEquatable<EntryIdentifier>
+	[DebuggerDisplay("{NamespaceUri}:{Name}")]
+	public class EntryKey : IEquatable<EntryKey>
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="EntryIdentifier"/> class.
+		/// Initializes a new instance of the <see cref="EntryKey"/> class.
 		/// </summary>
-		/// <param name="namespaceUri">The namespace URI.</param>
-		/// <param name="entryName">The entry name.</param>
-		public EntryIdentifier(string namespaceUri, string entryName)
+		/// <param name="namespaceUri">The NamespaceUriName URI.</param>
+		/// <param name="name">The entry name.</param>
+		public EntryKey(string namespaceUri, string name)
 		{
-			Contract.Requires(namespaceUri, "namespaceUri")
+			Contract.Requires(namespaceUri, "NamespaceUriName")
 				.IsNotNull();
-			Contract.Requires(entryName, "entryName")
+			Contract.Requires(name, "Name")
 				.IsNotNull()
 				.IsNotEmpty();
 
 			this.NamespaceUri = namespaceUri;
-			this.EntryName = entryName;
+			this.Name = name;
 		}
 
 		public string NamespaceUri { get; private set; }
-		public string EntryName { get; private set; }
+		public string Name { get; private set; }
 
 		/// <summary>
 		/// Determines whether the specified object is equal to the current object.
@@ -33,16 +34,16 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		/// <param name="obj">The object to compare with the current object. </param>
 		public override bool Equals(object obj)
 		{
-			var other = obj as EntryIdentifier;
+			var other = obj as EntryKey;
 			if (other == null)
 				return false;
 
 			return this.Equals(other);
 		}
 
-		public bool Equals(EntryIdentifier other)
+		public bool Equals(EntryKey other)
 		{
-			return Object.Equals(this.NamespaceUri, other.NamespaceUri) && object.Equals(this.EntryName, other.EntryName);
+			return Object.Equals(this.NamespaceUri, other.NamespaceUri) && object.Equals(this.Name, other.Name);
 		}
 
 		/// <summary>
@@ -51,7 +52,7 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		/// <returns>A hash code for the current object.</returns>
 		public override int GetHashCode()
 		{
-			return this.NamespaceUri.GetHashCode() ^ this.EntryName.GetHashCode();
+			return this.NamespaceUri.GetHashCode() ^ this.Name.GetHashCode();
 		}
 	}
 }

@@ -84,7 +84,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Controls\PropertyGrid.xaml">
+    <Page Include="Controls\ReadingsGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -96,16 +96,17 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Controls\PropertyValueConverter.cs" />
-    <Compile Include="Controls\PropertyGrid.xaml.cs">
-      <DependentUpon>PropertyGrid.xaml</DependentUpon>
+    <Compile Include="Controls\ReadingsGrid.xaml.cs">
+      <DependentUpon>ReadingsGrid.xaml</DependentUpon>
     </Compile>
     <Compile Include="Data\NullDataTemplateSelector.cs" />
     <Compile Include="ViewLogic\BatteryLogic.cs" />
     <Compile Include="ViewLogic\ActualsSnapshot.cs" />
+    <Compile Include="ViewLogic\BatteryReadingProvider.cs" />
     <Compile Include="ViewLogic\MainViewLogic.cs" />
     <Compile Include="ViewLogic\CustomFormatConverter.cs" />
-    <Compile Include="ViewLogic\ReadingDescription.cs" />
+    <Compile Include="ViewLogic\ReadingsGridViewLogic.cs" />
+    <Compile Include="ViewLogic\ReadingsGroupViewLogic.cs" />
     <Compile Include="ViewLogic\ViewLogicBase.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
