@@ -21,7 +21,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		private readonly RepeatableTask m_monitoringTask;
 
 		public BatteryAdapter(SMBusInterface connection, uint address)
-        {
+		{
 			this.Tracer = LogManager.GetLogger(this.GetType());
 
 			Contract.Requires(connection, "connection").IsNotNull();
@@ -32,9 +32,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			{
 				MinTriggerTime =  TimeSpan.FromSeconds(1)
 			};
-        }
+		}
 
-	    protected ILog Tracer { get; private set; }
+		protected ILog Tracer { get; private set; }
 		protected SMBusInterface Connection { get; private set; }
 		protected uint Address { get; private set; }
 
@@ -169,6 +169,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		#endregion Battery recognition
 
+
+		#region Readings
 
 		public async Task ReadHealth()
 		{
@@ -322,6 +324,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			}
 		}
 
+		#endregion Readings
+
 
 		#region Monitoring
 
@@ -451,7 +455,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		private Task<string> ReadStringValue(uint commandId, int stringLength)
 		{
 			return this.ReadBlockCommand(commandId, stringLength)
-				.ContinueWith(t => Encoding.ASCII.GetString(t.Result), TaskContinuationOptions.OnlyOnRanToCompletion);
+				.ContinueWith(t =>
+				{
+					var bytesCount = t.Result.TakeWhile(b => b != (byte)0).Count();
+					return Encoding.ASCII.GetString(t.Result, 0, bytesCount);
+				}, 
+				TaskContinuationOptions.OnlyOnRanToCompletion);
 		}
 
 		private Task<byte[]> ReadBlockCommand(uint commandId, int blockSize)
