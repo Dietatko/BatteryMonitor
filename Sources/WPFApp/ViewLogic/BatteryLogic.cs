@@ -108,42 +108,57 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		#region Descriptions
 
-		public IEnumerable<ReadingDescriptor> ReadingDescriptors
+		public IEnumerable<ReadingDescriptorGrouping> ReadingDescriptors
 		{
 			get { return this.m_readingDescriptors; }
 			set { this.SetPropertyValue(ref this.m_readingDescriptors, value); }
 		}
-		private IEnumerable<ReadingDescriptor> m_readingDescriptors;
+		private IEnumerable<ReadingDescriptorGrouping> m_readingDescriptors;
 
-		protected IEnumerable<ReadingDescriptor> GetDescriptors()
+		protected IEnumerable<ReadingDescriptorGrouping> GetDescriptors()
 		{
-			// Product
-			yield return ViewLogic.ReadingDescriptors.Manufacturer;
-			yield return ViewLogic.ReadingDescriptors.Product;
-			yield return ViewLogic.ReadingDescriptors.ManufactureDate;
-			yield return ViewLogic.ReadingDescriptors.SerialNumber;
-			yield return ViewLogic.ReadingDescriptors.Chemistry;
-			//yield return ReadingDescriptors.Manufacturer new ReadingDescriptor<BatteryPack, Version>(b => b.Information.SpecificationVersion, "Information.SpecificationVersion", "SpecificationVersion", "The SMBus specification version the battery pack conforms to.");
-			//yield return ReadingDescriptors.Manufacturer new ReadingDescriptor<BatteryPack, object>(b => b.Information.CellCount, "Information.CellCount", "{0} cells", "Cells", "A number of cells in the battery pack.");
+			yield return new ReadingDescriptorGrouping(
+					"Product",
+					new[] {
+						ViewLogic.ReadingDescriptors.Manufacturer,
+						ViewLogic.ReadingDescriptors.Product,
+						ViewLogic.ReadingDescriptors.ManufactureDate,
+						ViewLogic.ReadingDescriptors.SerialNumber,
+						ViewLogic.ReadingDescriptors.Chemistry
+						//ReadingDescriptors.Manufacturer new ReadingDescriptor<BatteryPack, Version>(b => b.Information.SpecificationVersion, "Information.SpecificationVersion", "SpecificationVersion", "The SMBus specification version the battery pack conforms to.");
+						//ReadingDescriptors.Manufacturer new ReadingDescriptor<BatteryPack, object>(b => b.Information.CellCount, "Information.CellCount", "{0} cells", "Cells", "A number of cells in the battery pack.");
+					});
 
-			// Design parameters
-			yield return ViewLogic.ReadingDescriptors.NominalVoltage;
-			yield return ViewLogic.ReadingDescriptors.DesignedDischargeCurrent;
-			yield return ViewLogic.ReadingDescriptors.MaxDischargeCurrent;
-			yield return ViewLogic.ReadingDescriptors.DesignedCapacity;
+			yield return new ReadingDescriptorGrouping(
+					"Design",
+					new[] {
+						ViewLogic.ReadingDescriptors.NominalVoltage,
+						ViewLogic.ReadingDescriptors.DesignedDischargeCurrent,
+						ViewLogic.ReadingDescriptors.MaxDischargeCurrent,
+						ViewLogic.ReadingDescriptors.DesignedCapacity
+					});
 
-			// Health
-			yield return ViewLogic.ReadingDescriptors.FullChargeCapacity;
-			yield return ViewLogic.ReadingDescriptors.CycleCount;
-			yield return ViewLogic.ReadingDescriptors.CalculationPrecision;
-			////yield return new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingCapacityAlarm * 1000, "Status.RemainingCapacityAlarm", "{0} mAh", "Capacity alarm threshold", "A remaining capacity of the battery pack that will trigger alarm notification.");
-			////yield return new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingTimeAlarm, "Status.RemainingTimeAlarm", "Time alarm threshold", "A remaining usage time of the battery pack that will trigger alarm notification.");
+			yield return new ReadingDescriptorGrouping(
+					"Health",
+					new[] {
+						ViewLogic.ReadingDescriptors.FullChargeCapacity,
+						ViewLogic.ReadingDescriptors.CycleCount,
+						ViewLogic.ReadingDescriptors.CalculationPrecision
+						////new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingCapacityAlarm * 1000, "Status.RemainingCapacityAlarm", "{0} mAh", "Capacity alarm threshold", "A remaining capacity of the battery pack that will trigger alarm notification."),
+						////new ReadingDescriptor<BatteryPack, object>(b => b.Status.RemainingTimeAlarm, "Status.RemainingTimeAlarm", "Time alarm threshold", "A remaining usage time of the battery pack that will trigger alarm notification.")
+					});
 
-			// Actuals
-			yield return ViewLogic.ReadingDescriptors.PackVoltage;
-			yield return ViewLogic.ReadingDescriptors.ActualCurrent;
-			yield return ViewLogic.ReadingDescriptors.AverageCurrent;
-			yield return ViewLogic.ReadingDescriptors.Temperature;
+			yield return new ReadingDescriptorGrouping(
+					"Actuals",
+					new[] {
+						ViewLogic.ReadingDescriptors.PackVoltage,
+						ViewLogic.ReadingDescriptors.ActualCurrent,
+						ViewLogic.ReadingDescriptors.AverageCurrent,
+						ViewLogic.ReadingDescriptors.Temperature
+					})
+				{
+					IsDefault = true
+				};
 		}
 
 		#endregion Descriptions

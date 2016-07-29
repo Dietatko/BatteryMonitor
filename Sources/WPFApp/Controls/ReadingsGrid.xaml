@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="ImpruvIT.BatteryMonitor.WPFApp.Controls.ReadingsGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:myLogic="clr-namespace:ImpruvIT.BatteryMonitor.WPFApp.ViewLogic"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"
+			 x:Name="Control">
+    <UserControl.Resources>
+    </UserControl.Resources>
+	<Grid DataContext="{Binding ViewLogic, ElementName=Control}">
+		<TabControl x:Name="GroupTabControl"
+					ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
+					DisplayMemberPath="Title">
+			<TabControl.ContentTemplate>
+				<DataTemplate>
+					<DockPanel LastChildFill="True">
+						<Grid MinHeight="42"
+							  Background="Silver"
+							  DockPanel.Dock="Bottom">
+							<TextBlock Text="{Binding SelectedReading.Descriptor.Description.Description}" TextWrapping="Wrap"
+							           Padding="5" />
+						</Grid>
+						<ListBox x:Name="PropertyList"
+						         ItemsSource="{Binding Readings}"
+								 SelectedItem="{Binding SelectedReading}">
+							<ListBox.ItemTemplate>
+								<DataTemplate DataType="myLogic:BatteryReadingProvider">
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="150" />
+											<ColumnDefinition Width="*" />
+										</Grid.ColumnDefinitions>
+										<TextBlock Text="{Binding Descriptor.Description.Title}" Grid.Column="0" />
+										<TextBlock Text="{Binding FormattedValue}" Grid.Column="1" />
+									</Grid>
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+						</ListBox>
+					</DockPanel>
+				</DataTemplate>
+			</TabControl.ContentTemplate>
+		</TabControl>
+    <!---->
+	</Grid>
+</UserControl>
