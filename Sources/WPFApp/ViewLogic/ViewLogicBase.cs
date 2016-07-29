@@ -25,7 +25,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				handlers(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		protected bool SetPropertyValue<T>(ref T currentValue, T newValue, [CallerMemberName] string propertyName = "")
+		protected bool SetPropertyValue<T>(ref T currentValue, T newValue, Action<T> oldValueAction = null, Action<T> newValueAction = null, [CallerMemberName] string propertyName = "")
 		{
 			T oldValue = currentValue;
 
@@ -35,10 +35,16 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			{
 				return false;
 			}
+
+			if (oldValueAction != null)
+				oldValueAction(oldValue);
 			
 			currentValue = newValue;
-			this.OnPropertyChanged(propertyName);
 
+			if (newValueAction != null)
+				newValueAction(newValue);
+
+			this.OnPropertyChanged(propertyName);
 			return true;
 		}
 
