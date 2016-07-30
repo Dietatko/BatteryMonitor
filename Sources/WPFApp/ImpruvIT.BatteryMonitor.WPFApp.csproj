@@ -157,7 +157,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /R /Y /D "$(ProjectDir)\..\..\Libraries\MPSSE_I2C\lib\windows\i386\libMPSSE.dll" "$(TargetDir)"</PostBuildEvent>
+    <PostBuildEvent>xcopy /R /Y /D "$(ProjectDir)\..\..\Libraries\libMPSSE\lib\windows\i386\libMPSSE.dll" "$(TargetDir)"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
