@@ -87,7 +87,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 
 				// Configure channel
 				// NativeMethods.ClockRate.Standard
-				var config = new NativeMethods.ChannelConfig((NativeMethods.ClockRate)25000, 1, NativeMethods.ConfigOptions.I2C_ENABLE_DRIVE_ONLY_ZERO);
+				var config = new NativeMethods.ChannelConfig(NativeMethods.ClockRate.Standard, 1, NativeMethods.ConfigOptions.I2C_ENABLE_DRIVE_ONLY_ZERO);
 				status = NativeMethods.I2C_InitChannel(this.ChannelHandle, config);
 				if (status != FTDI.FT_STATUS.FT_OK)
 					throw new InvalidOperationException("Unable to initialize I2C channel. (Status: " + status + ")");
