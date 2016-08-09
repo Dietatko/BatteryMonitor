@@ -51,10 +51,17 @@
     <Compile Include="Constants.cs" />
     <Compile Include="DeviceManagerConnection.cs" />
     <Compile Include="DeviceManagerConnector.cs" />
-    <Compile Include="MpsseConnection.cs" />
+    <Compile Include="I2C\NativeMethods_I2C.cs" />
+    <Compile Include="I2C\Connection.cs" />
+    <Compile Include="I2C\Device.cs" />
+    <Compile Include="I2C\DiscoveryService.cs" />
+    <Compile Include="SPI\Connection.cs" />
+    <Compile Include="SPI\Device.cs" />
+    <Compile Include="SPI\DiscoveryService.cs" />
+    <Compile Include="SPI\NativeMethods_SPI.cs" />
+    <None Include="DeviceManagerDiscoveryService.cs" />
     <Compile Include="MpsseDevice.cs" />
     <Compile Include="MpsseDiscoveryService.cs" />
-    <None Include="DeviceManagerDiscoveryService.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

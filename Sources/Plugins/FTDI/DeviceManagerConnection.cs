@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FTD2XX_NET;
+using ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
 
 namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 {
@@ -11,12 +12,12 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 	/// </summary>
 	public class DeviceManagerConnection : IBusConnection
 	{
-		private const NativeMethods.TransferOptions WriteOptions =
-			NativeMethods.TransferOptions.I2C_TRANSFER_OPTIONS_START_BIT |
-			NativeMethods.TransferOptions.I2C_TRANSFER_OPTIONS_BREAK_ON_NACK;
-		private const NativeMethods.TransferOptions ReadOptions =
-			NativeMethods.TransferOptions.I2C_TRANSFER_OPTIONS_STOP_BIT |
-			NativeMethods.TransferOptions.I2C_TRANSFER_OPTIONS_NACK_LAST_BYTE;
+		private const NativeMethods_I2C.TransferOptions WriteOptions =
+			NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_START_BIT |
+			NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_BREAK_ON_NACK;
+		private const NativeMethods_I2C.TransferOptions ReadOptions =
+			NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_STOP_BIT |
+			NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_NACK_LAST_BYTE;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DeviceManagerConnection"/> class.
@@ -183,13 +184,13 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 			uint sizeTransferred;
 
 			data[0] = (byte)commandId;
-			var status = NativeMethods.I2C_DeviceWrite(this.ChannelHandle, address, 1, data, out sizeTransferred, WriteOptions);
+			var status = NativeMethods_I2C.I2C_DeviceWrite(this.ChannelHandle, address, 1, data, out sizeTransferred, WriteOptions);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Error while writing to SMBUs. (Status: " + status + ")");
 			}
 
-			status = NativeMethods.I2C_DeviceRead(this.ChannelHandle, address, 1, data, out sizeTransferred, ReadOptions);
+			status = NativeMethods_I2C.I2C_DeviceRead(this.ChannelHandle, address, 1, data, out sizeTransferred, ReadOptions);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Error while reading from SMBUs. (Status: " + status + ")");

@@ -9,9 +9,11 @@ using ImpruvIT;
 using ImpruvIT.BatteryMonitor.Domain;
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
+using ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
 using ImpruvIT.BatteryMonitor.Protocols;
 using ImpruvIT.BatteryMonitor.Protocols.SMBus;
 using NativeMethods = ImpruvIT.BatteryMonitor.Hardware.Ftdi.NativeMethods;
+using SPI = ImpruvIT.BatteryMonitor.Hardware.Ftdi.SPI;
 
 namespace ImpruvIt.BatteryMonitor.ConsoleApp
 {
@@ -24,6 +26,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			log4net.Config.XmlConfigurator.Configure();
 
 			//TestI2C();
+			//TestSPI();
 
 			// Start monitor thread;
 			MonitorBattery();
@@ -159,14 +162,14 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			FTDI.FT_STATUS status;
 
 			uint channelCount = 0;
-			status = NativeMethods.I2C_GetNumChannels(out channelCount);
+			status = NativeMethods_I2C.I2C_GetNumChannels(out channelCount);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to find number of I2C channels. (Status: " + status + ")");
 			}
 
 			var infoNode = new NativeMethods.FT_DEVICE_LIST_INFO_NODE();
-			status = NativeMethods.I2C_GetChannelInfo(0, infoNode);
+			status = NativeMethods_I2C.I2C_GetChannelInfo(0, infoNode);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to open I2C channel. (Status: " + status + ")");
@@ -174,14 +177,14 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 			IntPtr i2cHandle;
 
-			status = NativeMethods.I2C_OpenChannel(0, out i2cHandle);
+			status = NativeMethods_I2C.I2C_OpenChannel(0, out i2cHandle);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to open I2C channel. (Status: " + status + ")");
 			}
 
-			var config = new NativeMethods.ChannelConfig(NativeMethods.ClockRate.Standard, 1, NativeMethods.ConfigOptions.None);
-			status = NativeMethods.I2C_InitChannel(i2cHandle, config);
+			var config = new NativeMethods_I2C.ChannelConfig(NativeMethods_I2C.ClockRate.Standard, 1, NativeMethods_I2C.ConfigOptions.None);
+			status = NativeMethods_I2C.I2C_InitChannel(i2cHandle, config);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to initialize I2C channel. (Status: " + status + ")");
@@ -194,11 +197,68 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				throw new InvalidOperationException("Unable to open I2C channel. (Status: " + status + ")");
 			}
 
-			status = NativeMethods.I2C_CloseChannel(i2cHandle);
+			status = NativeMethods_I2C.I2C_CloseChannel(i2cHandle);
 			i2cHandle = IntPtr.Zero;
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to close I2C channel. (Status: " + status + ")");
+			}
+
+			NativeMethods.Cleanup_libMPSSE();
+
+			return;
+		}
+
+		private static void TestSPI()
+		{
+			NativeMethods.Init_libMPSSE();
+
+			FTDI.FT_STATUS status;
+
+			uint channelCount = 0;
+			status = SPI.NativeMethods_SPI.SPI_GetNumChannels(out channelCount);
+			if (status != FTDI.FT_STATUS.FT_OK)
+			{
+				throw new InvalidOperationException("Unable to find number of SPI channels. (Status: " + status + ")");
+			}
+
+			var infoNode = new NativeMethods.FT_DEVICE_LIST_INFO_NODE();
+			status = SPI.NativeMethods_SPI.SPI_GetChannelInfo(0, infoNode);
+			if (status != FTDI.FT_STATUS.FT_OK)
+			{
+				throw new InvalidOperationException("Unable to open SPI channel. (Status: " + status + ")");
+			}
+
+			IntPtr spiHandle;
+
+			status = SPI.NativeMethods_SPI.SPI_OpenChannel(0, out spiHandle);
+			if (status != FTDI.FT_STATUS.FT_OK)
+			{
+				throw new InvalidOperationException("Unable to open SPI channel. (Status: " + status + ")");
+			}
+
+			var configOptions = SPI.NativeMethods_SPI.ConfigOptions.SPI_CONFIG_OPTION_MODE3 |
+									SPI.NativeMethods_SPI.ConfigOptions.SPI_CONFIG_OPTION_CS_DBUS3 |
+									SPI.NativeMethods_SPI.ConfigOptions.SPI_CONFIG_OPTION_CS_ACTIVELOW;
+			var config = new SPI.NativeMethods_SPI.ChannelConfig(100000, 1, configOptions, 0);
+			status = SPI.NativeMethods_SPI.SPI_InitChannel(spiHandle, config);
+			if (status != FTDI.FT_STATUS.FT_OK)
+			{
+				throw new InvalidOperationException("Unable to initialize SPI channel. (Status: " + status + ")");
+			}
+
+			byte gpioState;
+			status = NativeMethods.FT_ReadGPIO(spiHandle, out gpioState);
+			if (status != FTDI.FT_STATUS.FT_OK)
+			{
+				throw new InvalidOperationException("Unable to open SPI channel. (Status: " + status + ")");
+			}
+
+			status = SPI.NativeMethods_SPI.SPI_CloseChannel(spiHandle);
+			spiHandle = IntPtr.Zero;
+			if (status != FTDI.FT_STATUS.FT_OK)
+			{
+				throw new InvalidOperationException("Unable to close SPI channel. (Status: " + status + ")");
 			}
 
 			NativeMethods.Cleanup_libMPSSE();

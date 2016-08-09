@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
+using ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
 using ImpruvIT.BatteryMonitor.Protocols.SMBus;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic

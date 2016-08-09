@@ -8,14 +8,14 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 	/// <summary>
 	/// A FTDI-based bus device using the MPSSE mode.
 	/// </summary>
-	public class MpsseDevice : IBusDevice
+	public abstract class MpsseDevice : IBusDevice
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MpsseDevice"/> class.
 		/// </summary>
 		/// <param name="deviceNode">A FTDI device info node.</param>
 		/// <param name="deviceChannelIndex">A channel index.</param>
-		public MpsseDevice(NativeMethods.FT_DEVICE_LIST_INFO_NODE deviceNode, int deviceChannelIndex)
+		protected MpsseDevice(NativeMethods.FT_DEVICE_LIST_INFO_NODE deviceNode, int deviceChannelIndex)
 		{
 			this.DeviceNode = deviceNode;
 			this.DeviceChannelIndex = deviceChannelIndex;
@@ -40,10 +40,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 		}
 
 		/// <inheritdoc />
-		public string Type
-		{
-			get { return "FTDI MPSEE"; }
-		}
+		public abstract string Type { get; }
 
 		/// <inheritdoc />
 		public IDictionary<string, string> Properties
@@ -57,13 +54,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 		/// Connects to the bus.
 		/// </summary>
 		/// <returns>A completion task providing connection to the device.</returns>
-		public Task<IBusConnection> Connect()
-		{
-			var connection = new MpsseConnection();
-			var task = connection.Connect(this.DeviceNode.SerialNumber, this.DeviceChannelIndex);
-
-			return task.ContinueWith<IBusConnection>(x => connection);
-		}
+		public abstract Task<IBusConnection> Connect();
 
 		private Dictionary<string, string> BuildProperties()
 		{

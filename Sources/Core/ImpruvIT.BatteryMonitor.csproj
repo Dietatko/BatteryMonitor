@@ -64,6 +64,7 @@
     <Compile Include="Hardware\ICommunicateToAddressableBus.cs" />
     <Compile Include="Hardware\ICommunicateToBus.cs" />
     <Compile Include="Hardware\IDiscoverDevices.cs" />
+    <Compile Include="Hardware\SequentialDiscoveryService.cs" />
     <Compile Include="Protocols\IBatteryPackAdapter.cs" />
     <Compile Include="Protocols\UpdateFrequency.cs" />
     <Compile Include="Domain\Battery.cs" />
