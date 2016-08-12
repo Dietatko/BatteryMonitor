@@ -71,6 +71,10 @@
       <Project>{3a6e17c7-dbfb-4d01-9349-f50d62ac93a2}</Project>
       <Name>ImpruvIT.BatteryMonitor.Hardware.Ftdi</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Plugins\LinearTechnology\ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.csproj">
+      <Project>{7701ef58-6a25-426d-b554-50b86ea593a2}</Project>
+      <Name>ImpruvIT.BatteryMonitor.Protocols.LinearTechnology</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Plugins\SMBus\ImpruvIT.BatteryMonitor.Protocols.SMBus.csproj">
       <Project>{95c36704-9e09-44dd-aa78-c013e746be61}</Project>
       <Name>ImpruvIT.BatteryMonitor.Protocols.SMBus</Name>

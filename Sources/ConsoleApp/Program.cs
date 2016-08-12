@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using FTD2XX_NET;
@@ -11,9 +12,11 @@ using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
 using ImpruvIT.BatteryMonitor.Protocols;
+using ImpruvIT.BatteryMonitor.Protocols.LinearTechnology;
 using ImpruvIT.BatteryMonitor.Protocols.SMBus;
 using NativeMethods = ImpruvIT.BatteryMonitor.Hardware.Ftdi.NativeMethods;
 using SPI = ImpruvIT.BatteryMonitor.Hardware.Ftdi.SPI;
+using LTC6804 = ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804;
 
 namespace ImpruvIt.BatteryMonitor.ConsoleApp
 {
@@ -27,9 +30,10 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 			//TestI2C();
 			//TestSPI();
+			TestLtc6804();
 
 			// Start monitor thread;
-			MonitorBattery();
+			//MonitorBattery();
 		}
 
 		private static void MonitorBattery()
@@ -247,12 +251,23 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				throw new InvalidOperationException("Unable to initialize SPI channel. (Status: " + status + ")");
 			}
 
-			byte gpioState;
-			status = NativeMethods.FT_ReadGPIO(spiHandle, out gpioState);
-			if (status != FTDI.FT_STATUS.FT_OK)
-			{
-				throw new InvalidOperationException("Unable to open SPI channel. (Status: " + status + ")");
-			}
+			var transferOptions = SPI.NativeMethods_SPI.TransferOptions.SPI_TRANSFER_OPTIONS_SIZE_IN_BYTES |
+			                      SPI.NativeMethods_SPI.TransferOptions.SPI_TRANSFER_OPTIONS_CHIPSELECT_ENABLE |
+			                      SPI.NativeMethods_SPI.TransferOptions.SPI_TRANSFER_OPTIONS_CHIPSELECT_DISABLE;
+			var buffer = new byte[] { 0xFF};
+			uint bytesTransferred = 0;
+			status = SPI.NativeMethods_SPI.SPI_Write(spiHandle, buffer, 1, out bytesTransferred, transferOptions);
+
+			Thread.Sleep(1);
+
+
+
+			//byte gpioState;
+			//status = NativeMethods.FT_ReadGPIO(spiHandle, out gpioState);
+			//if (status != FTDI.FT_STATUS.FT_OK)
+			//{
+			//	throw new InvalidOperationException("Unable to open SPI channel. (Status: " + status + ")");
+			//}
 
 			status = SPI.NativeMethods_SPI.SPI_CloseChannel(spiHandle);
 			spiHandle = IntPtr.Zero;
@@ -264,6 +279,33 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			NativeMethods.Cleanup_libMPSSE();
 
 			return;
+		}
+
+		private static void TestLtc6804()
+		{
+			// Discover bus devices
+			IEnumerable<IDiscoverDevices> dicoveryServices = GetDiscoveryServices();
+			var discoveryTask = Task.WhenAll(dicoveryServices.Select(x => x.GetConnectors()));
+			var allDevices = discoveryTask.Result.SelectMany(x => x);
+
+			var connector = allDevices.OfType<SPI.Device>().FirstOrDefault();
+			if (connector == null)
+			{
+				Console.WriteLine("No SPI device found.");
+				return;
+			}
+
+			Console.WriteLine("Connecting to SPI device '{0}' of type '{1}'.", connector.Name, connector.Type);
+
+			var connection = connector.Connect().Result;
+
+			var iface = new LTC6804.LTC6804_1Interface(connection as ICommunicateToBus, 1);
+			var adapter = new LTC6804.BatteryAdapter(iface);
+
+			adapter.RecognizeBattery().Wait();
+			adapter.ReadActuals().Wait();
+
+			var battery = adapter.Pack;
 		}
 
 		private static IEnumerable<uint> DiscoverDevices(SMBusInterface connection)

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
-using ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
-using ImpruvIT.BatteryMonitor.Protocols.SMBus;
+using SMBus = ImpruvIT.BatteryMonitor.Protocols.SMBus;
+using SPI = ImpruvIT.BatteryMonitor.Hardware.Ftdi.SPI;
+using LTC6804 = ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 {
@@ -80,7 +80,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				if (!t.IsFaulted && !t.IsCanceled)
 					devices.AddRange(t.Result.SelectMany(x => x));
 
-				this.BusDevices = devices;
+				this.BusDevices = new ListBase<IBusDevice>(devices.OfType<SPI.Device>());
 			});
 		}
 
@@ -161,9 +161,13 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 		{
 			var batteries = new ListBase<BatteryLogic>();
 
-			var connection = this.Connection as ICommunicateToAddressableBus;
+			//var connection = this.Connection as ICommunicateToAddressableBus;
+			//if (connection != null)
+			//	batteries.Add(new BatteryLogic(new SMBus.BatteryAdapter(new SMBus.SMBusInterface(connection), 0x2a)));
+
+			var connection = this.Connection as ICommunicateToBus;
 			if (connection != null)
-				batteries.Add(new BatteryLogic(new BatteryAdapter(new SMBusInterface(connection), 0x2a)));
+				batteries.Add(new BatteryLogic(new LTC6804.BatteryAdapter(new LTC6804.LTC6804_1Interface(connection, 32))));
 
 			this.Batteries = batteries;
 		}

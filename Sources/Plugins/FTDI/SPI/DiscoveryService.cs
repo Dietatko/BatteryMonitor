@@ -47,7 +47,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.SPI
 					int deviceChannelIndex = 0;
 					foreach (var deviceInfo in group)
 					{
-						devices.Add(new I2C.Device(deviceInfo, deviceChannelIndex));
+						devices.Add(new SPI.Device(deviceInfo, deviceChannelIndex));
 						deviceChannelIndex++;
 					}
 				}

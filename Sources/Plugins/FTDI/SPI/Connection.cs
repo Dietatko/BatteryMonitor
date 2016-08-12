@@ -87,10 +87,10 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.SPI
 				this.ChannelHandle = handle;
 
 				// Configure channel
-				var configOptions = SPI.NativeMethods_SPI.ConfigOptions.SPI_CONFIG_OPTION_MODE3 |
+				var configOptions = SPI.NativeMethods_SPI.ConfigOptions.SPI_CONFIG_OPTION_MODE0 |
 				                    SPI.NativeMethods_SPI.ConfigOptions.SPI_CONFIG_OPTION_CS_DBUS3 |
 				                    SPI.NativeMethods_SPI.ConfigOptions.SPI_CONFIG_OPTION_CS_ACTIVELOW;
-				var config = new SPI.NativeMethods_SPI.ChannelConfig(100000, 1, configOptions, 0);
+				var config = new SPI.NativeMethods_SPI.ChannelConfig(500000, 2, configOptions, 0);
 				status = SPI.NativeMethods_SPI.SPI_InitChannel(this.ChannelHandle, config);
 				if (status != FTDI.FT_STATUS.FT_OK)
 					throw new InvalidOperationException("Unable to initialize SPI channel. (Status: " + status + ")");

@@ -8,7 +8,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 	{
 		public MpsseDiscoveryService()
 			: base(new IDiscoverDevices[] {
-					//new I2C.DiscoveryService(),
+					new I2C.DiscoveryService(),
 					new SPI.DiscoveryService()
 				})
 		{
