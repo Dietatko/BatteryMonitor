@@ -300,8 +300,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					var auxRegister = AuxVoltageRegister.FromGroups(auxA[chainIndex], auxB[chainIndex]);
 
 					//var packVoltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
-					//var ref2Voltage = auxRegister.GetAuxVoltage(5);
-					//var temperature = auxRegister.GetAuxVoltage(0);
+					//var ref2Voltage = auxRegister.Ref2Voltage;
+					//var temperature = auxRegister.GetAuxVoltage(1);
 					var temperature = 298.0f;
 					
 					// Update actuals for each connected cell
