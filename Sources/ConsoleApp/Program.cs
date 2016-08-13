@@ -298,9 +298,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			Console.WriteLine("Connecting to SPI device '{0}' of type '{1}'.", connector.Name, connector.Type);
 
 			var connection = connector.Connect().Result;
-
-			var iface = new LTC6804.LTC6804_1Interface(connection as ICommunicateToBus, 1);
-			var adapter = new LTC6804.BatteryAdapter(iface);
+			var adapter = new LTC6804.BatteryAdapter(connection as ICommunicateToBus);
 
 			adapter.RecognizeBattery().Wait();
 			adapter.ReadActuals().Wait();

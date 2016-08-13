@@ -35,6 +35,11 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			get { return this.GetAuxVoltage(gpioIndex); }
 		}
 
+		public float Ref2Voltage
+		{
+			get { return this.GetAuxVoltage(5); }
+		}
+
 		public float GetAuxVoltage(int gpioIndex)
 		{
 			Contract.Requires(gpioIndex, "gpioIndex").ToBeInRange(x => 0 <= x && x < 6);

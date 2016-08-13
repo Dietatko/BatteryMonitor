@@ -41,9 +41,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		public float GetCellVoltage(int cellIndex)
 		{
-			Contract.Requires(cellIndex, "cellIndex").ToBeInRange(x => 0 <= x && x < 12);
+			Contract.Requires(cellIndex, "cellIndex").ToBeInRange(x => 1 <= x && x <= 12);
 
-			var byteIndex = cellIndex * 2;
+			var byteIndex = (cellIndex - 1) * 2;
 			var adcValue = this.Data[byteIndex + 1] << 8 | this.Data[byteIndex];
 			var voltage = adcValue * 0.0001f;
 			return voltage;

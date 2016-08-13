@@ -167,7 +167,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 			var connection = this.Connection as ICommunicateToBus;
 			if (connection != null)
-				batteries.Add(new BatteryLogic(new LTC6804.BatteryAdapter(new LTC6804.LTC6804_1Interface(connection, 32))));
+				batteries.Add(new BatteryLogic(new LTC6804.BatteryAdapter(connection)));
 
 			this.Batteries = batteries;
 		}

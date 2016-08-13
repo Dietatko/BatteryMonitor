@@ -69,7 +69,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		{
 			get
 			{
-				var adcValue = ((this.Data[2] & 0x0F) << 8) & this.Data[1];
+				var adcValue = ((this.Data[2] & 0x0F) << 8) | this.Data[1];
 				var voltage = (adcValue + 1) * 16 * 0.0001f;
 				return voltage;
 			}
@@ -83,6 +83,26 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				this.Data[2] &= 0xF0;
 				this.Data[2] |= (byte)((adcValue >> 8) & 0x0F);
 				this.Data[1] = (byte)adcValue;
+			}
+		}
+
+		public float OverVoltage
+		{
+			get
+			{
+				var adcValue = (this.Data[3] << 4) | (this.Data[2] >> 4);
+				var voltage = adcValue * 16 * 0.0001f;
+				return voltage;
+			}
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => 0 <= x && x <= 5.0f);
+
+				var adcValue = (int)((value / 0.0001f) / 16);
+
+				this.Data[2] &= 0x0F;
+				this.Data[2] |= (byte)(adcValue << 4);
+				this.Data[3] = (byte)(adcValue >> 4);
 			}
 		}
 

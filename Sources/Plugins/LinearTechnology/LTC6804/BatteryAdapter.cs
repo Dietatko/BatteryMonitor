@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+
 using ImpruvIT.Contracts;
 using ImpruvIT.Diagnostics;
 using ImpruvIT.Threading;
@@ -11,21 +12,23 @@ using log4net;
 
 using ImpruvIT.BatteryMonitor.Domain;
 using ImpruvIT.BatteryMonitor.Domain.Description;
+using ImpruvIT.BatteryMonitor.Hardware;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 {
 	public class BatteryAdapter : IBatteryPackAdapter
 	{
+		private const float MinConnectedCellVoltage = 0.5f;
+
 		private readonly object m_lock = new object();
 		private readonly RepeatableTask m_monitoringTask;
 
-		public BatteryAdapter(LTC6804_1Interface connection)
+		public BatteryAdapter(ICommunicateToBus busConnection)
 		{
-			this.Tracer = LogManager.GetLogger(this.GetType());
+			Contract.Requires(busConnection, "busConnection").NotToBeNull();
 
-			Contract.Requires(connection, "connection").NotToBeNull();
-			
-			this.Connection = connection;
+			this.Tracer = LogManager.GetLogger(this.GetType());
+			this.BusConnection = busConnection;
 			this.m_monitoringTask = new RepeatableTask(this.MonitoringAction, "LTC6804 Monitor")
 			{
 				MinTriggerTime =  TimeSpan.FromSeconds(1)
@@ -33,7 +36,13 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		}
 
 		protected ILog Tracer { get; private set; }
+		public ICommunicateToBus BusConnection { get; set; }
 		protected LTC6804_1Interface Connection { get; private set; }
+
+		public int ChainLength 
+		{
+			get { return this.Connection.ChainLength; }
+		}
 
 		public BatteryPack Pack
 		{
@@ -59,7 +68,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			try
 			{
 				// Determine chain length
-				await DetermineChainLength().ConfigureAwait(false);
+				var chainLength = await DetermineChainLength().ConfigureAwait(false);
+				this.Connection = new LTC6804_1Interface(this.BusConnection, chainLength);
 
 				// Setup chain
 				await SetupChain().ConfigureAwait(false);
@@ -86,21 +96,26 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			this.OnDescriptorsChanged();
 		}
 
-		private async Task DetermineChainLength()
+		private async Task<int> DetermineChainLength()
 		{
-			var fullChainConnection = new LTC6804_1Interface(this.Connection.Connection, 32);
-
+			// Read status register with chain length of 32
+			var fullChainConnection = new LTC6804_1Interface(this.BusConnection, 32);
 			var statusBChainData = await fullChainConnection.ReadRegister(CommandId.ReadStatusRegisterB, 6).ConfigureAwait(false);
+
+			// Check how many answers we got
 			var chainLength = statusBChainData.Select(d => d != null && d.Any(b => b != 0xFF)).Select((x, i) => x ? i : 0).Max() + 1;
 
-			this.Connection = new LTC6804_1Interface(this.Connection.Connection, chainLength);
+			return chainLength;
 		}
 
 		private async Task SetupChain()
 		{
+			// Setup default configuration register
 			var configRegister = new ConfigurationRegister();
 			configRegister.SetGpioPullDowns(false);
+			configRegister.ReferenceOn = false;
 			configRegister.UnderVoltage = 2.7f;
+			configRegister.OverVoltage = 4.2f;
 			for (int i = 0; i < 12; i++)
 				configRegister.SetDischargeSwitch(i, false);
 			configRegister.SetDischargeTimeout(DischargeTime.Disabled);
@@ -110,46 +125,62 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		private async Task<BatteryPack> DetermineGeometry()
 		{
+			// Read all cell voltages in the whole chain
 			await this.Connection.ExecuteCommand(CommandId.StartCellConversion(ConversionMode.Normal, false, 0)).ConfigureAwait(false);
 			await Task.Delay(3).ConfigureAwait(false);
 
+			// Read voltages
 			var cellVoltageA = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterA, 6).ConfigureAwait(false)).ToArray();
 			var cellVoltageB = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterB, 6).ConfigureAwait(false)).ToArray();
 			var cellVoltageC = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterC, 6).ConfigureAwait(false)).ToArray();
 			var cellVoltageD = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterD, 6).ConfigureAwait(false)).ToArray();
+			this.CheckChainLength("determining pack geometry", cellVoltageA, cellVoltageB, cellVoltageC, cellVoltageD);
 
 			const float cellVoltage = 3.6f;
 			const float designedDischargeCurrent = 1.0f;
 			const float maxDischargeCurrent = 2.0f;
 			const float designedCapacity = 1.1f;
 
-			var packs = new List<BatteryPack>();
-			for (int i = 0; i < this.Connection.ChainLength; i++)
+			// Build a series pack for each IC in chain
+			var chainPacks = new List<ChipPack>();
+			for (int chainIndex = 0; chainIndex < this.ChainLength; chainIndex++)
 			{
-				var cellsRegister = CellVoltageRegister.FromGroups(cellVoltageA[i], cellVoltageB[i], cellVoltageC[i], cellVoltageD[i]);
-				//var cellCount = Enumerable.Range(0, 12).Select(x => cellsRegister.GetCellVoltage(x)).Count(x => x > 0.5f);
-				var cellCount = 12;
+				// Decode cell voltages
+				var voltageRegister = CellVoltageRegister.FromGroups(cellVoltageA[chainIndex], cellVoltageB[chainIndex], cellVoltageC[chainIndex], cellVoltageD[chainIndex]);
+				var cellVoltages = Enumerable.Range(1, 12)
+					.Select(x => Tuple.Create(x, voltageRegister.GetCellVoltage(x)));
 
-				var cells = Enumerable.Range(0, cellCount).Select(x => new SingleCell(cellVoltage, designedDischargeCurrent, maxDischargeCurrent, designedCapacity)).ToArray();
-				var pack = new SeriesBatteryPack(cells);
-				packs.Add(pack);
+				// Detect connected cells
+				var packCells = cellVoltages
+					.Where(x => x.Item2 > MinConnectedCellVoltage)
+					.ToDictionary(x => x.Item1,
+						x =>
+						{
+							var cell = new SingleCell(cellVoltage, designedDischargeCurrent, maxDischargeCurrent, designedCapacity);
+							cell.SetVoltage(x.Item2);
+							return cell;
+						});
+
+				var pack = new ChipPack(chainIndex, packCells);
+				chainPacks.Add(pack);
 			}
 
+			// Connect all chip packs into a series stack
 			BatteryPack batteryPack = null;
 			//if (packs.Count > 1)
-				batteryPack = new SeriesBatteryPack(packs);
+				batteryPack = new SeriesBatteryPack(chainPacks);
 			//else
 			//	batteryPack = packs[0];
 
-			var overallCellCount = batteryPack.SubElements.Count();
-
 			this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("A series battery with {0} cells recognized:", overallCellCount)
+					.AppendLine("A LTC6804 daisy chain with {0} chips recognized with following geometry:", this.ChainLength)
 					.Indent()
-						.AppendLine("Nominal voltage: {0} V (Cell voltage: {1} V)", overallCellCount * cellVoltage, cellVoltage)
-						.AppendLine("Designed discharge current: {0} A", batteryPack.DesignParameters.DesignedDischargeCurrent)
-						.AppendLine("Maximal discharge current: {0} A", batteryPack.DesignParameters.MaxDischargeCurrent)
-						.AppendLine("Designed Capacity: {0} Ah", batteryPack.DesignParameters.DesignedCapacity)
+						.ForEach(chainPacks, (tb, p) => tb
+							.AppendLine("Chain index {0} with {1} connected cells:", p.ChainIndex, p.ConnectedCells.Count)
+							.Indent()
+								.AppendLineForEach(p.ConnectedCells, "Channel {0} => {1} V", x => x.Key, x => x.Value.Actuals.Voltage)
+							.Unindent()
+							.AppendLine())
 					.Trace());
 
 			return batteryPack;
@@ -231,6 +262,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				var cellVoltageD = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterD, 6).ConfigureAwait(false)).ToArray();
 				var auxA = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterA, 6).ConfigureAwait(false)).ToArray();
 				var auxB = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterB, 6).ConfigureAwait(false)).ToArray();
+				this.CheckChainLength("reading actuals", cellVoltageA, cellVoltageB, cellVoltageC, cellVoltageD, auxA, auxB);
 
 				// Process data
 				var actualCurrent = 0.0f;
@@ -251,26 +283,36 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					averageRunTime = actualRunTime;
 				}
 
-				for (int i = 0; i < this.Connection.ChainLength; i++)
+				for (int chainIndex = 0; chainIndex < this.ChainLength; chainIndex++)
 				{
-					var cellsRegister = CellVoltageRegister.FromGroups(cellVoltageA[i], cellVoltageB[i], cellVoltageC[i], cellVoltageD[i]);
-					var auxRegister = AuxVoltageRegister.FromGroups(auxA[i], auxB[i]);
+					// Find chip pack
+					var chipPack = batteryPack.SubElements
+						.OfType<ChipPack>()
+						.FirstOrDefault(x => x.ChainIndex == chainIndex);
+					if (chipPack == null)
+					{
+						this.Tracer.Warn(String.Format("A chip pack with chain index {0} was not found in the stack while processing actuals. Ignoring measured data for this chip.", chainIndex));
+						continue;
+					}
+
+					// Decode measured data
+					var cellsRegister = CellVoltageRegister.FromGroups(cellVoltageA[chainIndex], cellVoltageB[chainIndex], cellVoltageC[chainIndex], cellVoltageD[chainIndex]);
+					var auxRegister = AuxVoltageRegister.FromGroups(auxA[chainIndex], auxB[chainIndex]);
 
 					//var packVoltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
 					//var ref2Voltage = auxRegister.GetAuxVoltage(5);
 					//var temperature = auxRegister.GetAuxVoltage(0);
 					var temperature = 298.0f;
-
-					var subPack = (BatteryPack)batteryPack.SubElements.ElementAt(i);
-					var cells = subPack.SubElements.OfType<SingleCell>().ToList();
-					for (int j = 0; j < cells.Count; j++)
+					
+					// Update actuals for each connected cell
+					foreach (var connectedCell in chipPack.ConnectedCells)
 					{
-						var cell = cells[j];
+						var cell = connectedCell.Value;
 						//cell.BeginUpdate();
 						//try
 						//{
 
-						var cellVoltage = cellsRegister.GetCellVoltage(j);
+						var cellVoltage = cellsRegister.GetCellVoltage(connectedCell.Key);
 						cell.SetVoltage(cellVoltage);
 						cell.SetActualCurrent(actualCurrent);
 						cell.SetAverageCurrent(averageCurrent);
@@ -288,23 +330,16 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 						//	conditions.EndUpdate();
 						//}
 					}
+
+					var actuals = chipPack.Actuals;
+
+					this.Tracer.Debug(new TraceBuilder()
+						.AppendLine("The actuals of the chip pack with chain index {0} successfully read:", chainIndex)
+						.Indent()
+							.AppendLine("Pack voltage:            {0} V", actuals.Voltage)
+							.AppendLineForEach(chipPack.ConnectedCells, "Cell {0:2} voltage:      {1} V", x => x.Key, x => x.Value.Actuals.Voltage)
+						.Trace());
 				}
-
-				var actuals = batteryPack.Actuals;
-
-				this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("The actuals of the battery successfully read:")
-					.Indent()
-						.AppendLine("Voltage:                 {0} V ({1})", actuals.Voltage, batteryPack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals.Voltage)).Join(", "))
-						.AppendLine("Actual current:          {0} mA", actuals.ActualCurrent * 1000f)
-						.AppendLine("Average current:         {0} mA", actuals.AverageCurrent * 1000f)
-						.AppendLine("Temperature:             {0:f2} °C", actuals.Temperature - 273.15f)
-						.AppendLine("Remaining capacity:      {0:N0} mAh", actuals.RemainingCapacity * 1000f)
-						.AppendLine("Absolute StateOfCharge:  {0} %", actuals.AbsoluteStateOfCharge * 100f)
-						.AppendLine("Relative StateOfCharge:  {0} %", actuals.RelativeStateOfCharge * 100f)
-						.AppendLine("Actual run time:         {0}", actuals.ActualRunTime.ToString())
-						.AppendLine("Average run time:        {0}", actuals.AverageRunTime.ToString())
-					.Trace());
 			}
 			catch (Exception ex)
 			{
@@ -629,6 +664,20 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			PropertyChangedEventHandler handlers = this.PropertyChanged;
 			if (handlers != null)
 				handlers(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		private void CheckChainLength(string actionDescription, params byte[][][] chainData)
+		{
+			if (chainData.Any(x => x.Length != this.ChainLength))
+			{
+				var message = String.Format(
+					"Inconsistent daisy chain length detected while {0}. Lengths detected: {1}",
+					actionDescription,
+					chainData.Select(x => x.Length.ToString(CultureInfo.InvariantCulture)).Join(", "));
+
+				this.Tracer.Error(message);
+				throw new InvalidOperationException(message);
+			}
 		}
     }
 }
