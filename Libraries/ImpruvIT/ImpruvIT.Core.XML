@@ -4,6 +4,147 @@
         <name>ImpruvIT.Core</name>
     </assembly>
     <members>
+        <member name="T:ImpruvIT.Diagnostics.ITraceable">
+            <summary>
+            Denotes and object that can trace details about itself.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.ITraceable.Trace(ImpruvIT.Diagnostics.TraceDetail)">
+            <summary>
+            Traces the details about this.
+            </summary>
+            <param name="traceDetail">The detail level to trace out.</param>
+            <returns>The trace string.</returns>
+        </member>
+        <member name="T:ImpruvIT.Diagnostics.TraceBuilder">
+            <summary>
+            The helper for creating formatted trace (and other) messages.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ImpruvIT.Diagnostics.TraceBuilder"/> class.
+            </summary>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.Append(System.String,System.Object[])">
+            <summary>
+            Appends the specified formatted text to the message.
+            </summary>
+            <param name="format">The format.</param>
+            <param name="args">The arguments.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.AppendConditional(System.Boolean,System.String,System.String)">
+            <summary>
+            Appends either true or false text depending on the condition.
+            </summary>
+            <param name="condition">The condition that decides which text is appended.</param>
+            <param name="trueText">The text appended when condition is <b>true</b>.</param>
+            <param name="falseText">The text appended when condition is <b>false</b>.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.AppendLine">
+            <summary>
+            Appends an empty line.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.AppendLine(System.String,System.Object[])">
+            <summary>
+            Appends the specified formatted text on a new line to the message.
+            </summary>
+            <param name="format">The format.</param>
+            <param name="args">The arguments.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.AppendLineConditional(System.Boolean,System.String,System.String)">
+            <summary>
+            Appends either true or false text on a new line depending on the condition.
+            </summary>
+            <param name="condition">The condition that decides which text is appended.</param>
+            <param name="trueText">The text appended when condition is <b>true</b>.</param>
+            <param name="falseText">The text appended when condition is <b>false</b>.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.AppendLineForEach``1(System.Collections.Generic.IEnumerable{``0},System.String,System.Func{``0,System.Object}[])">
+            <summary>
+            Appends a formatted line for each item in set.
+            </summary>
+            <typeparam name="T">The type of items in the set.</typeparam>
+            <param name="set">The set of items.</param>
+            <param name="format">The format.</param>
+            <param name="argFormatters">The items formatters producing formatted arguments.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{ImpruvIT.Diagnostics.TraceBuilder,``0})">
+            <summary>
+            Executes specified <see cref="T:ImpruvIT.Diagnostics.TraceBuilder"/> action for every item in the set.
+            </summary>
+            <typeparam name="T">The type of items in the set.</typeparam>
+            <param name="set">The set of items.</param>
+            <param name="actions">The action to execute.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.ExecuteConditional(System.Boolean,System.Action{ImpruvIT.Diagnostics.TraceBuilder},System.Action{ImpruvIT.Diagnostics.TraceBuilder})">
+            <summary>
+            Executes either true or false <see cref="T:ImpruvIT.Diagnostics.TraceBuilder"/> action.
+            </summary>
+            <param name="condition">The condition that decides which action is executed.</param>
+            <param name="trueAction">The action that is executed when condition is <b>true</b>.</param>
+            <param name="falseAction">The action that is executed when condition is <b>false</b>.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.Indent">
+            <summary>
+            Indents following messages.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.Unindent">
+            <summary>
+            Unindents following messages.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.Indent(System.Action{ImpruvIT.Diagnostics.TraceBuilder})">
+            <summary>
+            Executes specified <see cref="T:ImpruvIT.Diagnostics.TraceBuilder"/> action with increased indentation. Previous identation is restored after action is executed.
+            </summary>
+            <param name="action">The action to execute.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.Trace">
+            <summary>
+            Outputs the current trace message.
+            </summary>
+            <returns>The trace message.</returns>
+        </member>
+        <member name="M:ImpruvIT.Diagnostics.TraceBuilder.ToString">
+            <summary>
+            Outputs the current trace message.
+            </summary>
+            <returns>The trace message.</returns>
+        </member>
+        <member name="T:ImpruvIT.Diagnostics.TraceDetail">
+            <summary>
+            A trace detail levels.
+            </summary>
+        </member>
+        <member name="F:ImpruvIT.Diagnostics.TraceDetail.Identifier">
+            <summary>
+            Only an identification of the instance.
+            </summary>
+        </member>
+        <member name="F:ImpruvIT.Diagnostics.TraceDetail.Details">
+            <summary>
+            The besic details of the instance.
+            </summary>
+        </member>
+        <member name="F:ImpruvIT.Diagnostics.TraceDetail.Debug">
+            <summary>
+            Debug level details of the instance.
+            </summary>
+        </member>
         <member name="T:ImpruvIT.EnumerableExtensions">
             <summary>
             Extension methods for generic enumerations.
