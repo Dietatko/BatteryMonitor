@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+
 using System.Threading.Tasks;
 
 using ImpruvIT.Contracts;
@@ -315,9 +316,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					var auxRegister = AuxVoltageRegister.FromGroups(auxA[chainIndex], auxB[chainIndex]);
 
 					//var packVoltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
-					//var ref2Voltage = auxRegister.Ref2Voltage;
-					//var temperature = auxRegister.GetAuxVoltage(1);
-					var temperature = 298.0f;
+					var temperature = ConvertToTemperature(auxRegister.GetAuxVoltage(1), auxRegister.Ref2Voltage);
 					
 					// Update actuals for each connected cell
 					foreach (var connectedCell in chipPack.ConnectedCells)
@@ -368,7 +367,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					throw;
 			}
 		}
-
 
 		/*
 		public async Task ReadHealth()
@@ -693,6 +691,17 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				this.Tracer.Error(message);
 				throw new InvalidOperationException(message);
 			}
+		}
+
+		private static float ConvertToTemperature(float voltage, float ref2Voltage)
+		{
+			const float coefA = 0.003825269f;
+			const float coefB = -27.64f;
+			const float coefCtoK = 273.15f;
+
+			var adcReading = voltage / ref2Voltage * 30000;
+			var temperature = coefA * adcReading + coefB;
+			return temperature + coefCtoK;
 		}
     }
 }
