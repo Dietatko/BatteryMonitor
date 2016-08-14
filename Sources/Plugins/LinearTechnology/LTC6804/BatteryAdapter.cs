@@ -174,13 +174,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				chainPacks.Add(pack);
 			}
 
-			// Connect all chip packs into a series stack
-			BatteryPack batteryPack = null;
-			//if (packs.Count > 1)
-				batteryPack = new SeriesBatteryPack(chainPacks);
-			//else
-			//	batteryPack = packs[0];
-
 			this.Tracer.Debug(new TraceBuilder()
 					.AppendLine("A LTC6804 daisy chain with {0} chips recognized with following geometry:", this.ChainLength)
 					.Indent()
@@ -191,6 +184,13 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 							.Unindent()
 							.AppendLine())
 					.Trace());
+
+			// Connect all chip packs into a series stack
+			BatteryPack batteryPack;
+			if (chainPacks.Count > 1)
+				batteryPack = new SeriesBatteryPack(chainPacks);
+			else
+				batteryPack = chainPacks[0];
 
 			return batteryPack;
 		}
@@ -250,6 +250,18 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			if (batteryPack == null)
 				return;
 
+			if (this.ChainLength == 0)
+			{
+				this.Tracer.Warn("Unable to read actuals as no chips were detected in the daisy chain.");
+				return;
+			}
+
+			if (batteryPack is ChipPack && this.ChainLength > 1)
+			{
+				this.Tracer.Warn(String.Format("Unable to read actuals as battery geometry has single chip while daisy chain has {0} chips.", this.ChainLength));
+				return;
+			}
+
 			try
 			{
 				// Measure
@@ -281,9 +293,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				for (int chainIndex = 0; chainIndex < this.ChainLength; chainIndex++)
 				{
 					// Find chip pack
-					var chipPack = batteryPack.SubElements
-						.OfType<ChipPack>()
-						.FirstOrDefault(x => x.ChainIndex == chainIndex);
+					var chipPack = batteryPack as ChipPack ?? 
+						batteryPack.SubElements
+							.OfType<ChipPack>()
+							.FirstOrDefault(x => x.ChainIndex == chainIndex);
 					if (chipPack == null)
 					{
 						this.Tracer.Warn(String.Format("A chip pack with chain index {0} was not found in the stack while processing actuals. Ignoring measured data for this chip.", chainIndex));
