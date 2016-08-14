@@ -252,34 +252,13 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 			try
 			{
-				// Start reference
-				var configRegisterChainData = await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false);
-				var configRegisters = configRegisterChainData.Select(x => new ConfigurationRegister(x)).ToArray();
-				configRegisters.ForEach(x => x.SetGpioPullDowns(false));
-				configRegisters.ForEach(x => x.ReferenceOn = true);
-				await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
-
-				// Measure everything
-				await this.Connection.ExecuteCommand(CommandId.StartCellConversion(ConversionMode.Normal, false, 0)).ConfigureAwait(false);
-				await Task.Delay(5).ConfigureAwait(false);
-				await this.Connection.ExecuteCommand(CommandId.StartAuxConversion(ConversionMode.Normal, 0)).ConfigureAwait(false);
-				await Task.Delay(5).ConfigureAwait(false);
-				//await this.Connection.ExecuteCommand(CommandId.StartStatusConversion(ConversionMode.Normal, 1)).ConfigureAwait(false);
-				//await Task.Delay(2).ConfigureAwait(false);
-
-				// Shutdown reference
-				configRegisters.ForEach(x => x.ReferenceOn = false);
-				await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
+				// Measure
+				await this.MeasureActuals();
 
 				// Read data
-				var cellVoltageA = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterA, 6).ConfigureAwait(false)).ToArray();
-				var cellVoltageB = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterB, 6).ConfigureAwait(false)).ToArray();
-				var cellVoltageC = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterC, 6).ConfigureAwait(false)).ToArray();
-				var cellVoltageD = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterD, 6).ConfigureAwait(false)).ToArray();
-				var auxA = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterA, 6).ConfigureAwait(false)).ToArray();
-				var auxB = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterB, 6).ConfigureAwait(false)).ToArray();
-				this.CheckChainLength("reading actuals", cellVoltageA, cellVoltageB, cellVoltageC, cellVoltageD, auxA, auxB);
-
+				var cellVoltageRegisters = await this.ReadCellVoltages();
+				var auxVoltageRegisters = await this.ReadAuxVoltages();
+				
 				// Process data
 				var actualCurrent = 0.0f;
 				var averageCurrent = 0.0f;
@@ -312,8 +291,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					}
 
 					// Decode measured data
-					var cellsRegister = CellVoltageRegister.FromGroups(cellVoltageA[chainIndex], cellVoltageB[chainIndex], cellVoltageC[chainIndex], cellVoltageD[chainIndex]);
-					var auxRegister = AuxVoltageRegister.FromGroups(auxA[chainIndex], auxB[chainIndex]);
+					var cellsRegister = cellVoltageRegisters[chainIndex];
+					var auxRegister = auxVoltageRegisters[chainIndex];
 
 					//var packVoltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
 					var temperature = ConvertToTemperature(auxRegister.GetAuxVoltage(1), auxRegister.Ref2Voltage);
@@ -368,6 +347,56 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			}
 		}
 
+		private async Task MeasureActuals()
+		{
+			// Start reference
+			var configRegisterChainData = await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false);
+			var configRegisters = configRegisterChainData.Select(x => new ConfigurationRegister(x)).ToArray();
+			configRegisters.ForEach(x => x.SetGpioPullDowns(false));
+			configRegisters.ForEach(x => x.ReferenceOn = true);
+			await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
+
+			// Measure everything
+			await this.Connection.ExecuteCommand(CommandId.StartCellConversion(ConversionMode.Normal, false, 0)).ConfigureAwait(false);
+			await Task.Delay(5).ConfigureAwait(false);
+			await this.Connection.ExecuteCommand(CommandId.StartAuxConversion(ConversionMode.Normal, 0)).ConfigureAwait(false);
+			await Task.Delay(5).ConfigureAwait(false);
+			//await this.Connection.ExecuteCommand(CommandId.StartStatusConversion(ConversionMode.Normal, 1)).ConfigureAwait(false);
+			//await Task.Delay(2).ConfigureAwait(false);
+
+			// Shutdown reference
+			configRegisters.ForEach(x => x.ReferenceOn = false);
+			await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
+		}
+
+		private async Task<CellVoltageRegister[]> ReadCellVoltages()
+		{
+			var cellVoltageA = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterA, 6).ConfigureAwait(false)).ToArray();
+			var cellVoltageB = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterB, 6).ConfigureAwait(false)).ToArray();
+			var cellVoltageC = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterC, 6).ConfigureAwait(false)).ToArray();
+			var cellVoltageD = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterD, 6).ConfigureAwait(false)).ToArray();
+			this.CheckChainLength("reading cell voltages", cellVoltageA, cellVoltageB, cellVoltageC, cellVoltageD);
+
+			var voltageRegisters = Enumerable.Range(0, this.ChainLength)
+				.Select(x => CellVoltageRegister.FromGroups(cellVoltageA[x], cellVoltageB[x], cellVoltageC[x], cellVoltageD[x]))
+				.ToArray();
+
+			return voltageRegisters;
+		}
+
+		private async Task<AuxVoltageRegister[]> ReadAuxVoltages()
+		{
+			var auxA = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterA, 6).ConfigureAwait(false)).ToArray();
+			var auxB = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterB, 6).ConfigureAwait(false)).ToArray();
+			this.CheckChainLength("reading auxiliary voltages", auxA, auxB);
+
+			var auxRegisters = Enumerable.Range(0, this.ChainLength)
+				.Select(x => AuxVoltageRegister.FromGroups(auxA[x], auxB[x]))
+				.ToArray();
+
+			return auxRegisters;
+		}
+
 		/*
 		public async Task ReadHealth()
 		{
@@ -415,109 +444,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 				if (!(thrownEx is InvalidOperationException))
 					throw;
-			}
-		}
-
-		public async Task ReadActuals()
-		{
-			this.Tracer.DebugFormat("Reading battery actuals information of the battery at address 0x{0:X}.", this.Address);
-
-			var pack = this.Pack;
-			if (pack == null)
-				return;
-
-			try
-			{
-				//var packVoltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
-				var actualCurrent = (await this.ReadShortValue(SMBusCommandIds.Current).ConfigureAwait(false)) / 1000f;
-				var averageCurrent = (await this.ReadShortValue(SMBusCommandIds.AverageCurrent).ConfigureAwait(false)) / 1000f;
-				var temperature = (await this.ReadUShortValue(SMBusCommandIds.Temperature).ConfigureAwait(false)) / 10f;
-
-				var remainingCapacity = (await this.ReadUShortValue(SMBusCommandIds.RemainingCapacity).ConfigureAwait(false)) / 1000f;
-				var absoluteStateOfCharge = (await this.ReadUShortValue(SMBusCommandIds.AbsoluteStateOfCharge).ConfigureAwait(false)) / 100f;
-				var relativeStateOfCharge = (await this.ReadUShortValue(SMBusCommandIds.RelativeStateOfCharge).ConfigureAwait(false)) / 100f;
-				TimeSpan actualRunTime, averageRunTime;
-				if (actualCurrent >= 0)
-				{
-					actualRunTime = TimeSpan.FromMinutes(await this.ReadUShortValue(SMBusCommandIds.RunTimeToEmpty).ConfigureAwait(false));
-					averageRunTime = TimeSpan.FromMinutes(await this.ReadUShortValue(SMBusCommandIds.AverageTimeToEmpty).ConfigureAwait(false));
-				}
-				else
-				{
-					actualRunTime = TimeSpan.FromMinutes(await this.ReadUShortValue(SMBusCommandIds.AverageTimeToFull).ConfigureAwait(false));
-					averageRunTime = actualRunTime;
-				}
-
-				//conditions.ChargingVoltage = (await this.ReadUShortValue(SMBusCommandIds.ChargingVoltage).ConfigureAwait(false)) / 1000f;
-				//conditions.ChargingCurrent = (await this.ReadUShortValue(SMBusCommandIds.ChargingCurrent).ConfigureAwait(false)) / 1000f;
-
-				var cells = pack.SubElements.OfType<SingleCell>().ToList();
-				for (int i = 0; i < cells.Count; i++)
-				{
-					var cell = cells[i];
-					//cell.BeginUpdate();
-					//try
-					//{
-
-					var cellVoltage = (await this.ReadUShortValue(this.GetCellVoltageCommandId(i)).ConfigureAwait(false)) / 1000f;
-					cell.SetVoltage(cellVoltage);
-					cell.SetActualCurrent(actualCurrent);
-					cell.SetAverageCurrent(averageCurrent);
-					cell.SetTemperature(temperature);
-
-					cell.SetRemainingCapacity(remainingCapacity);
-					cell.SetAbsoluteStateOfCharge(absoluteStateOfCharge);
-					cell.SetRelativeStateOfCharge(relativeStateOfCharge);
-					cell.SetActualRunTime(actualRunTime);
-					cell.SetAverageRunTime(averageRunTime);
-
-					//}
-					//finally
-					//{
-					//	conditions.EndUpdate();
-					//}
-				}
-
-				var actuals = pack.Actuals;
-
-				this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("The actuals of the battery at address 0x{0:X} successfully read:", this.Address)
-					.Indent()
-						.AppendLine("Voltage:                 {0} V ({1})", actuals.Voltage, pack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals.Voltage)).Join(", "))
-						.AppendLine("Actual current:          {0} mA", actuals.ActualCurrent * 1000f)
-						.AppendLine("Average current:         {0} mA", actuals.AverageCurrent * 1000f)
-						.AppendLine("Temperature:             {0:f2} °C", actuals.Temperature - 273.15f)
-						.AppendLine("Remaining capacity:      {0:N0} mAh", actuals.RemainingCapacity * 1000f)
-						.AppendLine("Absolute StateOfCharge:  {0} %", actuals.AbsoluteStateOfCharge * 100f)
-						.AppendLine("Relative StateOfCharge:  {0} %", actuals.RelativeStateOfCharge * 100f)
-						.AppendLine("Actual run time:         {0}", actuals.ActualRunTime.ToString())
-						.AppendLine("Average run time:        {0}", actuals.AverageRunTime.ToString())
-					.Trace());
-
-				
-			}
-			catch (Exception ex)
-			{
-				Exception thrownEx = ex;
-				if (thrownEx is AggregateException)
-					thrownEx = ((AggregateException)thrownEx).Flatten().InnerException;
-
-				this.Tracer.Warn(String.Format("Error while reading actuals of the battery at address 0x{0:X}", this.Address), thrownEx);
-
-				if (!(thrownEx is InvalidOperationException))
-					throw;
-			}
-		}
-
-		private uint GetCellVoltageCommandId(int cellIndex)
-		{
-			switch (cellIndex)
-			{
-			case 0: return SMBusCommandIds.CellVoltage1;
-			case 1: return SMBusCommandIds.CellVoltage2;
-			case 2: return SMBusCommandIds.CellVoltage3;
-			case 3: return SMBusCommandIds.CellVoltage4;
-			default: throw new ArgumentOutOfRangeException("cellIndex", cellIndex, "Only cells with index 0 to 3 are valid.");
 			}
 		}
 		*/
