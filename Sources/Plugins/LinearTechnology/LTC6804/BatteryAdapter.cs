@@ -223,7 +223,14 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		#region Readings
 
-		public Task ReadHealth()
+		public Task UpdateReadings()
+		{
+			return Task.WhenAll(
+				this.ReadHealth(),
+				this.ReadActuals());
+		}
+
+		private Task ReadHealth()
 		{
 			var pack = this.Pack;
 			if (pack == null)
@@ -234,7 +241,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			return Task.CompletedTask;
 		}
 
-		public async Task ReadActuals()
+		private async Task ReadActuals()
 		{
 			this.Tracer.DebugFormat("Reading battery actuals information of the battery.");
 

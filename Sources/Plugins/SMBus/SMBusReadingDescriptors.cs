@@ -41,10 +41,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					String.Format("A voltage of the cell {0}.", cellIndex + 1)
 				),
 				new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-					{ b => ((BatteryPack)b).SubElements.ElementAt(cellIndex), BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.VoltageEntryName) }
+					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.VoltageEntryName) }
 				},
 				new ReadingValueAccessor(
-					b => ((BatteryPack)b).SubElements.ElementAt(cellIndex).Actuals.Voltage,
+					b => ((BatteryPack)b)[cellIndex].Actuals.Voltage,
 					"{0:N3} V"
 				));
 		}

@@ -71,7 +71,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				Console.WriteLine("Manufacture date:         {0}", product.ManufactureDate.ToShortDateString());
 				Console.WriteLine("Serial number:            {0}", product.SerialNumber);
 				//Console.WriteLine("Specification version:    {0}", battery.Information.SpecificationVersion.ToString(2));
-				Console.WriteLine("Cell count:               {0} cells", batteryPack.SubElements.Count());
+				Console.WriteLine("Cell count:               {0} cells", batteryPack.ElementCount);
 				Console.WriteLine("Nominal voltage:          {0} V", parameters.NominalVoltage);
 				Console.WriteLine("DesignedDischargeCurrent: {0} A", parameters.DesignedDischargeCurrent);
 				Console.WriteLine("MaxDischargeCurrent:      {0} A", parameters.MaxDischargeCurrent);
@@ -80,7 +80,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				//Console.WriteLine("Current scale:            {0}x", battery.Information.CurrentScale);
 				Console.WriteLine();
 
-				batteryAdapter.ReadHealth().Wait();
+				batteryAdapter.UpdateReadings().Wait();
 				var health = batteryPack.Health;
 				Console.WriteLine("Current battery status:");
 				Console.WriteLine("Full charge capacity:     {0:N0} mAh", health.FullChargeCapacity * 1000);
@@ -301,7 +301,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			var adapter = new LTC6804.BatteryAdapter(connection as ICommunicateToBus);
 
 			adapter.RecognizeBattery().Wait();
-			adapter.ReadActuals().Wait();
+			adapter.UpdateReadings().Wait();
 
 			var battery = adapter.Pack;
 		}

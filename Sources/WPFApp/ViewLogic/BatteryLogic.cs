@@ -106,13 +106,13 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 
 		private static Actuals CloneActuals(BatteryPack pack)
 		{
-			pack = (BatteryPack)pack.SubElements.ElementAt(0);
+			pack = (BatteryPack)pack[0];
 			return new Actuals
 				{
 					PackVoltage = pack.Actuals.Voltage,
-					Cell1Voltage = pack.SubElements.ElementAt(0).Actuals.Voltage,
-					Cell2Voltage = pack.SubElements.ElementAt(1).Actuals.Voltage,
-					Cell3Voltage = pack.SubElements.ElementAt(2).Actuals.Voltage,
+					Cell1Voltage = pack[0].Actuals.Voltage,
+					Cell2Voltage = pack[1].Actuals.Voltage,
+					Cell3Voltage = pack[2].Actuals.Voltage,
 					ActualCurrent = pack.Actuals.ActualCurrent,
 					Capacity = pack.Actuals.RemainingCapacity,
 					Temperature = pack.Actuals.Temperature

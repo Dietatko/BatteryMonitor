@@ -13,8 +13,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols
 		BatteryPack Pack { get; }
 
 		Task RecognizeBattery();
-		Task ReadHealth();
-		Task ReadActuals();
+		Task UpdateReadings();
 		ISubscription SubscribeToUpdates(Action<BatteryPack> notificationConsumer, UpdateFrequency frequency = UpdateFrequency.Normal);
 
 		IEnumerable<ReadingDescriptorGrouping> GetDescriptors();

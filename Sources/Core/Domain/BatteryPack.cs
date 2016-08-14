@@ -14,12 +14,11 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		{
 			Contract.Requires(subElements, "subElements")
 				.NotToBeNull();
-			subElements = subElements.ToList();
-			Contract.Requires(subElements, "subElements")
+			this.m_subElements = subElements.ToList();
+			Contract.Requires(this.m_subElements, "subElements")
 				.NotToBeEmpty();
 
 			this.m_productWrapper = new ProductDefinitionWrapper(this.CustomData);
-			this.SubElements = subElements;
 			this.SubElements.ForEach(x => x.ValueChanged += (s, a) => this.OnValueChanged(a));
 		}
 
@@ -28,6 +27,20 @@ namespace ImpruvIT.BatteryMonitor.Domain
 			get { return this.m_productWrapper; }
 		}
 
-		public IEnumerable<BatteryElement> SubElements { get; private set; }
+		public IEnumerable<BatteryElement> SubElements
+		{
+			get { return this.m_subElements; }
+		}
+		private readonly List<BatteryElement> m_subElements; 
+
+		public BatteryElement this[int index]
+		{
+			get { return this.m_subElements[index]; }
+		}
+
+		public int ElementCount
+		{
+			get { return this.m_subElements.Count; }
+		}
 	}
 }

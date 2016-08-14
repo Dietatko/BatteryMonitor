@@ -180,7 +180,14 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		#region Readings
 
-		public async Task ReadHealth()
+		public Task UpdateReadings()
+		{
+			return Task.WhenAll(
+			    this.ReadHealth(),
+				this.ReadActuals());
+		}
+
+		private async Task ReadHealth()
 		{
 			var pack = this.Pack;
 			if (pack == null)
@@ -229,7 +236,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			}
 		}
 
-		public async Task ReadActuals()
+		private async Task ReadActuals()
 		{
 			this.Tracer.DebugFormat("Reading battery actuals information of the battery at address 0x{0:X}.", this.Address);
 
@@ -558,7 +565,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 			var actualDescriptors = new List<ReadingDescriptor>();
 			actualDescriptors.Add(ReadingDescriptors.PackVoltage);
-			actualDescriptors.AddRange(Enumerable.Range(0, this.Pack.SubElements.Count()).Select(SMBusReadingDescriptors.CreateCellVoltageDescriptor));
+			actualDescriptors.AddRange(Enumerable.Range(0, this.Pack.ElementCount).Select(SMBusReadingDescriptors.CreateCellVoltageDescriptor));
 			actualDescriptors.Add(ReadingDescriptors.ActualCurrent);
 			actualDescriptors.Add(ReadingDescriptors.AverageCurrent);
 			actualDescriptors.Add(ReadingDescriptors.Temperature);
