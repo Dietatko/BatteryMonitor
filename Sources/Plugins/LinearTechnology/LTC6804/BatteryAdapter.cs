@@ -69,6 +69,14 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			{
 				// Determine chain length
 				var chainLength = await DetermineChainLength().ConfigureAwait(false);
+				if (chainLength == 0)
+				{
+					this.Tracer.Warn("No chips detected in the daisy chain.");
+
+					this.Connection = null;
+					this.Pack = null;
+					return;
+				}
 				this.Connection = new LTC6804_1Interface(this.BusConnection, chainLength);
 
 				// Setup chain
@@ -103,7 +111,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			var statusBChainData = await fullChainConnection.ReadRegister(CommandId.ReadStatusRegisterB, 6).ConfigureAwait(false);
 
 			// Check how many answers we got
-			var chainLength = statusBChainData.Select(d => d != null && d.Any(b => b != 0xFF)).Select((x, i) => x ? i : 0).Max() + 1;
+			var chainLength = statusBChainData.Select(d => d != null && d.Any(b => b != 0xFF)).Select((x, i) => x ? (i + 1) : 0).Max();
 
 			return chainLength;
 		}
