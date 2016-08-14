@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="LTC6804\BatteryAdapter.cs" />
     <Compile Include="LTC6804\AuxVoltageRegister.cs" />
+    <Compile Include="LTC6804\StatusRegister.cs" />
     <Compile Include="LTC6804\ChipPack.cs" />
     <Compile Include="LTC6804\CommandId.cs" />
     <Compile Include="LTC6804\CellVoltageRegister.cs" />

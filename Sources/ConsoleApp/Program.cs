@@ -302,6 +302,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 			adapter.RecognizeBattery().Wait();
 			adapter.UpdateReadings().Wait();
+			adapter.PerformSelfTest().Wait();
 
 			var battery = adapter.Pack;
 		}

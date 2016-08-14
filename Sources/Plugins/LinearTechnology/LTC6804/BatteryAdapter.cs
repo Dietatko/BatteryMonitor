@@ -19,6 +19,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 {
 	public class BatteryAdapter : IBatteryPackAdapter
 	{
+		private const float CtoKCoeficient = 273.15f;
 		private const float MinConnectedCellVoltage = 0.5f;
 
 		private readonly object m_lock = new object();
@@ -293,10 +294,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				for (int chainIndex = 0; chainIndex < this.ChainLength; chainIndex++)
 				{
 					// Find chip pack
-					var chipPack = batteryPack as ChipPack ?? 
-						batteryPack.SubElements
-							.OfType<ChipPack>()
-							.FirstOrDefault(x => x.ChainIndex == chainIndex);
+					var chipPack = this.FindChipPack(chainIndex);
 					if (chipPack == null)
 					{
 						this.Tracer.Warn(String.Format("A chip pack with chain index {0} was not found in the stack while processing actuals. Ignoring measured data for this chip.", chainIndex));
@@ -363,51 +361,18 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		private async Task MeasureActuals()
 		{
 			// Start reference
-			var configRegisterChainData = await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false);
-			var configRegisters = configRegisterChainData.Select(x => new ConfigurationRegister(x)).ToArray();
-			configRegisters.ForEach(x => x.SetGpioPullDowns(false));
-			configRegisters.ForEach(x => x.ReferenceOn = true);
-			await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
+			await StartReference().ConfigureAwait(false);
 
 			// Measure everything
 			await this.Connection.ExecuteCommand(CommandId.StartCellConversion(ConversionMode.Normal, false, 0)).ConfigureAwait(false);
-			await Task.Delay(5).ConfigureAwait(false);
+			await Task.Delay(3).ConfigureAwait(false);
 			await this.Connection.ExecuteCommand(CommandId.StartAuxConversion(ConversionMode.Normal, 0)).ConfigureAwait(false);
-			await Task.Delay(5).ConfigureAwait(false);
+			await Task.Delay(3).ConfigureAwait(false);
 			//await this.Connection.ExecuteCommand(CommandId.StartStatusConversion(ConversionMode.Normal, 1)).ConfigureAwait(false);
 			//await Task.Delay(2).ConfigureAwait(false);
 
 			// Shutdown reference
-			configRegisters.ForEach(x => x.ReferenceOn = false);
-			await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
-		}
-
-		private async Task<CellVoltageRegister[]> ReadCellVoltages()
-		{
-			var cellVoltageA = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterA, 6).ConfigureAwait(false)).ToArray();
-			var cellVoltageB = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterB, 6).ConfigureAwait(false)).ToArray();
-			var cellVoltageC = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterC, 6).ConfigureAwait(false)).ToArray();
-			var cellVoltageD = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterD, 6).ConfigureAwait(false)).ToArray();
-			this.CheckChainLength("reading cell voltages", cellVoltageA, cellVoltageB, cellVoltageC, cellVoltageD);
-
-			var voltageRegisters = Enumerable.Range(0, this.ChainLength)
-				.Select(x => CellVoltageRegister.FromGroups(cellVoltageA[x], cellVoltageB[x], cellVoltageC[x], cellVoltageD[x]))
-				.ToArray();
-
-			return voltageRegisters;
-		}
-
-		private async Task<AuxVoltageRegister[]> ReadAuxVoltages()
-		{
-			var auxA = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterA, 6).ConfigureAwait(false)).ToArray();
-			var auxB = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterB, 6).ConfigureAwait(false)).ToArray();
-			this.CheckChainLength("reading auxiliary voltages", auxA, auxB);
-
-			var auxRegisters = Enumerable.Range(0, this.ChainLength)
-				.Select(x => AuxVoltageRegister.FromGroups(auxA[x], auxB[x]))
-				.ToArray();
-
-			return auxRegisters;
+			await StopReference().ConfigureAwait(false);
 		}
 
 		/*
@@ -539,6 +504,266 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		#endregion Monitoring
 
 
+		#region Self-test
+
+		private const int OpenWireMeasurmentCount = 5;
+		private const ushort DigitalFilterTestAdcValue = 0x9555;
+		private const float MaxPackVoltageDiff = 0.5f;
+		private const float MinAnalogSupplyVoltage = 4.5f;
+		private const float MaxAnalogSupplyVoltage = 5.5f;
+		private const float MinDigitalSupplyVoltage = 2.7f;
+		private const float MaxDigitalSupplyVoltage = 3.6f;
+		private const float MinRef2Voltage = 2.985f;
+		private const float MaxRef2Voltage = 3.015f;
+		private const float MaxDieTemperature = 80.0f + CtoKCoeficient;
+
+		public async Task PerformSelfTest()
+		{
+			await this.StartReference().ConfigureAwait(false);
+			await Task.Delay(4).ConfigureAwait(false);
+
+			await this.TestDigitalFilter().ConfigureAwait(false);
+			await this.TestVoltages().ConfigureAwait(false);
+			//await this.TestOpenWires().ConfigureAwait(false);
+
+			await this.StopReference().ConfigureAwait(false);
+		}
+
+		private async Task TestDigitalFilter()
+		{
+			await this.Connection.ExecuteCommand(CommandId.StartCellSelfTest(ConversionMode.Normal, SelfTestMode.Mode1)).ConfigureAwait(false);
+			await Task.Delay(3).ConfigureAwait(false);
+			await this.Connection.ExecuteCommand(CommandId.StartAuxSelfTest(ConversionMode.Normal, SelfTestMode.Mode1)).ConfigureAwait(false);
+			await Task.Delay(3).ConfigureAwait(false);
+			await this.Connection.ExecuteCommand(CommandId.StartStatusSelfTest(ConversionMode.Normal, SelfTestMode.Mode1)).ConfigureAwait(false);
+			await Task.Delay(2).ConfigureAwait(false);
+
+			var cellRegisters = await this.ReadCellVoltages().ConfigureAwait(false);
+			var auxRegisters = await this.ReadAuxVoltages().ConfigureAwait(false);
+			var statusRegisters = await this.ReadStatusRegister().ConfigureAwait(false);
+
+			for (int chainIndex = 0; chainIndex < this.ChainLength; chainIndex++)
+			{
+				var buffer = new byte[24 + 12 + 4];
+				Array.Copy(cellRegisters[chainIndex].Data, 0, buffer, 0, 24);
+				Array.Copy(auxRegisters[chainIndex].Data, 0, buffer, 24, 12);
+				Array.Copy(statusRegisters[chainIndex].Data, 0, buffer, 24 + 12, 4);
+
+				var testFailed = false;
+				for (int i = 0; i < buffer.Length; i += 2)
+				{
+					var actualValue = (ushort)((buffer[i + 1] << 8) + buffer[i]);
+					if (actualValue != DigitalFilterTestAdcValue)
+					{
+						testFailed = true;
+						break;
+					}
+				}
+
+				if (testFailed)
+					this.Tracer.Warn(String.Format("The digital filter of the chip pack with chain index {0} is broken.", chainIndex));
+				else
+					this.Tracer.Debug(String.Format("The digital filter of the chip pack with chain index {0} is OK.", chainIndex));
+			}
+		}
+
+		private async Task TestVoltages()
+		{
+			await this.Connection.ExecuteCommand(CommandId.DiagnoseMux).ConfigureAwait(false);
+			await Task.Delay(1).ConfigureAwait(false);
+			await this.Connection.ExecuteCommand(CommandId.StartAuxConversion(ConversionMode.Normal, 6)).ConfigureAwait(false);
+			await Task.Delay(1).ConfigureAwait(false);
+			await this.Connection.ExecuteCommand(CommandId.StartStatusConversion(ConversionMode.Normal, 0)).ConfigureAwait(false);
+			await Task.Delay(2).ConfigureAwait(false);
+
+			var auxRegisters = await this.ReadAuxVoltages().ConfigureAwait(false);
+			var statusRegisters = await this.ReadStatusRegister().ConfigureAwait(false);
+
+			for (int chainIndex = 0; chainIndex < this.ChainLength; chainIndex++)
+			{
+				// Find chip pack
+				var chipPack = this.FindChipPack(chainIndex);
+				if (chipPack == null)
+				{
+					this.Tracer.Warn(String.Format("The chip pack with chain index {0} was not found in the stack while processing actuals. Ignoring measured data for this chip.", chainIndex));
+					continue;
+				}
+
+				var auxRegister = auxRegisters[chainIndex];
+				var statusRegister = statusRegisters[chainIndex];
+
+				// Check pack voltage
+				var packVoltageDiff = Math.Abs(chipPack.Actuals.Voltage - statusRegister.PackVoltage);
+				if (packVoltageDiff > MaxPackVoltageDiff)
+					this.Tracer.Warn(String.Format("The chip pack with chain index {0} has too big pack voltage difference. Pack voltage: {1:N2} V. Sum of cell voltages: {2:N2} V.", chainIndex, statusRegister.PackVoltage, chipPack.Actuals.Voltage));
+				else
+					this.Tracer.Debug(String.Format("The chip pack with chain index {0} has normal pack voltage difference. Pack voltage: {1:N2} V. Sum of cell voltages: {2:N2} V.", chainIndex, statusRegister.PackVoltage, chipPack.Actuals.Voltage));
+
+				// Check analog power supply voltage
+				if (statusRegister.AnalogSupplyVoltage < MinAnalogSupplyVoltage || statusRegister.AnalogSupplyVoltage > MaxAnalogSupplyVoltage)
+					this.Tracer.Warn(String.Format("The analog supply voltage of the chip pack with chain index {0} is out of range. Actual voltage {1:N3} V. Expected range: {2:N1} - {3:N1} V.", chainIndex, statusRegister.AnalogSupplyVoltage, MinAnalogSupplyVoltage, MaxAnalogSupplyVoltage));
+				else
+					this.Tracer.Debug(String.Format("The analog supply voltage of the chip pack with chain index {0} is in normal range. Actual voltage {1:N3} V. Expected range: {2:N1} - {3:N1} V.", chainIndex, statusRegister.AnalogSupplyVoltage, MinAnalogSupplyVoltage, MaxAnalogSupplyVoltage));
+
+				// Check analog power supply voltage
+				if (statusRegister.DigitalSupplyVoltage < MinDigitalSupplyVoltage || statusRegister.DigitalSupplyVoltage > MaxDigitalSupplyVoltage)
+					this.Tracer.Warn(String.Format("The digital supply voltage of the chip pack with chain index {0} is out of range. Actual voltage {1:N3} V. Expected range: {2:N1} - {3:N1} V.", chainIndex, statusRegister.DigitalSupplyVoltage, MinDigitalSupplyVoltage, MaxDigitalSupplyVoltage));
+				else
+					this.Tracer.Debug(String.Format("The digital supply voltage of the chip pack with chain index {0} is in normal range. Actual voltage {1:N3} V. Expected range: {2:N1} - {3:N1} V.", chainIndex, statusRegister.DigitalSupplyVoltage, MinDigitalSupplyVoltage, MaxDigitalSupplyVoltage));
+
+				// Check 2nd reference voltage
+				if (auxRegister.Ref2Voltage < MinRef2Voltage || auxRegister.Ref2Voltage > MaxRef2Voltage)
+					this.Tracer.Warn(String.Format("The 2nd reference voltage of the chip pack with chain index {0} is out of range. Actual voltage {1:N3} V. Expected range: {2:N3} - {3:N3} V.", chainIndex, auxRegister.Ref2Voltage, MinRef2Voltage, MaxRef2Voltage));
+				else
+					this.Tracer.Debug(String.Format("The 2nd reference voltage of the chip pack with chain index {0} is normal range. Actual voltage {1:N3} V. Expected range: {2:N3} - {3:N3} V.", chainIndex, auxRegister.Ref2Voltage, MinRef2Voltage, MaxRef2Voltage));
+
+				// Check failing mux
+				if (statusRegister.MuxFail)
+					this.Tracer.Warn(String.Format("The mux of the chip pack with chain index {0} has failure.", chainIndex));
+				else
+					this.Tracer.Debug(String.Format("The mux of the chip pack with chain index {0} is OK.", chainIndex));
+
+				// Check die temperature
+				if (statusRegister.DieTemperature > MaxDieTemperature)
+					this.Tracer.Warn(String.Format("The die temperature of the chip pack with chain index {0} is too high. Actual temperature {1:N1} °C. Maximum allowed temperature: {2:N1} °C.", chainIndex, statusRegister.DieTemperature - CtoKCoeficient, MaxDieTemperature - CtoKCoeficient));
+				else
+					this.Tracer.Debug(String.Format("The die temperature of the chip pack with chain index {0} is in operational range. Actual temperature {1:N1} °C. Maximum allowed temperature: {2:N1} °C.", chainIndex, statusRegister.DieTemperature - CtoKCoeficient, MaxDieTemperature - CtoKCoeficient));
+
+				// Check whether chip shut down because of high temperature
+				if (statusRegister.ThermalShutdownOccurred)
+					this.Tracer.Warn(String.Format("The chip pack with chain index {0} registered a thermal shut down.", chainIndex));
+				else
+					this.Tracer.Debug(String.Format("The chip pack with chain index {0} did not register any thermal shut down.", chainIndex));
+			}
+		}
+
+		private async Task TestOpenWires()
+		{
+			// Measure cell voltages with current pull-up
+			for (int i = 0; i < OpenWireMeasurmentCount; i++)
+			{
+				await this.Connection.ExecuteCommand(CommandId.StartOpenWireConversion(ConversionMode.Normal, true, false, 0)).ConfigureAwait(false);
+				await Task.Delay(10).ConfigureAwait(false);
+			}
+			
+			// Read cell voltages
+			var cellRegisters = await this.ReadCellVoltages().ConfigureAwait(false);
+			var pullUpVoltages = cellRegisters
+				.Select(x =>
+					Enumerable.Range(1, 12)
+						.Select(x.GetCellVoltage)
+						.ToArray())
+				.ToArray();
+
+			// Measure cell voltages with current pull-down
+			for (int i = 0; i < OpenWireMeasurmentCount; i++)
+			{
+				await this.Connection.ExecuteCommand(CommandId.StartOpenWireConversion(ConversionMode.Normal, false, false, 0)).ConfigureAwait(false);
+				await Task.Delay(10).ConfigureAwait(false);
+			}
+
+			// Read cell voltages
+			cellRegisters = await this.ReadCellVoltages().ConfigureAwait(false);
+			var pullDownVoltages = cellRegisters
+				.Select(x =>
+					Enumerable.Range(1, 12)
+						.Select(x.GetCellVoltage)
+						.ToArray())
+				.ToArray();
+
+			for (int chainIndex = 0; chainIndex < this.ChainLength; chainIndex++)
+			{
+				var openWires = new List<int>();
+				if (Math.Abs(pullUpVoltages[chainIndex][0] - 0.0f) < Single.Epsilon)
+					openWires.Add(0);
+				for (int i = 0; i <= 10; i++)
+				{
+					var cellVoltageDiff = pullUpVoltages[chainIndex][i + 1] - pullDownVoltages[chainIndex][i + 1];
+					if (cellVoltageDiff < -0.4f)
+						openWires.Add(i + 1);
+				}
+				if (Math.Abs(pullDownVoltages[chainIndex][11] - 0.0f) < Single.Epsilon)
+					openWires.Add(12);
+
+				if (openWires.Count > 0)
+					this.Tracer.Warn(String.Format("There are open wires on the chip pack with chain index {0}. Open wires: {1}.", chainIndex, openWires.Select(x => x.ToString(CultureInfo.CurrentCulture)).Join(", ")));
+				else
+					this.Tracer.Debug(String.Format("All cell voltage wires on the chip pack with chain index {0} are correctly connected.", chainIndex));
+			}
+		}
+
+		#endregion Self-test
+
+
+		#region Primitives
+
+		private async Task StartReference()
+		{
+			var configRegisterData = (await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false)).ToArray();
+			this.CheckChainLength("reading configuration register", configRegisterData);
+
+			var configRegisters = configRegisterData.Select(x => new ConfigurationRegister(x)).ToArray();
+
+			configRegisters.ForEach(x => x.SetGpioPullDowns(false));
+			configRegisters.ForEach(x => x.ReferenceOn = true);
+			await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
+		}
+
+		private async Task StopReference()
+		{
+			var configRegisterData = (await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false)).ToArray();
+			this.CheckChainLength("reading configuration register", configRegisterData);
+
+			var configRegisters = configRegisterData.Select(x => new ConfigurationRegister(x)).ToArray();
+
+			configRegisters.ForEach(x => x.ReferenceOn = false);
+			await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
+		}
+
+		private async Task<CellVoltageRegister[]> ReadCellVoltages()
+		{
+			var cellVoltageA = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterA, 6).ConfigureAwait(false)).ToArray();
+			var cellVoltageB = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterB, 6).ConfigureAwait(false)).ToArray();
+			var cellVoltageC = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterC, 6).ConfigureAwait(false)).ToArray();
+			var cellVoltageD = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterD, 6).ConfigureAwait(false)).ToArray();
+			this.CheckChainLength("reading cell voltages", cellVoltageA, cellVoltageB, cellVoltageC, cellVoltageD);
+
+			var voltageRegisters = Enumerable.Range(0, this.ChainLength)
+				.Select(x => CellVoltageRegister.FromGroups(cellVoltageA[x], cellVoltageB[x], cellVoltageC[x], cellVoltageD[x]))
+				.ToArray();
+
+			return voltageRegisters;
+		}
+
+		private async Task<AuxVoltageRegister[]> ReadAuxVoltages()
+		{
+			var auxA = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterA, 6).ConfigureAwait(false)).ToArray();
+			var auxB = (await this.Connection.ReadRegister(CommandId.ReadAuxRegisterB, 6).ConfigureAwait(false)).ToArray();
+			this.CheckChainLength("reading auxiliary voltages", auxA, auxB);
+
+			var auxRegisters = Enumerable.Range(0, this.ChainLength)
+				.Select(x => AuxVoltageRegister.FromGroups(auxA[x], auxB[x]))
+				.ToArray();
+
+			return auxRegisters;
+		}
+
+		private async Task<StatusRegister[]> ReadStatusRegister()
+		{
+			var statusRegisterA = (await this.Connection.ReadRegister(CommandId.ReadStatusRegisterA, 6).ConfigureAwait(false)).ToArray();
+			var statusRegisterB = (await this.Connection.ReadRegister(CommandId.ReadStatusRegisterB, 6).ConfigureAwait(false)).ToArray();
+			this.CheckChainLength("reading status registers", statusRegisterA, statusRegisterB);
+
+			var statusRegisters = Enumerable.Range(0, this.ChainLength)
+				.Select(x => StatusRegister.FromGroups(statusRegisterA[x], statusRegisterB[x]))
+				.ToArray();
+
+			return statusRegisters;
+		}
+
+		#endregion Primitives
+
+
 		#region Descriptions
 
 		public IEnumerable<ReadingDescriptorGrouping> GetDescriptors()
@@ -658,6 +883,24 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			var adcReading = voltage / ref2Voltage * 30000;
 			var temperature = coefA * adcReading + coefB;
 			return temperature + coefCtoK;
+		}
+
+		private ChipPack FindChipPack(int chainIndex)
+		{
+			var pack = this.Pack;
+
+			var chipPack = pack as ChipPack;
+			if (chipPack != null && chipPack.ChainIndex != chainIndex)
+				chipPack = null;
+
+			if (chipPack == null)
+			{
+				chipPack = pack.SubElements
+					.OfType<ChipPack>()
+					.FirstOrDefault(x => x.ChainIndex == chainIndex);
+			}
+
+			return chipPack;
 		}
     }
 }
