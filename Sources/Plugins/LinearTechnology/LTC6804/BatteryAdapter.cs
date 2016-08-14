@@ -543,7 +543,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		public IEnumerable<ReadingDescriptorGrouping> GetDescriptors()
 		{
-			if (this.Pack == null)
+			var pack = this.Pack;
+			if (pack == null)
 				yield break;
 
 			yield return new ReadingDescriptorGrouping(
@@ -575,7 +576,23 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 			var actualDescriptors = new List<ReadingDescriptor>();
 			actualDescriptors.Add(ReadingDescriptors.PackVoltage);
-			//actualDescriptors.AddRange(Enumerable.Range(0, this.Pack.SubElements.Count()).Select(SMBusReadingDescriptors.CreateCellVoltageDescriptor));
+
+			IEnumerable<ReadingDescriptor> cellVoltageDescriptors;
+			if (pack is ChipPack)
+			{
+				cellVoltageDescriptors = this.Pack.SubElements
+					.Select((x, i) => LtReadingDescriptors.CreateSingleChipCellVoltageDescriptor(i));
+			}
+			else
+			{
+				cellVoltageDescriptors = this.Pack.SubElements
+					.OfType<ChipPack>()
+					.OrderBy(x => x.ChainIndex)
+					.SelectMany(x => x.SubElements
+						.Select((c, i) => Tuple.Create(x.ChainIndex, i)))
+					.Select(t => LtReadingDescriptors.CreateChainCellVoltageDescriptor(t.Item1, t.Item2));
+			}
+			actualDescriptors.AddRange(cellVoltageDescriptors);
 			actualDescriptors.Add(ReadingDescriptors.ActualCurrent);
 			actualDescriptors.Add(ReadingDescriptors.AverageCurrent);
 			actualDescriptors.Add(ReadingDescriptors.Temperature);
