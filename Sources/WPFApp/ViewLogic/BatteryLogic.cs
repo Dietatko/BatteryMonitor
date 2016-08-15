@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using ImpruvIT.Contracts;
 using LiveCharts;
 
-using ImpruvIT.BatteryMonitor.Domain;
-using ImpruvIT.BatteryMonitor.Domain.Description;
+using ImpruvIT.BatteryMonitor.Domain.Battery;
+using ImpruvIT.BatteryMonitor.Domain.Descriptors;
 using ImpruvIT.BatteryMonitor.Protocols;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic

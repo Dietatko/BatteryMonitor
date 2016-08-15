@@ -7,12 +7,11 @@ using System.Threading.Tasks;
 using FTD2XX_NET;
 using ImpruvIT;
 
-using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Battery;
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
 using ImpruvIT.BatteryMonitor.Protocols;
-using ImpruvIT.BatteryMonitor.Protocols.LinearTechnology;
 using ImpruvIT.BatteryMonitor.Protocols.SMBus;
 using NativeMethods = ImpruvIT.BatteryMonitor.Hardware.Ftdi.NativeMethods;
 using SPI = ImpruvIT.BatteryMonitor.Hardware.Ftdi.SPI;

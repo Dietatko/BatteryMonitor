@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using ImpruvIT.BatteryMonitor.Domain;
 using ImpruvIT.Contracts;
+
+using ImpruvIT.BatteryMonitor.Domain.Battery;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 {

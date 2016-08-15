@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
-
 using System.Threading.Tasks;
 
 using ImpruvIT.Contracts;
@@ -11,8 +10,8 @@ using ImpruvIT.Diagnostics;
 using ImpruvIT.Threading;
 using log4net;
 
-using ImpruvIT.BatteryMonitor.Domain;
-using ImpruvIT.BatteryMonitor.Domain.Description;
+using ImpruvIT.BatteryMonitor.Domain.Battery;
+using ImpruvIT.BatteryMonitor.Domain.Descriptors;
 using ImpruvIT.BatteryMonitor.Hardware;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804

@@ -4,7 +4,7 @@ using System.Linq;
 
 using ImpruvIT.Contracts;
 
-using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Battery;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 {
