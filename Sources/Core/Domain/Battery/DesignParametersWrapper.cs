@@ -6,49 +6,55 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
 	public class DesignParametersWrapper : DataDictionaryWrapperBase, IDesignParameters
 	{
-		public const string NamespaceUriName = "BatteryParametersNS";
-		public const string NominalVoltageEntryName = "NominalVoltage";
-		public const string DesignedDischargeCurrentEntryName = "DesignedDischargeCurrent";
-		public const string MaxDischargeCurrentEntryName = "MaxDischargeCurrent";
-		public const string DesignedCapacityEntryName = "DesignedCapacity";
-
-		public DesignParametersWrapper(DataDictionary data)
+		public DesignParametersWrapper(ReadingStorage data)
 			: base(data)
 		{
 		}
 
-		protected override string NamespaceUri 
-		{
-			get { return NamespaceUriName; }
-		}
 
 		public float NominalVoltage
 		{
-			get { return this.GetValue<float>(NominalVoltageEntryName); }
-			set { this.SetValue(NominalVoltageEntryName, value); }
+			get { return this.GetValue<float>(NominalVoltageKey); }
+			set { this.SetValue(NominalVoltageKey, value); }
 		}
 
 		public float DesignedDischargeCurrent
 		{
-			get { return this.GetValue<float>(DesignedDischargeCurrentEntryName); }
-			set { this.SetValue(DesignedDischargeCurrentEntryName, value); }
+			get { return this.GetValue<float>(DesignedDischargeCurrentKey); }
+			set { this.SetValue(DesignedDischargeCurrentKey, value); }
 		}
 
 		public float MaxDischargeCurrent
 		{
-			get { return this.GetValue<float>(MaxDischargeCurrentEntryName); }
-			set { this.SetValue(MaxDischargeCurrentEntryName, value); }
+			get { return this.GetValue<float>(MaxDischargeCurrentKey); }
+			set { this.SetValue(MaxDischargeCurrentKey, value); }
 		}
 
 		public float DesignedCapacity
 		{
-			get { return this.GetValue<float>(DesignedCapacityEntryName); }
-			set { this.SetValue(DesignedCapacityEntryName, value); }
+			get { return this.GetValue<float>(DesignedCapacityKey); }
+			set { this.SetValue(DesignedCapacityKey, value); }
 		}
 
-		public static EntryKey CreateKey(string entryName)
+
+		#region Entry keys
+
+		private const string NamespaceUriName = "BatteryParametersNS";
+		private const string NominalVoltageEntryName = "NominalVoltage";
+		private const string DesignedDischargeCurrentEntryName = "DesignedDischargeCurrent";
+		private const string MaxDischargeCurrentEntryName = "MaxDischargeCurrent";
+		private const string DesignedCapacityEntryName = "DesignedCapacity";
+
+		public static readonly EntryKey NominalVoltageKey = CreateKey(NominalVoltageEntryName);
+		public static readonly EntryKey DesignedDischargeCurrentKey = CreateKey(DesignedDischargeCurrentEntryName);
+		public static readonly EntryKey MaxDischargeCurrentKey = CreateKey(MaxDischargeCurrentEntryName);
+		public static readonly EntryKey DesignedCapacityKey = CreateKey(DesignedCapacityEntryName);
+
+		private static EntryKey CreateKey(string entryName)
 		{
 			return new EntryKey(NamespaceUriName, entryName);
 		}
+
+		#endregion Entry keys
 	}
 }

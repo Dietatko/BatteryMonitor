@@ -6,29 +6,27 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
 	public abstract class DataDictionaryWrapperBase
 	{
-		protected DataDictionaryWrapperBase(DataDictionary data)
+		protected DataDictionaryWrapperBase(ReadingStorage data)
 		{
 			Contract.Requires(data, "data").NotToBeNull();
 
 			this.Data = data;
 		}
 
-		public DataDictionary Data { get; private set; }
+		public ReadingStorage Data { get; private set; }
 
-		protected abstract string NamespaceUri { get; }
-
-		public T GetValue<T>(string entryName, T defaultValue = default(T))
+		public T GetValue<T>(EntryKey key, T defaultValue = default(T))
 		{
 			T result;
-			if (!this.Data.TryGetValue(this.NamespaceUri, entryName, out result))
+			if (!this.Data.TryGetValue(key, out result))
 				result = defaultValue;
 
 			return result;
 		}
 
-		public void SetValue<T>(string entryName, T value)
+		public void SetValue<T>(EntryKey key, T value)
 		{
-			this.Data.SetValue(this.NamespaceUri, entryName, value);
+			this.Data.SetValue(key, value);
 		}
 	}
 }

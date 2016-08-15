@@ -6,57 +6,63 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
 	public class ProductDefinitionWrapper : DataDictionaryWrapperBase, IProductDefinition
 	{
-		public const string NamespaceUriName = "ProductDefinitionNS";
-		public const string ManufacturerEntryName = "Manufacturer";
-		public const string ProductEntryName = "Product";
-		public const string ChemistryEntryName = "Chemistry";
-		public const string ManufactureDateEntryName = "ManufactureDate";
-		public const string SerialNumberEntryName = "SerialNumber";
-
-		public ProductDefinitionWrapper(DataDictionary data)
+		public ProductDefinitionWrapper(ReadingStorage data)
 			: base(data)
 		{
-		}
-
-		protected override string NamespaceUri
-		{
-			get { return NamespaceUriName; }
 		}
 
 
 		public string Manufacturer
 		{
-			get { return this.GetValue<string>(ManufacturerEntryName); }
-			set { this.SetValue(ManufacturerEntryName, value); }
+			get { return this.GetValue<string>(ManufacturerKey); }
+			set { this.SetValue(ManufacturerKey, value); }
 		}
 
 		public string Product
 		{
-			get { return this.GetValue<string>(ProductEntryName); }
-			set { this.SetValue(ProductEntryName, value); }
+			get { return this.GetValue<string>(ProductKey); }
+			set { this.SetValue(ProductKey, value); }
 		}
 
 		public string Chemistry
 		{
-			get { return this.GetValue<string>(ChemistryEntryName); }
-			set { this.SetValue(ChemistryEntryName, value); }
+			get { return this.GetValue<string>(ChemistryKey); }
+			set { this.SetValue(ChemistryKey, value); }
 		}
 
 		public DateTime ManufactureDate
 		{
-			get { return this.GetValue<DateTime>(ManufactureDateEntryName); }
-			set { this.SetValue(ManufactureDateEntryName, value); }
+			get { return this.GetValue<DateTime>(ManufactureDateKey); }
+			set { this.SetValue(ManufactureDateKey, value); }
 		}
 
 		public string SerialNumber
 		{
-			get { return this.GetValue<string>(SerialNumberEntryName); }
-			set { this.SetValue(SerialNumberEntryName, value); }
+			get { return this.GetValue<string>(SerialNumberKey); }
+			set { this.SetValue(SerialNumberKey, value); }
 		}
 
-		public static EntryKey CreateKey(string entryName)
+
+		#region Entry keys
+
+		private const string NamespaceUriName = "ProductDefinitionNS";
+		private const string ManufacturerEntryName = "Manufacturer";
+		private const string ProductEntryName = "Product";
+		private const string ChemistryEntryName = "Chemistry";
+		private const string ManufactureDateEntryName = "ManufactureDate";
+		private const string SerialNumberEntryName = "SerialNumber";
+
+		public static readonly EntryKey ManufacturerKey = CreateKey(ManufacturerEntryName);
+		public static readonly EntryKey ProductKey = CreateKey(ProductEntryName);
+		public static readonly EntryKey ChemistryKey = CreateKey(ChemistryEntryName);
+		public static readonly EntryKey ManufactureDateKey = CreateKey(ManufactureDateEntryName);
+		public static readonly EntryKey SerialNumberKey = CreateKey(SerialNumberEntryName);
+
+		private static EntryKey CreateKey(string entryName)
 		{
 			return new EntryKey(NamespaceUriName, entryName);
 		}
+
+		#endregion Entry keys
 	}
 }

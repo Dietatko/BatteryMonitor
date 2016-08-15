@@ -6,42 +6,46 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
 	public class BatteryHealthWrapper : DataDictionaryWrapperBase, IBatteryHealth
 	{
-		public const string NamespaceUriName = "BatteryHealthNS";
-		public const string FullChargeCapacityEntryName = "FullChargeCapacity";
-		public const string CycleCountEntryName = "CycleCount";
-		public const string CalculationPrecisionEntryName = "CalculationPrecision";
-
-		public BatteryHealthWrapper(DataDictionary data)
+		public BatteryHealthWrapper(ReadingStorage data)
 			: base(data)
 		{
 		}
 
-		protected override string NamespaceUri 
-		{
-			get { return NamespaceUriName; }
-		}
-
 		public float FullChargeCapacity
 		{
-			get { return this.GetValue<float>(FullChargeCapacityEntryName); }
-			set { this.SetValue(FullChargeCapacityEntryName, value); }
+			get { return this.GetValue<float>(FullChargeCapacityKey); }
+			set { this.SetValue(FullChargeCapacityKey, value); }
 		}
 
 		public int CycleCount
 		{
-			get { return this.GetValue<int>(CycleCountEntryName); }
-			set { this.SetValue(CycleCountEntryName, value); }
+			get { return this.GetValue<int>(CycleCountKey); }
+			set { this.SetValue(CycleCountKey, value); }
 		}
 
 		public float CalculationPrecision
 		{
-			get { return this.GetValue<float>(CalculationPrecisionEntryName); }
-			set { this.SetValue(CalculationPrecisionEntryName, value); }
+			get { return this.GetValue<float>(CalculationPrecisionKey); }
+			set { this.SetValue(CalculationPrecisionKey, value); }
 		}
 
-		public static EntryKey CreateKey(string entryName)
+
+		#region Entry keys
+
+		private const string NamespaceUriName = "BatteryHealthNS";
+		private const string FullChargeCapacityEntryName = "FullChargeCapacity";
+		private const string CycleCountEntryName = "CycleCount";
+		private const string CalculationPrecisionEntryName = "CalculationPrecision";
+
+		public static readonly EntryKey FullChargeCapacityKey = CreateKey(FullChargeCapacityEntryName);
+		public static readonly EntryKey CycleCountKey = CreateKey(CycleCountEntryName);
+		public static readonly EntryKey CalculationPrecisionKey = CreateKey(CalculationPrecisionEntryName);
+
+		private static EntryKey CreateKey(string entryName)
 		{
 			return new EntryKey(NamespaceUriName, entryName);
 		}
+
+		#endregion Entry keys
 	}
 }

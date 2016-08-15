@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using ImpruvIT.Contracts;
+
 namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
 	public partial class SeriesBatteryPack : BatteryPack
@@ -31,6 +33,36 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		public override IBatteryActuals Actuals
 		{
 			get { return this.m_actuals; }
+		}
+
+		protected override void InitializeCustomData()
+		{
+			base.InitializeCustomData();
+
+			this.CreateActualReadings();
+		}
+
+		private void CreateActualReadings()
+		{
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.VoltageKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSumReadingValue(BatteryActualsWrapper.VoltageKey)));
+
+			this.CustomData.CreateValue(
+			    BatteryActualsWrapper.ActualCurrentKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSameReadingValue<float>(BatteryActualsWrapper.ActualCurrentKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.AverageCurrentKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSameReadingValue<float>(BatteryActualsWrapper.AverageCurrentKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.RemainingCapacityKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMinReadingValue<float>(BatteryActualsWrapper.RemainingCapacityKey)));
 		}
 	}
 }

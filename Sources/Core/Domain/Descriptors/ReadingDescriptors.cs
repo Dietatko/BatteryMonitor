@@ -16,7 +16,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The manufacturer of the battery pack."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, ProductDefinitionWrapper.CreateKey(ProductDefinitionWrapper.ManufacturerEntryName) }
+				{ b => b, ProductDefinitionWrapper.ManufacturerKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Product.Manufacturer
@@ -28,7 +28,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The battery pack product name."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, ProductDefinitionWrapper.CreateKey(ProductDefinitionWrapper.ProductEntryName) }
+				{ b => b, ProductDefinitionWrapper.ProductKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Product.Product
@@ -40,7 +40,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The battery pack manufacture date."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, ProductDefinitionWrapper.CreateKey(ProductDefinitionWrapper.ManufactureDateEntryName) }
+				{ b => b, ProductDefinitionWrapper.ManufactureDateKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Product.ManufactureDate,
@@ -53,7 +53,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The battery pack serial number."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, ProductDefinitionWrapper.CreateKey(ProductDefinitionWrapper.SerialNumberEntryName) }
+				{ b => b, ProductDefinitionWrapper.SerialNumberKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Product.SerialNumber
@@ -65,7 +65,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The battery pack chemistry."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, ProductDefinitionWrapper.CreateKey(ProductDefinitionWrapper.ChemistryEntryName) }
+				{ b => b, ProductDefinitionWrapper.ChemistryKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Product.Chemistry
@@ -81,7 +81,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The nominal voltage of the battery pack."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, DesignParametersWrapper.CreateKey(DesignParametersWrapper.NominalVoltageEntryName) }
+				{ b => b, DesignParametersWrapper.NominalVoltageKey }
 			},
 			new ReadingValueAccessor(
 				b => b.DesignParameters.NominalVoltage,
@@ -97,7 +97,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"A continuos discharge current of the battery pack."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, DesignParametersWrapper.CreateKey(DesignParametersWrapper.DesignedCapacityEntryName) }
+				{ b => b, DesignParametersWrapper.DesignedCapacityKey }
 			},
 			new ReadingValueAccessor(
 				b => b.DesignParameters.DesignedDischargeCurrent,
@@ -113,7 +113,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"A maximal short-time (pulse) discharge current of the battery pack."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, DesignParametersWrapper.CreateKey(DesignParametersWrapper.MaxDischargeCurrentEntryName) }
+				{ b => b, DesignParametersWrapper.MaxDischargeCurrentKey }
 			},
 			new ReadingValueAccessor(
 				b => b.DesignParameters.MaxDischargeCurrent,
@@ -129,7 +129,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"A designed capacity of the battery pack."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, DesignParametersWrapper.CreateKey(DesignParametersWrapper.DesignedCapacityEntryName) }
+				{ b => b, DesignParametersWrapper.DesignedCapacityKey }
 			},
 			new ReadingValueAccessor(
 				b => b.DesignParameters.DesignedCapacity * 1000,
@@ -149,7 +149,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"A capacity of the full-charged battery pack."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, BatteryHealthWrapper.CreateKey(BatteryHealthWrapper.FullChargeCapacityEntryName) }
+				{ b => b, BatteryHealthWrapper.FullChargeCapacityKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Health.FullChargeCapacity * 1000,
@@ -165,7 +165,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"A number of charge-discharge cycles in life time of the battery pack."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, BatteryHealthWrapper.CreateKey(BatteryHealthWrapper.CycleCountEntryName) }
+				{ b => b, BatteryHealthWrapper.CycleCountKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Health.CycleCount,
@@ -181,7 +181,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"A maximum value error of measured and calculated values."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, BatteryHealthWrapper.CreateKey(BatteryHealthWrapper.CalculationPrecisionEntryName) }
+				{ b => b, BatteryHealthWrapper.CalculationPrecisionKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Health.CalculationPrecision * 100,
@@ -201,7 +201,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The actual battery pack voltage."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.VoltageEntryName) }
+				{ b => b, BatteryActualsWrapper.VoltageKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Actuals.Voltage,
@@ -217,7 +217,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The current load current."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.ActualCurrentEntryName) }
+				{ b => b, BatteryActualsWrapper.ActualCurrentKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Actuals.ActualCurrent,
@@ -233,7 +233,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The average load current."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.AverageCurrentEntryName) }
+				{ b => b, BatteryActualsWrapper.AverageCurrentKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Actuals.AverageCurrent,
@@ -249,7 +249,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				"The current pack temperature."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.TemperatureEntryName) }
+				{ b => b, BatteryActualsWrapper.TemperatureKey }
 			},
 			new ReadingValueAccessor(
 				b => b.Actuals.Temperature - 273.15,

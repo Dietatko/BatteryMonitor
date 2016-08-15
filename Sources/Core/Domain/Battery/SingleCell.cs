@@ -138,5 +138,22 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		}
 
 		#endregion Actuals
+
+
+		protected override void InitializeCustomData()
+		{
+			// Actuals
+			this.CustomData.CreateValue(BatteryActualsWrapper.VoltageKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(BatteryActualsWrapper.ActualCurrentKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(BatteryActualsWrapper.AverageCurrentKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(BatteryActualsWrapper.TemperatureKey, new TypedReadingValue<float>());
+
+			this.CustomData.CreateValue(BatteryActualsWrapper.RemainingCapacityKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(BatteryActualsWrapper.AbsoluteStateOfChargeKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(BatteryActualsWrapper.RelativeStateOfChargeKey, new TypedReadingValue<float>());
+
+			this.CustomData.CreateValue(BatteryActualsWrapper.ActualRunTimeKey, new TypedReadingValue<TimeSpan>());
+			this.CustomData.CreateValue(BatteryActualsWrapper.AverageRunTimeKey, new TypedReadingValue<TimeSpan>());
+		}
 	}
 }

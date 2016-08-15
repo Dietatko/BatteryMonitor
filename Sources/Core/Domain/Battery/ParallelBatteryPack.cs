@@ -32,5 +32,43 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		{
 			get { return this.m_actuals; }
 		}
+
+		protected override void InitializeCustomData()
+		{
+			base.InitializeCustomData();
+
+			this.CreateActualReadings();
+		}
+
+		private void CreateActualReadings()
+		{
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.VoltageKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSameReadingValue<float>(BatteryActualsWrapper.VoltageKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.ActualCurrentKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSumReadingValue(BatteryActualsWrapper.ActualCurrentKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.AverageCurrentKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSumReadingValue(BatteryActualsWrapper.AverageCurrentKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.RemainingCapacityKey,
+				this.CreateFallbackReadingValue<float>(
+					new MathFunctionReadingValue<float>(
+						this.SubElements,
+						BatteryActualsWrapper.RemainingCapacityKey,
+						x =>
+						{
+							var valList = x.ToList();
+							return valList.Min() * valList.Count;
+						},
+						(el, x) => x / el.Length)));
+		}
 	}
 }

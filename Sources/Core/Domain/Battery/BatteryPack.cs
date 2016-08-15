@@ -42,5 +42,100 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		{
 			get { return this.m_subElements.Count; }
 		}
+
+
+		protected override void InitializeCustomData()
+		{
+			base.InitializeCustomData();
+
+			this.CreateActualReadings();
+		}
+
+		private void CreateActualReadings()
+		{
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.TemperatureKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMaxReadingValue<float>(BatteryActualsWrapper.TemperatureKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.AbsoluteStateOfChargeKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateAverageReadingValue(BatteryActualsWrapper.AbsoluteStateOfChargeKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.RelativeStateOfChargeKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateAverageReadingValue(BatteryActualsWrapper.RelativeStateOfChargeKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.ActualRunTimeKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMinReadingValue<float>(BatteryActualsWrapper.ActualRunTimeKey)));
+
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.AverageRunTimeKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMinReadingValue<float>(BatteryActualsWrapper.AverageRunTimeKey)));
+		}
+
+
+		#region Reading values helpers
+
+		protected IReadingValue CreateFallbackReadingValue<TValue>(IReadingValue computedReadingValue)
+		{
+			Contract.Requires(computedReadingValue, "computedReadingValue").NotToBeNull();
+
+			return new FallbackReadingValue(
+				new TypedReadingValue<TValue>(),
+				computedReadingValue);
+		}
+
+		protected IReadingValue CreateSameReadingValue<TValue>(EntryKey key)
+		{
+			return new MathFunctionReadingValue<TValue>(
+				this.SubElements,
+				key,
+				x => x.Distinct().Single(),
+				(el, x) => x);
+		}
+
+		protected IReadingValue CreateSumReadingValue(EntryKey key)
+		{
+			return new MathFunctionReadingValue<float>(
+				this.SubElements,
+				key,
+				x => x.Sum(),
+				(el, x) => x / el.Length);
+		}
+
+		protected IReadingValue CreateAverageReadingValue(EntryKey key)
+		{
+			return new MathFunctionReadingValue<float>(
+				this.SubElements,
+				key,
+				vals => vals.Average(x => x),
+				(el, x) => x);
+		}
+
+		protected IReadingValue CreateMinReadingValue<TValue>(EntryKey key)
+		{
+			return new MathFunctionReadingValue<TValue>(
+				this.SubElements,
+				key,
+				x => x.Min(),
+				(el, x) => x);
+		}
+
+		protected IReadingValue CreateMaxReadingValue<TValue>(EntryKey key)
+		{
+			return new MathFunctionReadingValue<TValue>(
+				this.SubElements,
+				key,
+				x => x.Max(),
+				(el, x) => x);
+		}
+
+		#endregion Reading values helpers
 	}
 }

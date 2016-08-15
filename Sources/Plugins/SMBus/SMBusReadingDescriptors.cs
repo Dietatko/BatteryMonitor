@@ -16,7 +16,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				"The SMBus specification version the battery pack conforms to."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, SMBusDataWrapper.CreateKey(SMBusDataWrapper.SpecificationVersionEntryName) }
+				{ b => b, SMBusDataWrapper.SpecificationVersionKey }
 			},
 			new ReadingValueAccessor(
 				b => new SMBusDataWrapper(b.CustomData).SpecificationVersion
@@ -28,7 +28,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				"A number of cells in the battery pack."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, SMBusDataWrapper.CreateKey(SMBusDataWrapper.CellCountEntryName) }
+				{ b => b, SMBusDataWrapper.CellCountKey }
 			},
 			new ReadingValueAccessor(
 				b => new SMBusDataWrapper(b.CustomData).CellCount
@@ -42,7 +42,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					String.Format("A voltage of the cell {0}.", cellIndex + 1)
 				),
 				new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.VoltageEntryName) }
+					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.VoltageKey }
 				},
 				new ReadingValueAccessor(
 					b => ((BatteryPack)b)[cellIndex].Actuals.Voltage,

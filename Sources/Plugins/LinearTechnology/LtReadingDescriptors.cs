@@ -17,7 +17,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 				"A number of packs in the overall battery pack."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, LtDataWrapper.CreateKey(LtDataWrapper.CellCountEntryName) }
+				{ b => b, LtDataWrapper.ChipCountKey }
 			},
 			new ReadingValueAccessor(
 				b => new LtDataWrapper(b.CustomData).CellCount
@@ -29,7 +29,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 				"A number of cells in the battery pack."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, LtDataWrapper.CreateKey(LtDataWrapper.CellCountEntryName) }
+				{ b => b, LtDataWrapper.CellCountKey }
 			},
 			new ReadingValueAccessor(
 				b => new LtDataWrapper(b.CustomData).CellCount
@@ -43,7 +43,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 					String.Format("A voltage of the cell {0}.", cellIndex + 1)
 				),
 				new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.VoltageEntryName) }
+					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.VoltageKey }
 				},
 				new ReadingValueAccessor(
 					b => ((BatteryPack)b)[cellIndex].Actuals.Voltage,
@@ -62,7 +62,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 					{ b => ((BatteryPack)b).SubElements
 							.OfType<ChipPack>()
 							.Single(x => x.ChainIndex == chipIndex)[cellIndex], 
-						BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.VoltageEntryName) }
+						BatteryActualsWrapper.VoltageKey }
 				},
 				new ReadingValueAccessor(
 					b => ((BatteryPack)b).SubElements
