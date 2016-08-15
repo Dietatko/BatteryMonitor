@@ -8,8 +8,6 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
 	public abstract class BatteryPack : BatteryElement
 	{
-		private readonly ProductDefinitionWrapper m_productWrapper;
-
 		protected BatteryPack(IEnumerable<BatteryElement> subElements)
 		{
 			Contract.Requires(subElements, "subElements")
@@ -18,13 +16,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 			Contract.Requires(this.m_subElements, "subElements")
 				.NotToBeEmpty();
 
-			this.m_productWrapper = new ProductDefinitionWrapper(this.CustomData);
 			this.SubElements.ForEach(x => x.ValueChanged += (s, a) => this.OnValueChanged(a));
-		}
-
-		public override IProductDefinition Product
-		{
-			get { return this.m_productWrapper; }
 		}
 
 		public IEnumerable<BatteryElement> SubElements
@@ -44,11 +36,33 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		}
 
 
-		protected override void InitializeCustomData()
+		protected void InitializeReadings()
 		{
-			base.InitializeCustomData();
-
+			this.CreateProductDefinitionReadings();
+			this.CreateHealthReadings();
 			this.CreateActualReadings();
+		}
+
+		private void CreateProductDefinitionReadings()
+		{
+			this.CustomData.CreateValue(ProductDefinitionWrapper.ManufacturerKey, new TypedReadingValue<string>());
+			this.CustomData.CreateValue(ProductDefinitionWrapper.ProductKey, new TypedReadingValue<string>());
+			this.CustomData.CreateValue(ProductDefinitionWrapper.ChemistryKey, new TypedReadingValue<string>());
+			this.CustomData.CreateValue(ProductDefinitionWrapper.ManufactureDateKey, new TypedReadingValue<DateTime>());
+			this.CustomData.CreateValue(ProductDefinitionWrapper.SerialNumberKey, new TypedReadingValue<string>());
+		}
+
+		private void CreateHealthReadings()
+		{
+			this.CustomData.CreateValue(
+				BatteryHealthWrapper.CycleCountKey,
+				this.CreateFallbackReadingValue<int>(
+					this.CreateMaxReadingValue<int>(BatteryHealthWrapper.CycleCountKey)));
+
+			this.CustomData.CreateValue(
+				BatteryHealthWrapper.CalculationPrecisionKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMaxReadingValue<float>(BatteryHealthWrapper.CalculationPrecisionKey)));
 		}
 
 		private void CreateActualReadings()

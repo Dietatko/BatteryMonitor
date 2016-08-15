@@ -69,7 +69,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				await this.ReadProtocolParams(pack);
 
 				this.Pack = pack;
-				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.Product.Manufacturer, pack.Product.Product, pack.DesignParameters.NominalVoltage, pack.DesignParameters.DesignedCapacity * 1000);
+				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.ProductDefinition().Manufacturer, pack.ProductDefinition().Product, pack.DesignParameters().NominalVoltage, pack.DesignParameters().DesignedCapacity * 1000);
 			}
 			catch (Exception ex)
 			{
@@ -108,8 +108,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					.AppendLine("A series battery with {1} cells recognized at address 0x{0:X}:", this.Address, cellCount)
 					.Indent()
 						.AppendLine("Nominal voltage: {0} V (Cell voltage: {1} V)", nominalVoltage, cellVoltage)
-						.AppendLine("Designed discharge current: {0} A", pack.DesignParameters.DesignedDischargeCurrent)
-						.AppendLine("Maximal discharge current: {0} A", pack.DesignParameters.MaxDischargeCurrent)
+						.AppendLine("Designed discharge current: {0} A", pack.DesignParameters().DesignedDischargeCurrent)
+						.AppendLine("Maximal discharge current: {0} A", pack.DesignParameters().MaxDischargeCurrent)
 						.AppendLine("Designed Capacity: {0} Ah", designedCapacity)
 					.Trace());
 
@@ -120,22 +120,22 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		{
 			this.Tracer.DebugFormat("Reading manufacturer data of battery at address 0x{0:X} ...", this.Address);
 
-			var productDefinitionWrapper = new ProductDefinitionWrapper(pack.CustomData);
-			productDefinitionWrapper.Manufacturer = await this.ReadStringValue(SMBusCommandIds.ManufacturerName, 16).ConfigureAwait(false);
-			productDefinitionWrapper.Product = await this.ReadStringValue(SMBusCommandIds.DeviceName, 16).ConfigureAwait(false);
-			productDefinitionWrapper.Chemistry = await this.ReadStringValue(SMBusCommandIds.DeviceChemistry, 5).ConfigureAwait(false);
-			productDefinitionWrapper.ManufactureDate = ParseDate(await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
+			var productDefinition = pack.ProductDefinition();
+			productDefinition.Manufacturer = await this.ReadStringValue(SMBusCommandIds.ManufacturerName, 16).ConfigureAwait(false);
+			productDefinition.Product = await this.ReadStringValue(SMBusCommandIds.DeviceName, 16).ConfigureAwait(false);
+			productDefinition.Chemistry = await this.ReadStringValue(SMBusCommandIds.DeviceChemistry, 5).ConfigureAwait(false);
+			productDefinition.ManufactureDate = ParseDate(await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
 			var serialNumber = await this.ReadUShortValue(SMBusCommandIds.SerialNumber).ConfigureAwait(false);
-			productDefinitionWrapper.SerialNumber = serialNumber.ToString(CultureInfo.InvariantCulture);
+			productDefinition.SerialNumber = serialNumber.ToString(CultureInfo.InvariantCulture);
 
 			this.Tracer.Debug(new TraceBuilder()
 					.AppendLine("The manufacturer data of battery at address 0x{0:X}:", this.Address)
 					.Indent()
-						.AppendLine("Manufacturer:     {0}", pack.Product.Manufacturer)
-						.AppendLine("Product:          {0}", pack.Product.Product)
-						.AppendLine("Chemistry:        {0}", pack.Product.Chemistry)
-						.AppendLine("Manufacture date: {0}", pack.Product.ManufactureDate.ToShortDateString())
-						.AppendLine("Serial number:    {0}", pack.Product.SerialNumber)
+						.AppendLine("Manufacturer:     {0}", productDefinition.Manufacturer)
+						.AppendLine("Product:          {0}", productDefinition.Product)
+						.AppendLine("Chemistry:        {0}", productDefinition.Chemistry)
+						.AppendLine("Manufacture date: {0}", productDefinition.ManufactureDate.ToShortDateString())
+						.AppendLine("Serial number:    {0}", productDefinition.SerialNumber)
 					.Trace());
 		}
 
@@ -210,17 +210,20 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 				foreach (var cell in pack.SubElements.OfType<SingleCell>())
 				{
-					cell.SetFullChargeCapacity(fullChargeCapacity);
-					cell.SetCycleCount(cycleCount);
-					cell.SetCalculationPrecision(calculationPrecision);
+					var cellHealth = cell.Health();
+
+					cellHealth.FullChargeCapacity = fullChargeCapacity;
+					cellHealth.CycleCount = cycleCount;
+					cellHealth.CalculationPrecision = calculationPrecision;
 				}
 
+				var packHealth = pack.Health();
 				this.Tracer.Debug(new TraceBuilder()
 					.AppendLine("The health information of the battery at address 0x{0:X} successfully read:", this.Address)
 					.Indent()
-						.AppendLine("Full-charge capacity: {0} mAh", pack.Health.FullChargeCapacity * 1000f)
-						.AppendLine("Cycle count: {0}", pack.Health.CycleCount)
-						.AppendLine("Calculation precision: {0}%", (int)(pack.Health.CalculationPrecision * 100f))
+						.AppendLine("Full-charge capacity: {0} mAh", packHealth.FullChargeCapacity * 1000f)
+						.AppendLine("Cycle count: {0}", packHealth.CycleCount)
+						.AppendLine("Calculation precision: {0}%", (int)(packHealth.CalculationPrecision * 100f))
 					.Trace());
 			}
 			catch (Exception ex)
@@ -273,21 +276,23 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				for (int i = 0; i < cells.Count; i++)
 				{
 					var cell = cells[i];
+					var cellActuals = cell.Actuals();
 					//cell.BeginUpdate();
 					//try
 					//{
 
-					var cellVoltage = (await this.ReadUShortValue(this.GetCellVoltageCommandId(i)).ConfigureAwait(false)) / 1000f;
-					cell.SetVoltage(cellVoltage);
-					cell.SetActualCurrent(actualCurrent);
-					cell.SetAverageCurrent(averageCurrent);
-					cell.SetTemperature(temperature);
 
-					cell.SetRemainingCapacity(remainingCapacity);
-					cell.SetAbsoluteStateOfCharge(absoluteStateOfCharge);
-					cell.SetRelativeStateOfCharge(relativeStateOfCharge);
-					cell.SetActualRunTime(actualRunTime);
-					cell.SetAverageRunTime(averageRunTime);
+					var cellVoltage = (await this.ReadUShortValue(this.GetCellVoltageCommandId(i)).ConfigureAwait(false)) / 1000f;
+					cellActuals.Voltage = cellVoltage;
+					cellActuals.ActualCurrent = actualCurrent;
+					cellActuals.AverageCurrent = averageCurrent;
+					cellActuals.Temperature = temperature;
+
+					cellActuals.RemainingCapacity = remainingCapacity;
+					cellActuals.AbsoluteStateOfCharge = absoluteStateOfCharge;
+					cellActuals.RelativeStateOfCharge = relativeStateOfCharge;
+					cellActuals.ActualRunTime = actualRunTime;
+					cellActuals.AverageRunTime = averageRunTime;
 
 					//}
 					//finally
@@ -296,20 +301,20 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					//}
 				}
 
-				var actuals = pack.Actuals;
+				var packActuals = pack.Actuals();
 
 				this.Tracer.Debug(new TraceBuilder()
 					.AppendLine("The actuals of the battery at address 0x{0:X} successfully read:", this.Address)
 					.Indent()
-						.AppendLine("Voltage:                 {0} V ({1})", actuals.Voltage, pack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals.Voltage)).Join(", "))
-						.AppendLine("Actual current:          {0} mA", actuals.ActualCurrent * 1000f)
-						.AppendLine("Average current:         {0} mA", actuals.AverageCurrent * 1000f)
-						.AppendLine("Temperature:             {0:f2} °C", actuals.Temperature - 273.15f)
-						.AppendLine("Remaining capacity:      {0:N0} mAh", actuals.RemainingCapacity * 1000f)
-						.AppendLine("Absolute StateOfCharge:  {0} %", actuals.AbsoluteStateOfCharge * 100f)
-						.AppendLine("Relative StateOfCharge:  {0} %", actuals.RelativeStateOfCharge * 100f)
-						.AppendLine("Actual run time:         {0}", actuals.ActualRunTime.ToString())
-						.AppendLine("Average run time:        {0}", actuals.AverageRunTime.ToString())
+						.AppendLine("Voltage:                 {0} V ({1})", packActuals.Voltage, pack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals().Voltage)).Join(", "))
+						.AppendLine("Actual current:          {0} mA", packActuals.ActualCurrent * 1000f)
+						.AppendLine("Average current:         {0} mA", packActuals.AverageCurrent * 1000f)
+						.AppendLine("Temperature:             {0:f2} °C", packActuals.Temperature - 273.15f)
+						.AppendLine("Remaining capacity:      {0:N0} mAh", packActuals.RemainingCapacity * 1000f)
+						.AppendLine("Absolute StateOfCharge:  {0} %", packActuals.AbsoluteStateOfCharge * 100f)
+						.AppendLine("Relative StateOfCharge:  {0} %", packActuals.RelativeStateOfCharge * 100f)
+						.AppendLine("Actual run time:         {0}", packActuals.ActualRunTime.ToString())
+						.AppendLine("Average run time:        {0}", packActuals.AverageRunTime.ToString())
 					.Trace());
 
 				

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
-	public class DesignParametersWrapper : DataDictionaryWrapperBase, IDesignParameters
+	public class DesignParametersWrapper : DataDictionaryWrapperBase
 	{
 		public DesignParametersWrapper(ReadingStorage data)
 			: base(data)
@@ -15,25 +16,45 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		public float NominalVoltage
 		{
 			get { return this.GetValue<float>(NominalVoltageKey); }
-			set { this.SetValue(NominalVoltageKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0); 
+				
+				this.SetValue(NominalVoltageKey, value);
+			}
 		}
 
 		public float DesignedDischargeCurrent
 		{
 			get { return this.GetValue<float>(DesignedDischargeCurrentKey); }
-			set { this.SetValue(DesignedDischargeCurrentKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0); 
+				
+				this.SetValue(DesignedDischargeCurrentKey, value);
+			}
 		}
 
 		public float MaxDischargeCurrent
 		{
 			get { return this.GetValue<float>(MaxDischargeCurrentKey); }
-			set { this.SetValue(MaxDischargeCurrentKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0);
+
+				this.SetValue(MaxDischargeCurrentKey, value);
+			}
 		}
 
 		public float DesignedCapacity
 		{
 			get { return this.GetValue<float>(DesignedCapacityKey); }
-			set { this.SetValue(DesignedCapacityKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0); 
+				
+				this.SetValue(DesignedCapacityKey, value);
+			}
 		}
 
 

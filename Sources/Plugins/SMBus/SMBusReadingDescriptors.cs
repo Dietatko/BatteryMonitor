@@ -45,7 +45,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.VoltageKey }
 				},
 				new ReadingValueAccessor(
-					b => ((BatteryPack)b)[cellIndex].Actuals.Voltage,
+					b => ((BatteryPack)b)[cellIndex].Actuals().Voltage,
 					"{0:N3} V"
 				));
 		}

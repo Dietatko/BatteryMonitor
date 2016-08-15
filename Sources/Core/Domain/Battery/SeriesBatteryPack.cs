@@ -6,40 +6,52 @@ using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
-	public partial class SeriesBatteryPack : BatteryPack
+	public class SeriesBatteryPack : BatteryPack
 	{
-		private readonly SeriesPackDesignParameters m_params;
-		private readonly SeriesPackHealth m_health;
-		private readonly SeriesPackActuals m_actuals;
-
 		public SeriesBatteryPack(IEnumerable<BatteryElement> subElements)
 			: base(subElements)
 		{
-			this.m_params = new SeriesPackDesignParameters(this.SubElements);
-			this.m_health = new SeriesPackHealth(this.SubElements);
-			this.m_actuals = new SeriesPackActuals(this.SubElements);
+			this.InitializeReadings();
 		}
 
-		public override IDesignParameters DesignParameters
+		protected new void InitializeReadings()
 		{
-			get { return this.m_params; }
-		}
+			base.InitializeReadings();
 
-		public override IBatteryHealth Health
-		{
-			get { return this.m_health; }
-		}
-
-		public override IBatteryActuals Actuals
-		{
-			get { return this.m_actuals; }
-		}
-
-		protected override void InitializeCustomData()
-		{
-			base.InitializeCustomData();
-
+			this.CreateDesignParametersReadings();
+			this.CreateHealthReadings();
 			this.CreateActualReadings();
+		}
+
+		private void CreateDesignParametersReadings()
+		{
+			this.CustomData.CreateValue(
+				DesignParametersWrapper.NominalVoltageKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSumReadingValue(BatteryActualsWrapper.VoltageKey)));
+
+			this.CustomData.CreateValue(
+				DesignParametersWrapper.DesignedDischargeCurrentKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMinReadingValue<float>(DesignParametersWrapper.DesignedDischargeCurrentKey)));
+
+			this.CustomData.CreateValue(
+				DesignParametersWrapper.MaxDischargeCurrentKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMinReadingValue<float>(DesignParametersWrapper.MaxDischargeCurrentKey)));
+
+			this.CustomData.CreateValue(
+				DesignParametersWrapper.DesignedCapacityKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMinReadingValue<float>(DesignParametersWrapper.DesignedCapacityKey)));
+		}
+
+		private void CreateHealthReadings()
+		{
+			this.CustomData.CreateValue(
+				BatteryHealthWrapper.FullChargeCapacityKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateMinReadingValue<float>(BatteryHealthWrapper.FullChargeCapacityKey)));
 		}
 
 		private void CreateActualReadings()

@@ -62,25 +62,25 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				var batteryPack = batteryAdapter.Pack;
 
 				Console.WriteLine("Battery found at address {0}:", address);
-				var product = batteryPack.Product;
-				var parameters = batteryPack.DesignParameters;
-				Console.WriteLine("Manufacturer:             {0}", product.Manufacturer);
-				Console.WriteLine("Product:                  {0}", product.Product);
-				Console.WriteLine("Chemistry:                {0}", product.Chemistry);
-				Console.WriteLine("Manufacture date:         {0}", product.ManufactureDate.ToShortDateString());
-				Console.WriteLine("Serial number:            {0}", product.SerialNumber);
+				var productDefinition = batteryPack.ProductDefinition();
+				var designParameters = batteryPack.DesignParameters();
+				Console.WriteLine("Manufacturer:             {0}", productDefinition.Manufacturer);
+				Console.WriteLine("Product:                  {0}", productDefinition.Product);
+				Console.WriteLine("Chemistry:                {0}", productDefinition.Chemistry);
+				Console.WriteLine("Manufacture date:         {0}", productDefinition.ManufactureDate.ToShortDateString());
+				Console.WriteLine("Serial number:            {0}", productDefinition.SerialNumber);
 				//Console.WriteLine("Specification version:    {0}", battery.Information.SpecificationVersion.ToString(2));
 				Console.WriteLine("Cell count:               {0} cells", batteryPack.ElementCount);
-				Console.WriteLine("Nominal voltage:          {0} V", parameters.NominalVoltage);
-				Console.WriteLine("DesignedDischargeCurrent: {0} A", parameters.DesignedDischargeCurrent);
-				Console.WriteLine("MaxDischargeCurrent:      {0} A", parameters.MaxDischargeCurrent);
-				Console.WriteLine("Designed capacity:        {0:N0} mAh", parameters.DesignedCapacity * 1000);
+				Console.WriteLine("Nominal voltage:          {0} V", designParameters.NominalVoltage);
+				Console.WriteLine("DesignedDischargeCurrent: {0} A", designParameters.DesignedDischargeCurrent);
+				Console.WriteLine("MaxDischargeCurrent:      {0} A", designParameters.MaxDischargeCurrent);
+				Console.WriteLine("Designed capacity:        {0:N0} mAh", designParameters.DesignedCapacity * 1000);
 				//Console.WriteLine("Voltage scale:            {0}x", battery.Information.VoltageScale);
 				//Console.WriteLine("Current scale:            {0}x", battery.Information.CurrentScale);
 				Console.WriteLine();
 
 				batteryAdapter.UpdateReadings().Wait();
-				var health = batteryPack.Health;
+				var health = batteryPack.Health();
 				Console.WriteLine("Current battery status:");
 				Console.WriteLine("Full charge capacity:     {0:N0} mAh", health.FullChargeCapacity * 1000);
 				Console.WriteLine("Cycle count:              {0}", health.CycleCount);
@@ -119,12 +119,12 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 		private static void PrintActuals(BatteryPack batteryPack)
 		{
-			var actuals = batteryPack.Actuals;
+			var actuals = batteryPack.Actuals();
 
 			Console.WriteLine("Current battery conditions:");
 			Console.WriteLine("Voltage:             {0} V ({1})", 
 				actuals.Voltage, 
-				batteryPack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals.Voltage)).Join(", "));
+				batteryPack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals().Voltage)).Join(", "));
 			Console.WriteLine("Current:                  {0} mA", actuals.ActualCurrent * 1000f);
 			Console.WriteLine("Average current:          {0} mA", actuals.AverageCurrent * 1000f);
 			Console.WriteLine("Temperature:              {0:f2} °C", actuals.Temperature - 273.15f);
@@ -138,7 +138,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			Console.WriteLine();
 		}
 
-		private static void ReportAlarmSettings(Battery battery)
+		private static void ReportAlarmSettings(BatteryPack battery)
 		{
 			//Console.WriteLine("Remaining capacity alarm: {0}", (battery.Health.RemainingCapacityAlarm > 0 ? String.Format("{0:N0} mAh", battery.Status.RemainingCapacityAlarm * 1000) : DisabledText));
 			//Console.WriteLine("Remaining time alarm:     {0}", (battery.Health.RemainingTimeAlarm > TimeSpan.Zero ? battery.Status.RemainingTimeAlarm.ToString() : DisabledText));

@@ -14,11 +14,6 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 
 		public ReadingStorage CustomData { get; private set; }
 
-		public abstract IProductDefinition Product { get; }
-		public abstract IDesignParameters DesignParameters { get; }
-		public abstract IBatteryHealth Health { get; }
-		public abstract IBatteryActuals Actuals { get; }
-
 		//#region Commands
 
 		//public abstract float RemainingCapacityAlarm { get; }
@@ -27,10 +22,6 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		//public abstract float ChargingCurrent { get; }		// ???
 
 		//#endregion Commands
-
-		protected virtual void InitializeCustomData()
-		{
-		}
 
 		public event EventHandler<EntryKey> ValueChanged;
 

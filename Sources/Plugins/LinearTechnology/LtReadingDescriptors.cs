@@ -46,7 +46,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.VoltageKey }
 				},
 				new ReadingValueAccessor(
-					b => ((BatteryPack)b)[cellIndex].Actuals.Voltage,
+					b => ((BatteryPack)b)[cellIndex].Actuals().Voltage,
 					"{0:N3} V"
 				));
 		}
@@ -68,7 +68,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 					b => ((BatteryPack)b).SubElements
 							.OfType<ChipPack>()
 							.Single(x => x.ChainIndex == chipIndex)[cellIndex]
-							.Actuals.Voltage,
+							.Actuals().Voltage,
 					"{0:N3} V"
 				));
 		}

@@ -19,7 +19,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.ManufacturerKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Product.Manufacturer
+				b => b.ProductDefinition().Manufacturer
 			));
 
 		public static readonly ReadingDescriptor Product = new ReadingDescriptor(
@@ -31,7 +31,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.ProductKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Product.Product
+				b => b.ProductDefinition().Product
 			));
 
 		public static readonly ReadingDescriptor ManufactureDate = new ReadingDescriptor(
@@ -43,7 +43,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.ManufactureDateKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Product.ManufactureDate,
+				b => b.ProductDefinition().ManufactureDate,
 				"{0:d}"
 			));
 
@@ -56,7 +56,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.SerialNumberKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Product.SerialNumber
+				b => b.ProductDefinition().SerialNumber
 			));
 
 		public static readonly ReadingDescriptor Chemistry = new ReadingDescriptor(
@@ -68,7 +68,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.ChemistryKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Product.Chemistry
+				b => b.ProductDefinition().Chemistry
 			));
 
 		#endregion Product
@@ -84,7 +84,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, DesignParametersWrapper.NominalVoltageKey }
 			},
 			new ReadingValueAccessor(
-				b => b.DesignParameters.NominalVoltage,
+				b => b.DesignParameters().NominalVoltage,
 				"{0:N1} V"
 			),
 			new ReadingVisualizer(
@@ -100,7 +100,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, DesignParametersWrapper.DesignedCapacityKey }
 			},
 			new ReadingValueAccessor(
-				b => b.DesignParameters.DesignedDischargeCurrent,
+				b => b.DesignParameters().DesignedDischargeCurrent,
 				"{0} A"
 			),
 			new ReadingVisualizer(
@@ -116,7 +116,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, DesignParametersWrapper.MaxDischargeCurrentKey }
 			},
 			new ReadingValueAccessor(
-				b => b.DesignParameters.MaxDischargeCurrent,
+				b => b.DesignParameters().MaxDischargeCurrent,
 				"{0} A"
 			),
 			new ReadingVisualizer(
@@ -132,7 +132,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, DesignParametersWrapper.DesignedCapacityKey }
 			},
 			new ReadingValueAccessor(
-				b => b.DesignParameters.DesignedCapacity * 1000,
+				b => b.DesignParameters().DesignedCapacity * 1000,
 				"{0} mAh"
 			),
 			new ReadingVisualizer(
@@ -152,7 +152,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryHealthWrapper.FullChargeCapacityKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Health.FullChargeCapacity * 1000,
+				b => b.Health().FullChargeCapacity * 1000,
 				"{0} mAh"
 			),
 			new ReadingVisualizer(
@@ -168,7 +168,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryHealthWrapper.CycleCountKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Health.CycleCount,
+				b => b.Health().CycleCount,
 				"{0} cycles"
 			),
 			new ReadingVisualizer(
@@ -184,7 +184,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryHealthWrapper.CalculationPrecisionKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Health.CalculationPrecision * 100,
+				b => b.Health().CalculationPrecision * 100,
 				"{0} %"
 			),
 			new ReadingVisualizer(
@@ -204,7 +204,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryActualsWrapper.VoltageKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Actuals.Voltage,
+				b => b.Actuals().Voltage,
 				"{0:N3} V"
 			),
 			new ReadingVisualizer(
@@ -220,7 +220,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryActualsWrapper.ActualCurrentKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Actuals.ActualCurrent,
+				b => b.Actuals().ActualCurrent,
 				"{0} A"
 			),
 			new ReadingVisualizer(
@@ -236,7 +236,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryActualsWrapper.AverageCurrentKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Actuals.AverageCurrent,
+				b => b.Actuals().AverageCurrent,
 				"{0} A"
 			),
 			new ReadingVisualizer(
@@ -252,7 +252,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryActualsWrapper.TemperatureKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Actuals.Temperature - 273.15,
+				b => b.Actuals().Temperature - 273.15,
 				"{0:f1} °C"
 			),
 			new ReadingVisualizer(

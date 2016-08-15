@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
-	public class BatteryHealthWrapper : DataDictionaryWrapperBase, IBatteryHealth
+	public class BatteryHealthWrapper : DataDictionaryWrapperBase
 	{
 		public BatteryHealthWrapper(ReadingStorage data)
 			: base(data)
@@ -14,19 +15,34 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		public float FullChargeCapacity
 		{
 			get { return this.GetValue<float>(FullChargeCapacityKey); }
-			set { this.SetValue(FullChargeCapacityKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0); 
+				
+				this.SetValue(FullChargeCapacityKey, value);
+			}
 		}
 
 		public int CycleCount
 		{
 			get { return this.GetValue<int>(CycleCountKey); }
-			set { this.SetValue(CycleCountKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0); 
+				
+				this.SetValue(CycleCountKey, value);
+			}
 		}
 
 		public float CalculationPrecision
 		{
 			get { return this.GetValue<float>(CalculationPrecisionKey); }
-			set { this.SetValue(CalculationPrecisionKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => 0f <= x && x <= 1f); 
+				
+				this.SetValue(CalculationPrecisionKey, value);
+			}
 		}
 
 

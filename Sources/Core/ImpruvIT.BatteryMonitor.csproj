@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Domain\Battery\ReadingsWrapperExtensions.cs" />
     <Compile Include="Domain\FallbackReadingValue.cs" />
     <Compile Include="Domain\Descriptors\ChartReadingDescriptor.cs" />
     <Compile Include="Domain\Descriptors\ReadingDescription.cs" />
@@ -57,7 +58,6 @@
     <Compile Include="Domain\Descriptors\ReadingsGrouping.cs" />
     <Compile Include="Domain\Descriptors\ReadingVisualizer.cs" />
     <Compile Include="Domain\Descriptors\ReadingValueAccessor.cs" />
-    <Compile Include="Domain\Battery\IProductDefinition.cs" />
     <Compile Include="Domain\IReadingValue.cs" />
     <Compile Include="Domain\ComputedReadingValue.cs" />
     <Compile Include="Domain\MathFunctionReadingValue.cs" />
@@ -72,7 +72,6 @@
     <Compile Include="Hardware\SequentialDiscoveryService.cs" />
     <Compile Include="Protocols\IBatteryPackAdapter.cs" />
     <Compile Include="Protocols\UpdateFrequency.cs" />
-    <Compile Include="Domain\Battery\Battery.cs" />
     <Compile Include="Domain\Battery\BatteryElement.cs" />
     <Compile Include="Domain\Battery\BatteryPack.cs" />
     <Compile Include="Domain\Battery\BatteryHealthWrapper.cs" />
@@ -80,16 +79,7 @@
     <Compile Include="Domain\ReadingStorage.cs" />
     <Compile Include="Domain\Battery\DataDictionaryWrapper.cs" />
     <Compile Include="Domain\EntryKey.cs" />
-    <Compile Include="Domain\Battery\IBatteryActuals.cs" />
-    <Compile Include="Domain\Battery\IBatteryHealth.cs" />
-    <Compile Include="Domain\Battery\IDesignParameters.cs" />
     <Compile Include="Domain\Battery\DesignParametersWrapper.cs" />
-    <Compile Include="Domain\Battery\SeriesBatteryPack_Actuals.cs" />
-    <Compile Include="Domain\Battery\ParallelBatteryPack_Actuals.cs" />
-    <Compile Include="Domain\Battery\SeriesBatteryPack_Health.cs" />
-    <Compile Include="Domain\Battery\ParallelBatteryPack_Health.cs" />
-    <Compile Include="Domain\Battery\SeriesBatteryPack_DesignParameters.cs" />
-    <Compile Include="Domain\Battery\ParallelBatteryPack_DesignParameters.cs" />
     <Compile Include="Domain\Battery\SeriesBatteryPack.cs" />
     <Compile Include="Domain\Battery\ParallelBatteryPack.cs" />
     <Compile Include="Domain\Battery\ProductDefinitionWrapper.cs" />

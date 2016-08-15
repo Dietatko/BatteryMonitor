@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
-	public class BatteryActualsWrapper : DataDictionaryWrapperBase, IBatteryActuals
+	public class BatteryActualsWrapper : DataDictionaryWrapperBase
 	{
 		public BatteryActualsWrapper(ReadingStorage data)
 			: base(data)
@@ -17,7 +18,12 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		public float Voltage
 		{
 			get { return this.GetValue<float>(VoltageKey); }
-			set { this.SetValue(VoltageKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0f);
+
+				this.SetValue(VoltageKey, value);
+			}
 		}
 
 		public float ActualCurrent
@@ -46,19 +52,34 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		public float RemainingCapacity
 		{
 			get { return this.GetValue<float>(RemainingCapacityKey); }
-			set { this.SetValue(RemainingCapacityKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0f);
+
+				this.SetValue(RemainingCapacityKey, value);
+			}
 		}
 
 		public float AbsoluteStateOfCharge
 		{
 			get { return this.GetValue<float>(AbsoluteStateOfChargeKey); }
-			set { this.SetValue(AbsoluteStateOfChargeKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= 0f); 
+				
+				this.SetValue(AbsoluteStateOfChargeKey, value);
+			}
 		}
 
 		public float RelativeStateOfCharge
 		{
 			get { return this.GetValue<float>(RelativeStateOfChargeKey); }
-			set { this.SetValue(RelativeStateOfChargeKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => 0f <= x && x <= 1f); 
+				
+				this.SetValue(RelativeStateOfChargeKey, value);
+			}
 		}
 
 		#endregion State of charge
@@ -69,13 +90,23 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		public TimeSpan ActualRunTime
 		{
 			get { return this.GetValue<TimeSpan>(ActualRunTimeKey); }
-			set { this.SetValue(ActualRunTimeKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= TimeSpan.Zero); 
+				
+				this.SetValue(ActualRunTimeKey, value);
+			}
 		}
 
 		public TimeSpan AverageRunTime
 		{
 			get { return this.GetValue<TimeSpan>(AverageRunTimeKey); }
-			set { this.SetValue(AverageRunTimeKey, value); }
+			set
+			{
+				Contract.Requires(value, "value").ToBeInRange(x => x >= TimeSpan.Zero); 
+				
+				this.SetValue(AverageRunTimeKey, value);
+			}
 		}
 
 		#endregion Run time estimations

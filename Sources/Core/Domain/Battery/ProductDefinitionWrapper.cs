@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ImpruvIT.BatteryMonitor.Domain.Battery
 {
-	public class ProductDefinitionWrapper : DataDictionaryWrapperBase, IProductDefinition
+	public class ProductDefinitionWrapper : DataDictionaryWrapperBase
 	{
 		public ProductDefinitionWrapper(ReadingStorage data)
 			: base(data)

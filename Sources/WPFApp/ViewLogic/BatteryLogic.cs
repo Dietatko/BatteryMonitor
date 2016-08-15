@@ -108,13 +108,13 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 		{
 			return new Actuals
 				{
-					PackVoltage = pack.Actuals.Voltage,
-					Cell1Voltage = pack[0].Actuals.Voltage,
-					Cell2Voltage = pack[1].Actuals.Voltage,
-					Cell3Voltage = pack[2].Actuals.Voltage,
-					ActualCurrent = pack.Actuals.ActualCurrent,
-					Capacity = pack.Actuals.RemainingCapacity,
-					Temperature = pack.Actuals.Temperature
+					PackVoltage = pack.Actuals().Voltage,
+					Cell1Voltage = pack[0].Actuals().Voltage,
+					Cell2Voltage = pack[1].Actuals().Voltage,
+					Cell3Voltage = pack[2].Actuals().Voltage,
+					ActualCurrent = pack.Actuals().ActualCurrent,
+					Capacity = pack.Actuals().RemainingCapacity,
+					Temperature = pack.Actuals().Temperature
 				};
 		}
 

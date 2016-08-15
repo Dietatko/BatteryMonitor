@@ -88,7 +88,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				await this.ReadProductData(pack).ConfigureAwait(false);
 
 				this.Pack = pack;
-				this.Tracer.InfoFormat("Battery recognized: {0} {1} ({2:F2} V, {3:N0} mAh).", pack.Product.Manufacturer, pack.Product.Product, pack.DesignParameters.NominalVoltage, pack.DesignParameters.DesignedCapacity * 1000);
+				this.Tracer.InfoFormat("Battery recognized: {0} {1} ({2:F2} V, {3:N0} mAh).", pack.ProductDefinition().Manufacturer, pack.ProductDefinition().Product, pack.DesignParameters().NominalVoltage, pack.DesignParameters().DesignedCapacity * 1000);
 			}
 			catch (Exception ex)
 			{
@@ -166,7 +166,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 						x =>
 						{
 							var cell = new SingleCell(cellVoltage, designedDischargeCurrent, maxDischargeCurrent, designedCapacity);
-							cell.SetVoltage(x.Item2);
+							cell.Actuals().Voltage = x.Item2;
 							return cell;
 						});
 
@@ -180,7 +180,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 						.ForEach(chainPacks, (tb, p) => tb
 							.AppendLine("Chain index {0} with {1} connected cells:", p.ChainIndex, p.ConnectedCells.Count)
 							.Indent()
-								.AppendLineForEach(p.ConnectedCells, "Channel {0} => {1} V", x => x.Key, x => x.Value.Actuals.Voltage)
+								.AppendLineForEach(p.ConnectedCells, "Channel {0} => {1} V", x => x.Key, x => x.Value.Actuals().Voltage)
 							.Unindent()
 							.AppendLine())
 					.Trace());
@@ -199,21 +199,21 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		{
 			this.Tracer.DebugFormat("Reading manufacturer data of battery ...");
 
-			var productDefinitionWrapper = new ProductDefinitionWrapper(pack.CustomData);
-			productDefinitionWrapper.Manufacturer = "Linear Technology";
-			productDefinitionWrapper.Product = "LTC6804";
-			productDefinitionWrapper.Chemistry = "LiFePO4";
-			productDefinitionWrapper.ManufactureDate = new DateTime(2016, 1, 1);
-			productDefinitionWrapper.SerialNumber = "SN123456789";
+			var productDefinition = new ProductDefinitionWrapper(pack.CustomData);
+			productDefinition.Manufacturer = "Linear Technology";
+			productDefinition.Product = "LTC6804";
+			productDefinition.Chemistry = "LiFePO4";
+			productDefinition.ManufactureDate = new DateTime(2016, 1, 1);
+			productDefinition.SerialNumber = "SN123456789";
 
 			this.Tracer.Debug(new TraceBuilder()
 					.AppendLine("The manufacturer data of battery:")
 					.Indent()
-						.AppendLine("Manufacturer:     {0}", pack.Product.Manufacturer)
-						.AppendLine("Product:          {0}", pack.Product.Product)
-						.AppendLine("Chemistry:        {0}", pack.Product.Chemistry)
-						.AppendLine("Manufacture date: {0}", pack.Product.ManufactureDate.ToShortDateString())
-						.AppendLine("Serial number:    {0}", pack.Product.SerialNumber)
+						.AppendLine("Manufacturer:     {0}", productDefinition.Manufacturer)
+						.AppendLine("Product:          {0}", productDefinition.Product)
+						.AppendLine("Chemistry:        {0}", productDefinition.Chemistry)
+						.AppendLine("Manufacture date: {0}", productDefinition.ManufactureDate.ToShortDateString())
+						.AppendLine("Serial number:    {0}", productDefinition.SerialNumber)
 					.Trace());
 
 			return Task.CompletedTask;
@@ -311,21 +311,22 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					foreach (var connectedCell in chipPack.ConnectedCells)
 					{
 						var cell = connectedCell.Value;
+						var cellActuals = cell.Actuals();
 						//cell.BeginUpdate();
 						//try
 						//{
 
 						var cellVoltage = cellsRegister.GetCellVoltage(connectedCell.Key);
-						cell.SetVoltage(cellVoltage);
-						cell.SetActualCurrent(actualCurrent);
-						cell.SetAverageCurrent(averageCurrent);
-						cell.SetTemperature(temperature);
+						cellActuals.Voltage = cellVoltage;
+						cellActuals.ActualCurrent = actualCurrent;
+						cellActuals.AverageCurrent = averageCurrent;
+						cellActuals.Temperature = temperature;
 
-						cell.SetRemainingCapacity(remainingCapacity);
-						cell.SetAbsoluteStateOfCharge(absoluteStateOfCharge);
-						cell.SetRelativeStateOfCharge(relativeStateOfCharge);
-						cell.SetActualRunTime(actualRunTime);
-						cell.SetAverageRunTime(averageRunTime);
+						cellActuals.RemainingCapacity = remainingCapacity;
+						cellActuals.AbsoluteStateOfCharge = absoluteStateOfCharge;
+						cellActuals.RelativeStateOfCharge = relativeStateOfCharge;
+						cellActuals.ActualRunTime = actualRunTime;
+						cellActuals.AverageRunTime = averageRunTime;
 
 						//}
 						//finally
@@ -334,13 +335,13 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 						//}
 					}
 
-					var actuals = chipPack.Actuals;
+					var packActuals = chipPack.Actuals();
 
 					this.Tracer.Debug(new TraceBuilder()
 						.AppendLine("The actuals of the chip pack with chain index {0} successfully read:", chainIndex)
 						.Indent()
-							.AppendLine("Pack voltage:            {0} V", actuals.Voltage)
-							.AppendLineForEach(chipPack.ConnectedCells, "Cell {0:2} voltage:      {1} V", x => x.Key, x => x.Value.Actuals.Voltage)
+							.AppendLine("Pack voltage:            {0} V", packActuals.Voltage)
+							.AppendLineForEach(chipPack.ConnectedCells, "Cell {0:2} voltage:      {1} V", x => x.Key, x => x.Value.Actuals().Voltage)
 						.Trace());
 				}
 			}
@@ -592,11 +593,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				var statusRegister = statusRegisters[chainIndex];
 
 				// Check pack voltage
-				var packVoltageDiff = Math.Abs(chipPack.Actuals.Voltage - statusRegister.PackVoltage);
+				var packActuals = chipPack.Actuals();
+				var packVoltageDiff = Math.Abs(packActuals.Voltage - statusRegister.PackVoltage);
 				if (packVoltageDiff > MaxPackVoltageDiff)
-					this.Tracer.Warn(String.Format("The chip pack with chain index {0} has too big pack voltage difference. Pack voltage: {1:N2} V. Sum of cell voltages: {2:N2} V.", chainIndex, statusRegister.PackVoltage, chipPack.Actuals.Voltage));
+					this.Tracer.Warn(String.Format("The chip pack with chain index {0} has too big pack voltage difference. Pack voltage: {1:N2} V. Sum of cell voltages: {2:N2} V.", chainIndex, statusRegister.PackVoltage, packActuals.Voltage));
 				else
-					this.Tracer.Debug(String.Format("The chip pack with chain index {0} has normal pack voltage difference. Pack voltage: {1:N2} V. Sum of cell voltages: {2:N2} V.", chainIndex, statusRegister.PackVoltage, chipPack.Actuals.Voltage));
+					this.Tracer.Debug(String.Format("The chip pack with chain index {0} has normal pack voltage difference. Pack voltage: {1:N2} V. Sum of cell voltages: {2:N2} V.", chainIndex, statusRegister.PackVoltage, packActuals.Voltage));
 
 				// Check analog power supply voltage
 				if (statusRegister.AnalogSupplyVoltage < MinAnalogSupplyVoltage || statusRegister.AnalogSupplyVoltage > MaxAnalogSupplyVoltage)
