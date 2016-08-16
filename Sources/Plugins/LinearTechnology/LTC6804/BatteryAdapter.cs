@@ -166,10 +166,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 				var chipPack = new ChipPack(chainIndex, packCells);
 
-				var chipPackActuals = chipPack.Actuals();
-				//chipPackActuals.Voltage = 0.0f;
-				//chipPackActuals.Temperature = 0.0f;
-
 				chainPacks.Add(chipPack);
 			}
 
@@ -662,6 +658,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 			var actualDescriptors = new List<ReadingDescriptor>();
 			actualDescriptors.Add(ReadingDescriptors.PackVoltage);
+			actualDescriptors.Add(LtReadingDescriptors.SumOfCellVoltages);
 			actualDescriptors.AddRange(cellVoltageDescriptors);
 			actualDescriptors.Add(ReadingDescriptors.Temperature);
 			

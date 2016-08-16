@@ -197,7 +197,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 
 		public static readonly ReadingDescriptor PackVoltage = new ChartReadingDescriptor(
 			new ReadingDescription(
-				"Voltage", 
+				"Pack voltage", 
 				"The actual battery pack voltage."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
