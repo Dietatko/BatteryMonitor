@@ -59,8 +59,8 @@
     <Compile Include="Domain\Descriptors\ReadingVisualizer.cs" />
     <Compile Include="Domain\Descriptors\ReadingValueAccessor.cs" />
     <Compile Include="Domain\IReadingValue.cs" />
-    <Compile Include="Domain\ComputedReadingValue.cs" />
     <Compile Include="Domain\MathFunctionReadingValue.cs" />
+    <Compile Include="Domain\ReadingValueBase.cs" />
     <Compile Include="Domain\TypedReadingValue.cs" />
     <Compile Include="Domain\Unit.cs" />
     <Compile Include="Domain\Voltage.cs" />

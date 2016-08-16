@@ -16,7 +16,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		protected void InitializeReadings()
 		{
-			this.CustomData.CreateValue(BatteryActualsWrapper.VoltageKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.VoltageKey));
 		}
 	}
 }

@@ -22,14 +22,13 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		private void CreateDesignParametersReadings()
 		{
 			this.CustomData.CreateValue(
-				DesignParametersWrapper.NominalVoltageKey,
 				this.CreateFallbackReadingValue<float>(
-					this.CreateSameReadingValue<float>(BatteryActualsWrapper.VoltageKey)));
+					this.CreateSameReadingValue<float>(DesignParametersWrapper.NominalVoltageKey, BatteryActualsWrapper.VoltageKey)));
 
 			this.CustomData.CreateValue(
-				DesignParametersWrapper.DesignedDischargeCurrentKey,
 				this.CreateFallbackReadingValue<float>(
 					new MathFunctionReadingValue<float>(
+						DesignParametersWrapper.DesignedDischargeCurrentKey,
 						this.SubElements,
 						DesignParametersWrapper.DesignedDischargeCurrentKey,
 						x =>
@@ -39,9 +38,9 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 						})));
 
 			this.CustomData.CreateValue(
-				DesignParametersWrapper.MaxDischargeCurrentKey,
 				this.CreateFallbackReadingValue<float>(
 					new MathFunctionReadingValue<float>(
+						DesignParametersWrapper.MaxDischargeCurrentKey,
 						this.SubElements,
 						DesignParametersWrapper.MaxDischargeCurrentKey,
 						x =>
@@ -51,17 +50,16 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 						})));
 
 			this.CustomData.CreateValue(
-				DesignParametersWrapper.DesignedCapacityKey,
 				this.CreateFallbackReadingValue<float>(
-					this.CreateSumReadingValue(DesignParametersWrapper.DesignedCapacityKey)));
+					this.CreateSumReadingValue(DesignParametersWrapper.DesignedCapacityKey, DesignParametersWrapper.DesignedCapacityKey)));
 		}
 
 		private void CreateHealthReadings()
 		{
 			this.CustomData.CreateValue(
-				BatteryHealthWrapper.FullChargeCapacityKey,
 				this.CreateFallbackReadingValue<float>(
 					new MathFunctionReadingValue<float>(
+						BatteryHealthWrapper.FullChargeCapacityKey,
 						this.SubElements,
 						BatteryHealthWrapper.FullChargeCapacityKey,
 						x =>
@@ -74,24 +72,21 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		private void CreateActualReadings()
 		{
 			this.CustomData.CreateValue(
-				BatteryActualsWrapper.VoltageKey,
 				this.CreateFallbackReadingValue<float>(
-					this.CreateSameReadingValue<float>(BatteryActualsWrapper.VoltageKey)));
+					this.CreateSameReadingValue<float>(BatteryActualsWrapper.VoltageKey, BatteryActualsWrapper.VoltageKey)));
 
 			this.CustomData.CreateValue(
-				BatteryActualsWrapper.ActualCurrentKey,
 				this.CreateFallbackReadingValue<float>(
-					this.CreateSumReadingValue(BatteryActualsWrapper.ActualCurrentKey)));
+					this.CreateSumReadingValue(BatteryActualsWrapper.ActualCurrentKey, BatteryActualsWrapper.ActualCurrentKey)));
 
 			this.CustomData.CreateValue(
-				BatteryActualsWrapper.AverageCurrentKey,
 				this.CreateFallbackReadingValue<float>(
-					this.CreateSumReadingValue(BatteryActualsWrapper.AverageCurrentKey)));
+					this.CreateSumReadingValue(BatteryActualsWrapper.AverageCurrentKey, BatteryActualsWrapper.AverageCurrentKey)));
 
 			this.CustomData.CreateValue(
-				BatteryActualsWrapper.RemainingCapacityKey,
 				this.CreateFallbackReadingValue<float>(
 					new MathFunctionReadingValue<float>(
+						BatteryActualsWrapper.RemainingCapacityKey,
 						this.SubElements,
 						BatteryActualsWrapper.RemainingCapacityKey,
 						x =>

@@ -5,18 +5,21 @@ using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public class FallbackReadingValue : IReadingValue
+	public class FallbackReadingValue : ReadingValueBase, IReadingValue
 	{
-		public FallbackReadingValue(params IReadingValue[] subValues)
-			: this((IEnumerable<IReadingValue>)subValues)
+		public FallbackReadingValue(EntryKey key, params IReadingValue[] subValues)
+			: this(key, (IEnumerable<IReadingValue>)subValues)
 		{
 		}
 
-		public FallbackReadingValue(IEnumerable<IReadingValue> subValues)
+		public FallbackReadingValue(EntryKey key, IEnumerable<IReadingValue> subValues)
+			: base(key)
 		{
 			Contract.Requires(subValues, "subValues").NotToBeNull();
 			this.SubValues = subValues.ToList();
 			Contract.Requires(this.SubValues, "subValues").NotToBeEmpty();
+
+			this.SubValues.ForEach(x => x.ValueChanged += this.OnReadingValueChanged );
 		}
 
 		public IEnumerable<IReadingValue> SubValues { get; private set; }
@@ -44,6 +47,23 @@ namespace ImpruvIT.BatteryMonitor.Domain
 		public void Reset()
 		{
 			this.SubValues.ForEach(x => x.Reset());
+		}
+
+		private void OnReadingValueChanged(object sender, EventArgs eventArgs)
+		{
+			var changedReadingValue = (IReadingValue)sender;
+
+			foreach (var value in this.SubValues)
+			{
+				if (ReferenceEquals(value, changedReadingValue))
+				{
+					this.OnValueChanged();
+					break;
+				}
+
+				if (value.IsDefined)
+					break;
+			}
 		}
 	}
 }

@@ -6,10 +6,13 @@ namespace ImpruvIT.BatteryMonitor.Domain
 {
 	public interface IReadingValue
 	{
-		bool IsDefined { get; }
+		EntryKey Key { get; }
 
+		bool IsDefined { get; }
 		T Get<T>();
 		void Set(object value);
 		void Reset();
+
+		event EventHandler ValueChanged;
 	}
 }

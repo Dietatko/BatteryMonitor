@@ -31,10 +31,8 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 
 		public void SetValue<T>(EntryKey key, T value)
 		{
-			//var readingValue = this.Data.GetValue(key);
-			//readingValue.Set(value);
-
-			this.Data.SetValue(key, value);
+			var readingValue = this.Data.GetValue(key);
+			readingValue.Set(value);
 		}
 	}
 }

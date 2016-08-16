@@ -18,8 +18,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		protected void InitializeReadings()
 		{
-			this.CustomData.CreateValue(DesignParametersWrapper.NominalVoltageKey, new TypedReadingValue<float>());
-			this.CustomData.CreateValue(BatteryActualsWrapper.VoltageKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(new TypedReadingValue<float>(DesignParametersWrapper.NominalVoltageKey));
+			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.VoltageKey));
 		}
 	}
 }

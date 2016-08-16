@@ -43,51 +43,57 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 			Contract.Requires(computedReadingValue, "computedReadingValue").NotToBeNull();
 
 			return new FallbackReadingValue(
-				new TypedReadingValue<TValue>(),
+				computedReadingValue.Key,
+				new TypedReadingValue<TValue>(computedReadingValue.Key),
 				computedReadingValue);
 		}
 
-		protected IReadingValue CreateSameReadingValue<TValue>(EntryKey key)
+		protected IReadingValue CreateSameReadingValue<TValue>(EntryKey key, EntryKey targetKey)
 		{
 			return new MathFunctionReadingValue<TValue>(
-				this.SubElements,
 				key,
+				this.SubElements,
+				targetKey,
 				x => x.Distinct().Single(),
 				(el, x) => x);
 		}
 
-		protected IReadingValue CreateSumReadingValue(EntryKey key)
+		protected IReadingValue CreateSumReadingValue(EntryKey key, EntryKey targetKey)
 		{
 			return new MathFunctionReadingValue<float>(
-				this.SubElements,
 				key,
+				this.SubElements,
+				targetKey,
 				x => x.Sum(),
 				(el, x) => x / el.Length);
 		}
 
-		protected IReadingValue CreateAverageReadingValue(EntryKey key)
+		protected IReadingValue CreateAverageReadingValue(EntryKey key, EntryKey targetKey)
 		{
 			return new MathFunctionReadingValue<float>(
-				this.SubElements,
 				key,
+				this.SubElements,
+				targetKey,
 				vals => vals.Average(x => x),
 				(el, x) => x);
 		}
 
-		protected IReadingValue CreateMinReadingValue<TValue>(EntryKey key)
+		protected IReadingValue CreateMinReadingValue<TValue>(EntryKey key, EntryKey targetKey)
 		{
 			return new MathFunctionReadingValue<TValue>(
-				this.SubElements,
 				key,
+				this.SubElements,
+				targetKey,
 				x => x.Min(),
 				(el, x) => x);
 		}
 
-		protected IReadingValue CreateMaxReadingValue<TValue>(EntryKey key)
+		protected IReadingValue CreateMaxReadingValue<TValue>(EntryKey key, EntryKey targetKey)
 		{
 			return new MathFunctionReadingValue<TValue>(
-				this.SubElements,
 				key,
+				this.SubElements,
+				targetKey,
 				x => x.Max(),
 				(el, x) => x);
 		}

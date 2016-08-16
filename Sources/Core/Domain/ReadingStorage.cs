@@ -16,9 +16,12 @@ namespace ImpruvIT.BatteryMonitor.Domain
 
 		protected ConcurrentDictionary<EntryKey, IReadingValue> Storage { get; private set; }
 
-		public bool HasValue(string namespaceUri, string entryName)
+		public void CreateValue(IReadingValue readingValue)
 		{
-			return this.HasValue(new EntryKey(namespaceUri, entryName));
+			Contract.Requires(readingValue, "readingValue").NotToBeNull();
+
+			this.Storage[readingValue.Key] = readingValue;
+			readingValue.ValueChanged += this.OnReadingValueChanged;
 		}
 
 		public bool HasValue(EntryKey key)
@@ -32,23 +35,16 @@ namespace ImpruvIT.BatteryMonitor.Domain
 			if (namespaceUri != null)
 				keys = keys.Where(x => x.NamespaceUri == namespaceUri);
 
-			return keys;
+			return keys.ToList();
 		}
 
-		public void CreateValue(EntryKey key, IReadingValue readingValue)
+		public IEnumerable<IReadingValue> GetValues(string namespaceUri = null)
 		{
-			Contract.Requires(key, "key").NotToBeNull();
-			Contract.Requires(readingValue, "readingValue").NotToBeNull();
+			IEnumerable<IReadingValue> values = this.Storage.Values;
+			if (namespaceUri != null)
+				values = values.Where(x => x.Key.NamespaceUri == namespaceUri);
 
-			this.Storage[key] = readingValue;
-		}
-
-		public void DeleteValue(EntryKey key)
-		{
-			Contract.Requires(key, "key").NotToBeNull();
-
-			IReadingValue tmpReadingValue;
-			this.Storage.TryRemove(key, out tmpReadingValue);
+			return values.ToList();
 		}
 
 		public IReadingValue GetValue(EntryKey key)
@@ -61,77 +57,28 @@ namespace ImpruvIT.BatteryMonitor.Domain
 			return this.Storage.TryGetValue(key, out value);
 		}
 
-
-
-		public bool IsValueDefined(EntryKey key)
-		{
-			var readingValue = this.Storage[key];
-
-			return readingValue.IsDefined;
-		}
-
-		public T GetValue<T>(string namespaceUri, string entryName)
-		{
-			return this.GetValue<T>(new EntryKey(namespaceUri, entryName));
-		}
-
-		public T GetValue<T>(EntryKey key)
-		{
-			var readingValue = this.Storage[key];
-
-			return readingValue.Get<T>();
-		}
-
-		public bool TryGetValue<T>(string namespaceUri, string entryName, out T value)
-		{
-			return this.TryGetValue(new EntryKey(namespaceUri, entryName), out value);
-		}
-
-		public bool TryGetValue<T>(EntryKey key, out T value)
-		{
-			IReadingValue readingValue;
-			if (!this.Storage.TryGetValue(key, out readingValue))
-			{
-				value = default(T);
-				return false;
-			}
-
-			value = readingValue.Get<T>();
-			return true;
-		}
-
-		public void SetValue<T>(string namespaceUri, string entryName, T value)
-		{
-			this.SetValue(new EntryKey(namespaceUri, entryName), value);
-		}
-
-		public void SetValue<T>(EntryKey key, T value)
-		{
-			IReadingValue readingValue = this.Storage[key];
-			readingValue.Set(value);
-
-			this.OnValueChanged(key);
-		}
-
-		public void ResetValue(string namespaceUri, string entryName)
-		{
-			this.ResetValue(new EntryKey(namespaceUri, entryName));
-		}
-
-		public void ResetValue(EntryKey key)
-		{
-			IReadingValue readingValue = this.Storage[key];
-			readingValue.Reset();
-
-			this.OnValueChanged(key);
-		}
-
 		public void Merge(ReadingStorage source)
 		{
 			Contract.Requires(source, "source").NotToBeNull();
 
-			foreach (var key in source.GetKeys())
-				this.SetValue(key, source.GetValue<object>(key));
+			foreach (var readingValue in source.GetValues())
+			{
+				this.Storage.AddOrUpdate(
+					readingValue.Key, 
+					readingValue,
+					(key, oldVal) =>
+					{
+						oldVal.ValueChanged -= this.OnReadingValueChanged;
+						return readingValue;
+					});
+				readingValue.ValueChanged += this.OnReadingValueChanged;
+			}
+		}
+
+		private void OnReadingValueChanged(object sender, EventArgs args)
+		{
+			var readingValue = (IReadingValue)sender;
+			this.OnValueChanged(readingValue.Key);
 		}
 
 		public event EventHandler<EntryKey> ValueChanged;
