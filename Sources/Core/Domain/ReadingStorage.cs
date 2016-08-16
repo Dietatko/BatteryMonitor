@@ -51,6 +51,18 @@ namespace ImpruvIT.BatteryMonitor.Domain
 			this.Storage.TryRemove(key, out tmpReadingValue);
 		}
 
+		public IReadingValue GetValue(EntryKey key)
+		{
+			return this.Storage[key];
+		}
+
+		public bool TryGetValue(EntryKey key, out IReadingValue value)
+		{
+			return this.Storage.TryGetValue(key, out value);
+		}
+
+
+
 		public bool IsValueDefined(EntryKey key)
 		{
 			var readingValue = this.Storage[key];

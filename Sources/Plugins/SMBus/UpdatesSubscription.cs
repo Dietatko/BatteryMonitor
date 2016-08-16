@@ -4,8 +4,6 @@ using System.Linq;
 
 using ImpruvIT.Contracts;
 
-using ImpruvIT.BatteryMonitor.Domain.Battery;
-
 namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
 	public class UpdatesSubscription : ISubscription

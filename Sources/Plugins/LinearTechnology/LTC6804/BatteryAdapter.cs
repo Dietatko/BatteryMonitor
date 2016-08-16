@@ -16,7 +16,7 @@ using ImpruvIT.BatteryMonitor.Hardware;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 {
-	public class BatteryAdapter : IBatteryPackAdapter
+	public class BatteryAdapter : IBatteryAdapter
 	{
 		private const float CtoKCoeficient = 273.15f;
 		private const float MinConnectedCellVoltage = 0.5f;
@@ -45,7 +45,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			get { return this.Connection.ChainLength; }
 		}
 
-		public BatteryPack Pack
+		public Pack Pack
 		{
 			get { return this.m_pack; }
 			private set
@@ -57,7 +57,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				this.OnPropertyChanged("Pack");
 			}
 		}
-		private BatteryPack m_pack;
+		private Pack m_pack;
 
 
 		#region Battery recognition
@@ -85,7 +85,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 				// Determine geometry
 				var pack = await this.DetermineGeometry().ConfigureAwait(false);
-				await this.ReadProductData(pack).ConfigureAwait(false);
 
 				this.Pack = pack;
 				this.Tracer.InfoFormat("Battery recognized: {0} {1} ({2:F2} V, {3:N0} mAh).", pack.ProductDefinition().Manufacturer, pack.ProductDefinition().Product, pack.DesignParameters().NominalVoltage, pack.DesignParameters().DesignedCapacity * 1000);
@@ -132,7 +131,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegister.Data).ConfigureAwait(false);
 		}
 
-		private async Task<BatteryPack> DetermineGeometry()
+		private async Task<Pack> DetermineGeometry()
 		{
 			// Read all cell voltages in the whole chain
 			await this.Connection.ExecuteCommand(CommandId.StartCellConversion(ConversionMode.Normal, false, 0)).ConfigureAwait(false);
@@ -144,11 +143,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			var cellVoltageC = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterC, 6).ConfigureAwait(false)).ToArray();
 			var cellVoltageD = (await this.Connection.ReadRegister(CommandId.ReadCellRegisterD, 6).ConfigureAwait(false)).ToArray();
 			this.CheckChainLength("determining pack geometry", cellVoltageA, cellVoltageB, cellVoltageC, cellVoltageD);
-
-			const float cellVoltage = 3.6f;
-			const float designedDischargeCurrent = 1.0f;
-			const float maxDischargeCurrent = 2.0f;
-			const float designedCapacity = 1.1f;
 
 			// Build a series pack for each IC in chain
 			var chainPacks = new List<ChipPack>();
@@ -165,13 +159,18 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					.ToDictionary(x => x.Item1,
 						x =>
 						{
-							var cell = new SingleCell(cellVoltage, designedDischargeCurrent, maxDischargeCurrent, designedCapacity);
+							var cell = new SingleCell();
 							cell.Actuals().Voltage = x.Item2;
 							return cell;
 						});
 
-				var pack = new ChipPack(chainIndex, packCells);
-				chainPacks.Add(pack);
+				var chipPack = new ChipPack(chainIndex, packCells);
+
+				var chipPackActuals = chipPack.Actuals();
+				//chipPackActuals.Voltage = 0.0f;
+				//chipPackActuals.Temperature = 0.0f;
+
+				chainPacks.Add(chipPack);
 			}
 
 			this.Tracer.Debug(new TraceBuilder()
@@ -186,37 +185,13 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					.Trace());
 
 			// Connect all chip packs into a series stack
-			BatteryPack batteryPack;
+			Pack pack;
 			if (chainPacks.Count > 1)
-				batteryPack = new SeriesBatteryPack(chainPacks);
+				pack = new SeriesPack(chainPacks);
 			else
-				batteryPack = chainPacks[0];
+				pack = chainPacks[0];
 
-			return batteryPack;
-		}
-
-		private Task ReadProductData(BatteryPack pack)
-		{
-			this.Tracer.DebugFormat("Reading manufacturer data of battery ...");
-
-			var productDefinition = new ProductDefinitionWrapper(pack.CustomData);
-			productDefinition.Manufacturer = "Linear Technology";
-			productDefinition.Product = "LTC6804";
-			productDefinition.Chemistry = "LiFePO4";
-			productDefinition.ManufactureDate = new DateTime(2016, 1, 1);
-			productDefinition.SerialNumber = "SN123456789";
-
-			this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("The manufacturer data of battery:")
-					.Indent()
-						.AppendLine("Manufacturer:     {0}", productDefinition.Manufacturer)
-						.AppendLine("Product:          {0}", productDefinition.Product)
-						.AppendLine("Chemistry:        {0}", productDefinition.Chemistry)
-						.AppendLine("Manufacture date: {0}", productDefinition.ManufactureDate.ToShortDateString())
-						.AppendLine("Serial number:    {0}", productDefinition.SerialNumber)
-					.Trace());
-
-			return Task.CompletedTask;
+			return pack;
 		}
 
 		#endregion Battery recognition
@@ -226,20 +201,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		public Task UpdateReadings()
 		{
-			return Task.WhenAll(
-				this.ReadHealth(),
-				this.ReadActuals());
-		}
-
-		private Task ReadHealth()
-		{
-			var pack = this.Pack;
-			if (pack == null)
-				return Task.CompletedTask;
-
-			this.Tracer.DebugFormat("Reading battery health information of the battery.");
-
-			return Task.CompletedTask;
+			return this.ReadActuals();
 		}
 
 		private async Task ReadActuals()
@@ -270,26 +232,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				// Read data
 				var cellVoltageRegisters = await this.ReadCellVoltages();
 				var auxVoltageRegisters = await this.ReadAuxVoltages();
+				var statusRegisters = await this.ReadStatusRegister();
 				
 				// Process data
-				var actualCurrent = 0.0f;
-				var averageCurrent = 0.0f;
-
-				var remainingCapacity = 1.0f;
-				var absoluteStateOfCharge = 1.0f;
-				var relativeStateOfCharge = 1.0f;
-				TimeSpan actualRunTime, averageRunTime;
-				if (actualCurrent >= 0)
-				{
-					actualRunTime = TimeSpan.Zero;
-					averageRunTime = TimeSpan.Zero;
-				}
-				else
-				{
-					actualRunTime = TimeSpan.Zero;
-					averageRunTime = actualRunTime;
-				}
-
 				for (int chainIndex = 0; chainIndex < this.ChainLength; chainIndex++)
 				{
 					// Find chip pack
@@ -300,47 +245,29 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 						continue;
 					}
 
+					var chipPackActuals = chipPack.Actuals();
+
 					// Decode measured data
 					var cellsRegister = cellVoltageRegisters[chainIndex];
 					var auxRegister = auxVoltageRegisters[chainIndex];
+					var statusRegister = statusRegisters[chainIndex];
 
-					//var packVoltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
-					var temperature = ConvertToTemperature(auxRegister.GetAuxVoltage(1), auxRegister.Ref2Voltage);
+					chipPackActuals.Voltage = statusRegister.PackVoltage;
+					chipPackActuals.Temperature = ConvertToTemperature(auxRegister.GetAuxVoltage(1), auxRegister.Ref2Voltage);
 					
 					// Update actuals for each connected cell
 					foreach (var connectedCell in chipPack.ConnectedCells)
 					{
-						var cell = connectedCell.Value;
-						var cellActuals = cell.Actuals();
-						//cell.BeginUpdate();
-						//try
-						//{
+						var cellActuals = connectedCell.Value.Actuals();
 
 						var cellVoltage = cellsRegister.GetCellVoltage(connectedCell.Key);
 						cellActuals.Voltage = cellVoltage;
-						cellActuals.ActualCurrent = actualCurrent;
-						cellActuals.AverageCurrent = averageCurrent;
-						cellActuals.Temperature = temperature;
-
-						cellActuals.RemainingCapacity = remainingCapacity;
-						cellActuals.AbsoluteStateOfCharge = absoluteStateOfCharge;
-						cellActuals.RelativeStateOfCharge = relativeStateOfCharge;
-						cellActuals.ActualRunTime = actualRunTime;
-						cellActuals.AverageRunTime = averageRunTime;
-
-						//}
-						//finally
-						//{
-						//	conditions.EndUpdate();
-						//}
 					}
-
-					var packActuals = chipPack.Actuals();
 
 					this.Tracer.Debug(new TraceBuilder()
 						.AppendLine("The actuals of the chip pack with chain index {0} successfully read:", chainIndex)
 						.Indent()
-							.AppendLine("Pack voltage:            {0} V", packActuals.Voltage)
+							.AppendLine("Pack voltage:            {0} V", chipPackActuals.Voltage)
 							.AppendLineForEach(chipPack.ConnectedCells, "Cell {0:2} voltage:      {1} V", x => x.Key, x => x.Value.Actuals().Voltage)
 						.Trace());
 				}
@@ -368,74 +295,21 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			await Task.Delay(3).ConfigureAwait(false);
 			await this.Connection.ExecuteCommand(CommandId.StartAuxConversion(ConversionMode.Normal, 0)).ConfigureAwait(false);
 			await Task.Delay(3).ConfigureAwait(false);
-			//await this.Connection.ExecuteCommand(CommandId.StartStatusConversion(ConversionMode.Normal, 1)).ConfigureAwait(false);
-			//await Task.Delay(2).ConfigureAwait(false);
+			await this.Connection.ExecuteCommand(CommandId.StartStatusConversion(ConversionMode.Normal, 1)).ConfigureAwait(false);
+			await Task.Delay(2).ConfigureAwait(false);
 
 			// Shutdown reference
 			await StopReference().ConfigureAwait(false);
 		}
-
-		/*
-		public async Task ReadHealth()
-		{
-			var pack = this.Pack;
-			if (pack == null)
-				return;
-
-			this.Tracer.DebugFormat("Reading battery health information of the battery at address 0x{0:X}.", this.Address);
-
-			try
-			{
-				// Read health information
-				var fullChargeCapacity = (await this.ReadUShortValue(SMBusCommandIds.FullChargeCapacity).ConfigureAwait(false)) / 1000f;
-				var cycleCount = await this.ReadUShortValue(SMBusCommandIds.CycleCount).ConfigureAwait(false);
-				var calculationPrecision = await this.ReadUShortValue(SMBusCommandIds.MaxError).ConfigureAwait(false) / 100f;
-
-				// Read settings
-				//status.RemainingCapacityAlarm = (float)await this.ReadUShortValue(SMBusCommandIds.RemainingCapacityAlarm) / 1000;
-				//status.RemainingTimeAlarm = TimeSpan.FromMinutes(await this.ReadUShortValue(SMBusCommandIds.RemainingTimeAlarm));
-				//status.BatteryMode = await this.ReadUShortValue(SMBusCommandIds.SerialNumber);
-				//status.BatteryStatus = await this.ReadUShortValue(SMBusCommandIds.SerialNumber);
-
-				foreach (var cell in pack.SubElements.OfType<SingleCell>())
-				{
-					cell.SetFullChargeCapacity(fullChargeCapacity);
-					cell.SetCycleCount(cycleCount);
-					cell.SetCalculationPrecision(calculationPrecision);
-				}
-
-				this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("The health information of the battery at address 0x{0:X} successfully read:", this.Address)
-					.Indent()
-						.AppendLine("Full-charge capacity: {0} mAh", pack.Health.FullChargeCapacity * 1000f)
-						.AppendLine("Cycle count: {0}", pack.Health.CycleCount)
-						.AppendLine("Calculation precision: {0}%", (int)(pack.Health.CalculationPrecision * 100f))
-					.Trace());
-			}
-			catch (Exception ex)
-			{
-				Exception thrownEx = ex;
-				if (thrownEx is AggregateException)
-					thrownEx = ((AggregateException)thrownEx).Flatten().InnerException;
-
-				this.Tracer.Warn(String.Format("Error while reading health information of the battery at address 0x{0:X}", this.Address), thrownEx);
-
-				if (!(thrownEx is InvalidOperationException))
-					throw;
-			}
-		}
-		*/
 
 		#endregion Readings
 
 
 		#region Monitoring
 
-		private const int HealthToActualsRatio = 10;
 		private readonly List<UpdatesSubscription> m_subscriptions = new List<UpdatesSubscription>();
-		private int m_measurementCount;
 
-		public ISubscription SubscribeToUpdates(Action<BatteryPack> notificationConsumer, UpdateFrequency frequency = UpdateFrequency.Normal)
+		public ISubscription SubscribeToUpdates(Action<Pack> notificationConsumer, UpdateFrequency frequency = UpdateFrequency.Normal)
 		{
 			lock (this.m_lock)
 			{
@@ -463,7 +337,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			var hasSubscribers = this.m_subscriptions.Any();
 			if (hasSubscribers && !this.m_monitoringTask.IsRunning)
 			{
-				this.m_measurementCount = 0;
 				this.m_monitoringTask.Start();
 				this.Tracer.InfoFormat("Monitoring of the battery started.");
 			}
@@ -480,8 +353,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		private void MonitoringAction()
 		{
 			// Read values
-			if ((this.m_measurementCount++ % HealthToActualsRatio) == 0)
-				this.ReadHealth().Wait();
 			this.ReadActuals().Wait();
 
 			List<Task> tasks;
@@ -773,36 +644,6 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			if (pack == null)
 				yield break;
 
-			yield return new ReadingDescriptorGrouping(
-				"Product",
-				new[] {
-					ReadingDescriptors.Manufacturer,
-					ReadingDescriptors.Product,
-					ReadingDescriptors.ManufactureDate,
-					ReadingDescriptors.SerialNumber,
-					ReadingDescriptors.Chemistry,
-				});
-
-			yield return new ReadingDescriptorGrouping(
-				"Design",
-				new[] {
-					ReadingDescriptors.NominalVoltage,
-					ReadingDescriptors.DesignedDischargeCurrent,
-					ReadingDescriptors.MaxDischargeCurrent,
-					ReadingDescriptors.DesignedCapacity,
-				});
-
-			//yield return new ReadingDescriptorGrouping(
-			//	"Health",
-			//	new[] {
-			//		ReadingDescriptors.FullChargeCapacity,
-			//		ReadingDescriptors.CycleCount,
-			//		ReadingDescriptors.CalculationPrecision
-			//	});
-
-			var actualDescriptors = new List<ReadingDescriptor>();
-			actualDescriptors.Add(ReadingDescriptors.PackVoltage);
-
 			IEnumerable<ReadingDescriptor> cellVoltageDescriptors;
 			if (pack is ChipPack)
 			{
@@ -818,9 +659,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 						.Select((c, i) => Tuple.Create(x.ChainIndex, i)))
 					.Select(t => LtReadingDescriptors.CreateChainCellVoltageDescriptor(t.Item1, t.Item2));
 			}
+
+			var actualDescriptors = new List<ReadingDescriptor>();
+			actualDescriptors.Add(ReadingDescriptors.PackVoltage);
 			actualDescriptors.AddRange(cellVoltageDescriptors);
-			actualDescriptors.Add(ReadingDescriptors.ActualCurrent);
-			actualDescriptors.Add(ReadingDescriptors.AverageCurrent);
 			actualDescriptors.Add(ReadingDescriptors.Temperature);
 			
 			yield return new ReadingDescriptorGrouping(

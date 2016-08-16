@@ -117,14 +117,14 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			}
 		}
 
-		private static void PrintActuals(BatteryPack batteryPack)
+		private static void PrintActuals(Pack pack)
 		{
-			var actuals = batteryPack.Actuals();
+			var actuals = pack.Actuals();
 
 			Console.WriteLine("Current battery conditions:");
 			Console.WriteLine("Voltage:             {0} V ({1})", 
 				actuals.Voltage, 
-				batteryPack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals().Voltage)).Join(", "));
+				pack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals().Voltage)).Join(", "));
 			Console.WriteLine("Current:                  {0} mA", actuals.ActualCurrent * 1000f);
 			Console.WriteLine("Average current:          {0} mA", actuals.AverageCurrent * 1000f);
 			Console.WriteLine("Temperature:              {0:f2} °C", actuals.Temperature - 273.15f);
@@ -138,7 +138,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			Console.WriteLine();
 		}
 
-		private static void ReportAlarmSettings(BatteryPack battery)
+		private static void ReportAlarmSettings(Pack battery)
 		{
 			//Console.WriteLine("Remaining capacity alarm: {0}", (battery.Health.RemainingCapacityAlarm > 0 ? String.Format("{0:N0} mAh", battery.Status.RemainingCapacityAlarm * 1000) : DisabledText));
 			//Console.WriteLine("Remaining time alarm:     {0}", (battery.Health.RemainingTimeAlarm > TimeSpan.Zero ? battery.Status.RemainingTimeAlarm.ToString() : DisabledText));

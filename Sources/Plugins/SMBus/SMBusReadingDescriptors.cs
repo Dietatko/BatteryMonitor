@@ -19,7 +19,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				{ b => b, SMBusDataWrapper.SpecificationVersionKey }
 			},
 			new ReadingValueAccessor(
-				b => new SMBusDataWrapper(b.CustomData).SpecificationVersion
+				b => ReadingDescriptors.GetValue<Version>(b, SMBusDataWrapper.SpecificationVersionKey)
 			));
 
 		public static readonly ReadingDescriptor CellCount = new ReadingDescriptor(
@@ -31,7 +31,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				{ b => b, SMBusDataWrapper.CellCountKey }
 			},
 			new ReadingValueAccessor(
-				b => new SMBusDataWrapper(b.CustomData).CellCount
+				b => ReadingDescriptors.GetValue<int>(b, SMBusDataWrapper.CellCountKey)
 			));
 
 		public static ReadingDescriptor CreateCellVoltageDescriptor(int cellIndex)
@@ -45,7 +45,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.VoltageKey }
 				},
 				new ReadingValueAccessor(
-					b => ((BatteryPack)b)[cellIndex].Actuals().Voltage,
+					b => ReadingDescriptors.GetValue<float>(((BatteryPack)b)[cellIndex], BatteryActualsWrapper.VoltageKey),
 					"{0:N3} V"
 				));
 		}

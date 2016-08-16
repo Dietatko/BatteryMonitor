@@ -60,4 +60,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		#endregion Entry keys
 	}
+
+	public static class SMBusDataWrapperExtensions
+	{
+		public static SMBusDataWrapper SMBusData(this BatteryElement batteryElement)
+		{
+			return new SMBusDataWrapper(batteryElement.CustomData);
+		}
+	}
 }

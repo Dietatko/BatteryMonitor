@@ -19,7 +19,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.ManufacturerKey }
 			},
 			new ReadingValueAccessor(
-				b => b.ProductDefinition().Manufacturer
+				b => GetValue<string>(b, ProductDefinitionWrapper.ManufacturerKey)
 			));
 
 		public static readonly ReadingDescriptor Product = new ReadingDescriptor(
@@ -31,7 +31,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.ProductKey }
 			},
 			new ReadingValueAccessor(
-				b => b.ProductDefinition().Product
+				b => GetValue<string>(b, ProductDefinitionWrapper.ProductKey)
 			));
 
 		public static readonly ReadingDescriptor ManufactureDate = new ReadingDescriptor(
@@ -43,7 +43,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.ManufactureDateKey }
 			},
 			new ReadingValueAccessor(
-				b => b.ProductDefinition().ManufactureDate,
+				b => GetValue<DateTime>(b, ProductDefinitionWrapper.ManufactureDateKey),
 				"{0:d}"
 			));
 
@@ -56,7 +56,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.SerialNumberKey }
 			},
 			new ReadingValueAccessor(
-				b => b.ProductDefinition().SerialNumber
+				b => GetValue<string>(b, ProductDefinitionWrapper.SerialNumberKey)
 			));
 
 		public static readonly ReadingDescriptor Chemistry = new ReadingDescriptor(
@@ -68,7 +68,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, ProductDefinitionWrapper.ChemistryKey }
 			},
 			new ReadingValueAccessor(
-				b => b.ProductDefinition().Chemistry
+				b => GetValue<string>(b, ProductDefinitionWrapper.ChemistryKey)
 			));
 
 		#endregion Product
@@ -84,7 +84,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, DesignParametersWrapper.NominalVoltageKey }
 			},
 			new ReadingValueAccessor(
-				b => b.DesignParameters().NominalVoltage,
+				b => GetValue<float>(b, DesignParametersWrapper.NominalVoltageKey),
 				"{0:N1} V"
 			),
 			new ReadingVisualizer(
@@ -100,7 +100,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, DesignParametersWrapper.DesignedCapacityKey }
 			},
 			new ReadingValueAccessor(
-				b => b.DesignParameters().DesignedDischargeCurrent,
+				b => GetValue<float>(b, DesignParametersWrapper.DesignedDischargeCurrentKey),
 				"{0} A"
 			),
 			new ReadingVisualizer(
@@ -116,7 +116,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, DesignParametersWrapper.MaxDischargeCurrentKey }
 			},
 			new ReadingValueAccessor(
-				b => b.DesignParameters().MaxDischargeCurrent,
+				b => GetValue<float>(b, DesignParametersWrapper.MaxDischargeCurrentKey),
 				"{0} A"
 			),
 			new ReadingVisualizer(
@@ -132,7 +132,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, DesignParametersWrapper.DesignedCapacityKey }
 			},
 			new ReadingValueAccessor(
-				b => b.DesignParameters().DesignedCapacity * 1000,
+				b => GetValue<float>(b, DesignParametersWrapper.DesignedCapacityKey) * 1000,
 				"{0} mAh"
 			),
 			new ReadingVisualizer(
@@ -152,7 +152,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryHealthWrapper.FullChargeCapacityKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Health().FullChargeCapacity * 1000,
+				b => GetValue<float>(b, BatteryHealthWrapper.FullChargeCapacityKey) * 1000,
 				"{0} mAh"
 			),
 			new ReadingVisualizer(
@@ -168,7 +168,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryHealthWrapper.CycleCountKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Health().CycleCount,
+				b => GetValue<int>(b, BatteryHealthWrapper.CycleCountKey),
 				"{0} cycles"
 			),
 			new ReadingVisualizer(
@@ -184,7 +184,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryHealthWrapper.CalculationPrecisionKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Health().CalculationPrecision * 100,
+				b => GetValue<float>(b, BatteryHealthWrapper.CalculationPrecisionKey) * 100,
 				"{0} %"
 			),
 			new ReadingVisualizer(
@@ -204,7 +204,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryActualsWrapper.VoltageKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Actuals().Voltage,
+				b => GetValue<float>(b, BatteryActualsWrapper.VoltageKey),
 				"{0:N3} V"
 			),
 			new ReadingVisualizer(
@@ -220,7 +220,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryActualsWrapper.ActualCurrentKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Actuals().ActualCurrent,
+				b => GetValue<float>(b, BatteryActualsWrapper.ActualCurrentKey),
 				"{0} A"
 			),
 			new ReadingVisualizer(
@@ -236,7 +236,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryActualsWrapper.AverageCurrentKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Actuals().AverageCurrent,
+				b => GetValue<float>(b, BatteryActualsWrapper.AverageCurrentKey),
 				"{0} A"
 			),
 			new ReadingVisualizer(
@@ -252,18 +252,28 @@ namespace ImpruvIT.BatteryMonitor.Domain.Descriptors
 				{ b => b, BatteryActualsWrapper.TemperatureKey }
 			},
 			new ReadingValueAccessor(
-				b => b.Actuals().Temperature - 273.15,
+				b => GetValue<float>(b, BatteryActualsWrapper.TemperatureKey) - 273.15,
 				"{0:f1} °C"
 			),
 			new ReadingVisualizer(
 				x => (double)x
 			));
 
-		////yield return new ReadingDescriptor<BatteryPack, object>(b => b.Conditions.CellVoltages[0], "Conditions.CellVoltages[0]", "{0} V", "Cell 1 voltage", "The current voltage of the cell 1.");
-		////yield return new ReadingDescriptor<BatteryPack, object>(b => b.Conditions.CellVoltages[1], "Conditions.CellVoltages[1]", "{0} V", "Cell 2 voltage", "The current voltage of the cell 2.");
-		////yield return new ReadingDescriptor<BatteryPack, object>(b => b.Conditions.CellVoltages[2], "Conditions.CellVoltages[2]", "{0} V", "Cell 3 voltage", "The current voltage of the cell 3.");
-		////yield return new ReadingDescriptor<BatteryPack, object>(b => b.Conditions.CellVoltages[3], "Conditions.CellVoltages[3]", "{0} V", "Cell 4 voltage", "The current voltage of the cell 4.");
-
 		#endregion Actuals
+
+
+		public static T GetValue<T>(BatteryElement element, EntryKey key, T defaultValue = default(T))
+		{
+			T result = defaultValue;
+
+			IReadingValue readingValue;
+			if (element.CustomData.TryGetValue(key, out readingValue))
+			{
+				if (readingValue.IsDefined)
+					result = readingValue.Get<T>();
+			}
+
+			return result;
+		}
 	}
 }

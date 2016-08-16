@@ -17,7 +17,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 	{
 		public static DateTime BaseTime = DateTime.UtcNow;
 
-		public BatteryLogic(IBatteryPackAdapter batteryAdapter)
+		public BatteryLogic(IBatteryAdapter batteryAdapter)
 		{
 			Contract.Requires(batteryAdapter, "batteryAdapter").NotToBeNull();
 
@@ -33,7 +33,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			this.Descriptors = this.BatteryAdapter.GetDescriptors().ToList();
 		}
 
-		protected IBatteryPackAdapter BatteryAdapter
+		protected IBatteryAdapter BatteryAdapter
 		{
 			get { return this.m_batteryAdapter; }
 			private set
@@ -49,9 +49,9 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				this.OnPropertyChanged("Pack");
 			}
 		}
-		private IBatteryPackAdapter m_batteryAdapter;
+		private IBatteryAdapter m_batteryAdapter;
 
-		public BatteryPack Pack
+		public Pack Pack
 		{
 			get { return this.BatteryAdapter.Pack; }
 		}
@@ -88,7 +88,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 				subscription.Unsubscribe();
 		}
 
-		private void UpdateActuals(BatteryPack pack)
+		private void UpdateActuals(Pack pack)
 		{
 			if (pack == null)
 				return;
@@ -104,7 +104,7 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 			}
 		}
 
-		private static Actuals CloneActuals(BatteryPack pack)
+		private static Actuals CloneActuals(Pack pack)
 		{
 			return new Actuals
 				{

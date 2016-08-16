@@ -2,31 +2,43 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ImpruvIT.BatteryMonitor.Domain.Battery
+using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Battery;
+
+namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
-	public class SingleCell : BatteryElement
+	public class BatteryPack : SeriesPack
 	{
-		public SingleCell(float nominalVoltage, float designedDischargeCurrent, float maxDischargeCurrent, float designedCapacity)
+		public BatteryPack(IEnumerable<BatteryElement> subElements)
+			: base(subElements)
 		{
 			this.InitializeReadings();
-
-			var designParameters = this.DesignParameters();
-			designParameters.NominalVoltage = nominalVoltage;
-			designParameters.DesignedDischargeCurrent = designedDischargeCurrent;
-			designParameters.MaxDischargeCurrent = maxDischargeCurrent;
-			designParameters.DesignedCapacity = designedCapacity;
 		}
 
 		protected void InitializeReadings()
 		{
+			this.CreateProductDefinitionReadings();
 			this.CreateDesignParametersReadings();
 			this.CreateHealthReadings();
 			this.CreateActualReadings();
 		}
 
+		private void CreateProductDefinitionReadings()
+		{
+			this.CustomData.CreateValue(ProductDefinitionWrapper.ManufacturerKey, new TypedReadingValue<string>());
+			this.CustomData.CreateValue(ProductDefinitionWrapper.ProductKey, new TypedReadingValue<string>());
+			this.CustomData.CreateValue(ProductDefinitionWrapper.ChemistryKey, new TypedReadingValue<string>());
+			this.CustomData.CreateValue(ProductDefinitionWrapper.ManufactureDateKey, new TypedReadingValue<DateTime>());
+			this.CustomData.CreateValue(ProductDefinitionWrapper.SerialNumberKey, new TypedReadingValue<string>());
+		}
+
 		private void CreateDesignParametersReadings()
 		{
-			this.CustomData.CreateValue(DesignParametersWrapper.NominalVoltageKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(
+				DesignParametersWrapper.NominalVoltageKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSumReadingValue(BatteryActualsWrapper.VoltageKey)));
+
 			this.CustomData.CreateValue(DesignParametersWrapper.DesignedDischargeCurrentKey, new TypedReadingValue<float>());
 			this.CustomData.CreateValue(DesignParametersWrapper.MaxDischargeCurrentKey, new TypedReadingValue<float>());
 			this.CustomData.CreateValue(DesignParametersWrapper.DesignedCapacityKey, new TypedReadingValue<float>());
@@ -41,7 +53,11 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 
 		private void CreateActualReadings()
 		{
-			this.CustomData.CreateValue(BatteryActualsWrapper.VoltageKey, new TypedReadingValue<float>());
+			this.CustomData.CreateValue(
+				BatteryActualsWrapper.VoltageKey,
+				this.CreateFallbackReadingValue<float>(
+					this.CreateSumReadingValue(BatteryActualsWrapper.VoltageKey)));
+
 			this.CustomData.CreateValue(BatteryActualsWrapper.ActualCurrentKey, new TypedReadingValue<float>());
 			this.CustomData.CreateValue(BatteryActualsWrapper.AverageCurrentKey, new TypedReadingValue<float>());
 			this.CustomData.CreateValue(BatteryActualsWrapper.TemperatureKey, new TypedReadingValue<float>());

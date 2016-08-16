@@ -17,15 +17,23 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 
 		public T GetValue<T>(EntryKey key, T defaultValue = default(T))
 		{
-			T result;
-			if (!this.Data.TryGetValue(key, out result))
-				result = defaultValue;
+			T result = defaultValue;
+
+			IReadingValue readingValue;
+			if (this.Data.TryGetValue(key, out readingValue))
+			{
+				if (readingValue.IsDefined)
+					result = readingValue.Get<T>();
+			}
 
 			return result;
 		}
 
 		public void SetValue<T>(EntryKey key, T value)
 		{
+			//var readingValue = this.Data.GetValue(key);
+			//readingValue.Set(value);
+
 			this.Data.SetValue(key, value);
 		}
 	}
