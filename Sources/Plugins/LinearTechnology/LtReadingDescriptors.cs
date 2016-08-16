@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
+
 using ImpruvIT.BatteryMonitor.Domain;
-using ImpruvIT.BatteryMonitor.Domain.Description;
+using ImpruvIT.BatteryMonitor.Domain.Battery;
+using ImpruvIT.BatteryMonitor.Domain.Descriptors;
 using ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
@@ -16,10 +17,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 				"A number of packs in the overall battery pack."
 			),
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, LtDataWrapper.CreateKey(LtDataWrapper.CellCountEntryName) }
+				{ b => b, LtDataWrapper.ChipCountKey }
 			},
 			new ReadingValueAccessor(
-				b => new LtDataWrapper(b.CustomData).CellCount
+				b => ReadingDescriptors.GetValue<int>(b, LtDataWrapper.ChipCountKey)
 			));
 
 		public static readonly ReadingDescriptor CellCount = new ReadingDescriptor(
@@ -28,10 +29,23 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 				"A number of cells in the battery pack."
 			), 
 			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-				{ b => b, LtDataWrapper.CreateKey(LtDataWrapper.CellCountEntryName) }
+				{ b => b, LtDataWrapper.CellCountKey }
 			},
 			new ReadingValueAccessor(
-				b => new LtDataWrapper(b.CustomData).CellCount
+				b => ReadingDescriptors.GetValue<int>(b, LtDataWrapper.CellCountKey)
+			));
+
+		public static readonly ReadingDescriptor SumOfCellVoltages = new ReadingDescriptor(
+			new ReadingDescription(
+				"Sum of cell voltages",
+				"A sum of all cell voltages. Difference to pack voltage shows losses."
+			),
+			new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
+				{ b => b, LtDataWrapper.SumOfCellVoltagesKey }
+			},
+			new ReadingValueAccessor(
+				b => ReadingDescriptors.GetValue<float>(b, LtDataWrapper.SumOfCellVoltagesKey),
+				"{0:N3} V"
 			));
 
 		public static ReadingDescriptor CreateSingleChipCellVoltageDescriptor(int cellIndex)
@@ -42,10 +56,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 					String.Format("A voltage of the cell {0}.", cellIndex + 1)
 				),
 				new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-					{ b => ((BatteryPack)b)[cellIndex], BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.VoltageEntryName) }
+					{ b => ((Pack)b)[cellIndex], BatteryActualsWrapper.VoltageKey }
 				},
 				new ReadingValueAccessor(
-					b => ((BatteryPack)b)[cellIndex].Actuals.Voltage,
+					b => ReadingDescriptors.GetValue<float>(((Pack)b)[cellIndex], BatteryActualsWrapper.VoltageKey),
 					"{0:N3} V"
 				));
 		}
@@ -58,16 +72,18 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology
 					String.Format("A voltage of the cell {0} on chip {1}.", cellIndex + 1, chipIndex + 1)
 				),
 				new Dictionary<Func<BatteryElement, BatteryElement>, EntryKey> {
-					{ b => ((BatteryPack)b).SubElements
+					{ b => ((Pack)b).SubElements
 							.OfType<ChipPack>()
 							.Single(x => x.ChainIndex == chipIndex)[cellIndex], 
-						BatteryActualsWrapper.CreateKey(BatteryActualsWrapper.VoltageEntryName) }
+						BatteryActualsWrapper.VoltageKey }
 				},
 				new ReadingValueAccessor(
-					b => ((BatteryPack)b).SubElements
+
+					b => ReadingDescriptors.GetValue<float>(
+						((Pack)b).SubElements
 							.OfType<ChipPack>()
-							.Single(x => x.ChainIndex == chipIndex)[cellIndex]
-							.Actuals.Voltage,
+							.Single(x => x.ChainIndex == chipIndex)[cellIndex], 
+						BatteryActualsWrapper.VoltageKey),
 					"{0:N3} V"
 				));
 		}

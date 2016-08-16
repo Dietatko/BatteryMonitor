@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-using ImpruvIT.BatteryMonitor.Domain;
-using ImpruvIT.BatteryMonitor.Domain.Description;
 using ImpruvIT.Contracts;
+
+using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Battery;
+using ImpruvIT.BatteryMonitor.Domain.Descriptors;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 {

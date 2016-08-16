@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ImpruvIT.BatteryMonitor.Domain;
 using ImpruvIT.Contracts;
 
-using ImpruvIT.BatteryMonitor.Domain;
+using ImpruvIT.BatteryMonitor.Domain.Battery;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 {
-	public class ChipPack : SeriesBatteryPack
+	public class ChipPack : SeriesPack
 	{
 		public ChipPack(int chainIndex, IDictionary<int, SingleCell> cells)
 			: base(cells.OrderBy(x => x.Key).Select(x => x.Value))
 		{
 			this.ChainIndex = chainIndex;
 			this.ConnectedCells = cells.ToDictionary(x => x.Key, x=> x.Value);
+
+			this.InitializeReadings();
 		}
 
 		public int ChainIndex { get; private set; }
@@ -41,6 +43,13 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				throw new ArgumentOutOfRangeException("channelIndex", channelIndex, "There is no cell connected to channel " + channelIndex + ".");
 
 			return cell;
+		}
+
+		protected void InitializeReadings()
+		{
+			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.VoltageKey));
+			this.CustomData.CreateValue(this.CreateSumReadingValue(LtDataWrapper.SumOfCellVoltagesKey, BatteryActualsWrapper.VoltageKey));
+			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.TemperatureKey));
 		}
 	}
 }

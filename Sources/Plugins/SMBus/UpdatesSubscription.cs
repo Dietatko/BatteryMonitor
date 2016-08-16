@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using ImpruvIT.BatteryMonitor.Domain;
 using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
