@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="BatteryAdapter.cs" />
     <Compile Include="BatteryPack.cs" />
+    <Compile Include="PecCalculator.cs" />
     <Compile Include="SingleCell.cs" />
     <Compile Include="SMBusReadingDescriptors.cs" />
     <Compile Include="SMBusDataWrapper.cs" />

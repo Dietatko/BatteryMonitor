@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using ImpruvIT.BatteryMonitor.Domain.Battery;
@@ -7,7 +8,8 @@ using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public class MathFunctionReadingValue<TValue> : ReadingValueBase, IReadingValue
+    [DebuggerDisplay("{Key} = {Get<Value>()}")]
+    public class MathFunctionReadingValue<TValue> : ReadingValueBase, IReadingValue
 	{
 		public MathFunctionReadingValue(
 			EntryKey key,

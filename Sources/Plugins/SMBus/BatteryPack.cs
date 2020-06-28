@@ -21,6 +21,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			this.CreateDesignParametersReadings();
 			this.CreateHealthReadings();
 			this.CreateActualReadings();
+			this.CreateSMBusReadings();
 		}
 
 		private void CreateProductDefinitionReadings()
@@ -51,8 +52,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		}
 
 		private void CreateActualReadings()
-		{
-			this.CustomData.CreateValue(
+        {
+            this.CustomData.CreateValue(new TypedReadingValue<ushort>(BatteryActualsWrapper.BatteryStatusKey));
+
+            this.CustomData.CreateValue(
 				this.CreateFallbackReadingValue<float>(
 					this.CreateSumReadingValue(BatteryActualsWrapper.VoltageKey, BatteryActualsWrapper.VoltageKey)));
 
@@ -60,12 +63,24 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.AverageCurrentKey));
 			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.TemperatureKey));
 
-			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.RemainingCapacityKey));
+            this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.ChargingVoltageKey));
+            this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.ChargingCurrentKey));
+
+            this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.RemainingCapacityKey));
 			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.AbsoluteStateOfChargeKey));
 			this.CustomData.CreateValue(new TypedReadingValue<float>(BatteryActualsWrapper.RelativeStateOfChargeKey));
 
 			this.CustomData.CreateValue(new TypedReadingValue<TimeSpan>(BatteryActualsWrapper.ActualRunTimeKey));
 			this.CustomData.CreateValue(new TypedReadingValue<TimeSpan>(BatteryActualsWrapper.AverageRunTimeKey));
+		}
+
+		private void CreateSMBusReadings()
+		{
+			this.CustomData.CreateValue(new TypedReadingValue<ushort>(SMBusDataWrapper.BatteryModeKey));
+			this.CustomData.CreateValue(new TypedReadingValue<int>(SMBusDataWrapper.CellCountKey));
+			this.CustomData.CreateValue(new TypedReadingValue<Version>(SMBusDataWrapper.SpecificationVersionKey));
+			this.CustomData.CreateValue(new TypedReadingValue<int>(SMBusDataWrapper.VoltageScaleKey));
+			this.CustomData.CreateValue(new TypedReadingValue<int>(SMBusDataWrapper.CurrentScaleKey));
 		}
 	}
 }

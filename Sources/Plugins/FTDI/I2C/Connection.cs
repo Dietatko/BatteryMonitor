@@ -15,12 +15,10 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 	public class Connection : IBusConnection, ICommunicateToAddressableBus
 	{
 		private const NativeMethods_I2C.TransferOptions WriteOptions =
-			NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_START_BIT |
-			NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_BREAK_ON_NACK;
+			NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_BREAK_ON_NACK | 
+            NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_FAST_TRANSFER_BYTES;
 
-		private const NativeMethods_I2C.TransferOptions ReadOptions =
-			NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_START_BIT
-			| NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_STOP_BIT;
+        private const NativeMethods_I2C.TransferOptions ReadOptions = NativeMethods_I2C.TransferOptions.None;
 
 		#region Connection
 
@@ -53,7 +51,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 				uint channelCount;
 				status = NativeMethods_I2C.I2C_GetNumChannels(out channelCount);
 				if (status != FTDI.FT_STATUS.FT_OK)
-					throw new InvalidOperationException("Unable to find number of I2C channels. (Status: " + status + ")");
+					throw new CommunicationException("Unable to find number of I2C channels. (Status: " + status + ")");
 
 				uint channelIndex;
 				var deviceNode = new NativeMethods.FT_DEVICE_LIST_INFO_NODE();
@@ -62,7 +60,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 				{
 					status = NativeMethods_I2C.I2C_GetChannelInfo(0, deviceNode);
 					if (status != FTDI.FT_STATUS.FT_OK)
-						throw new InvalidOperationException("Unable to get information about channel " + channelIndex + ". (Status: " + status + ")");
+						throw new CommunicationException("Unable to get information about channel " + channelIndex + ". (Status: " + status + ")");
 
 					if (deviceNode.SerialNumber == serialNumber)
 					{
@@ -74,7 +72,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 				}
 
 				if (channelIndex >= channelCount)
-					throw new InvalidOperationException("Unable to find channel " + deviceChannelIndex + " on device with serial number '" + serialNumber + "'.");
+					throw new CommunicationException("Unable to find channel " + deviceChannelIndex + " on device with serial number '" + serialNumber + "'.");
 
 				this.DeviceNode = deviceNode;
 
@@ -82,16 +80,16 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 				IntPtr handle;
 				status = NativeMethods_I2C.I2C_OpenChannel(channelIndex, out handle);
 				if (status != FTDI.FT_STATUS.FT_OK)
-					throw new InvalidOperationException("Unable to open I2C channel. (Status: " + status + ")");
+					throw new CommunicationException("Unable to open I2C channel. (Status: " + status + ")");
 
 				this.ChannelHandle = handle;
 
 				// Configure channel
 				// NativeMethods.ClockRate.Standard
-				var config = new NativeMethods_I2C.ChannelConfig(NativeMethods_I2C.ClockRate.Standard, 1, NativeMethods_I2C.ConfigOptions.I2C_ENABLE_DRIVE_ONLY_ZERO);
+				var config = new NativeMethods_I2C.ChannelConfig((NativeMethods_I2C.ClockRate)10000, 1, NativeMethods_I2C.ConfigOptions.I2C_ENABLE_DRIVE_ONLY_ZERO);
 				status = NativeMethods_I2C.I2C_InitChannel(this.ChannelHandle, config);
 				if (status != FTDI.FT_STATUS.FT_OK)
-					throw new InvalidOperationException("Unable to initialize I2C channel. (Status: " + status + ")");
+					throw new CommunicationException("Unable to initialize I2C channel. (Status: " + status + ")");
 			});
 		}
 
@@ -110,7 +108,7 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 				this.DeviceNode = null;
 				this.ChannelHandle = IntPtr.Zero;
 				if (status != FTDI.FT_STATUS.FT_OK)
-					throw new InvalidOperationException("Unable to close I2C channel. (Status: " + status + ")");
+					throw new CommunicationException("Unable to close I2C channel. (Status: " + status + ")");
 			});
 		}
 
@@ -131,10 +129,12 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 					(uint)data.Length, 
 					data, 
 					out transferredSize,
-					WriteOptions | NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_STOP_BIT);
+                    WriteOptions | 
+                        NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_START_BIT | 
+                        NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_STOP_BIT);
 
 				if (status != FTDI.FT_STATUS.FT_OK || transferredSize != data.Length)
-					throw new InvalidOperationException("Error while writing to the bus. (Status: " + status + ")");
+					throw new CommunicationException("Error while writing to the bus. (Status: " + status + ")");
 			});
 		}
 
@@ -154,10 +154,12 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 					(uint)dataLength,
 					buffer,
 					out transferredSize,
-					ReadOptions);
+                    ReadOptions |
+                        NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_START_BIT |
+                        NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_STOP_BIT);
 
 				if (status != FTDI.FT_STATUS.FT_OK)
-					throw new InvalidOperationException("Error while reading from the bus. (Status: " + status + ")");
+					throw new CommunicationException("Error while reading from the bus. (Status: " + status + ")");
 
 				if (transferredSize < dataLength)
 				{
@@ -187,10 +189,10 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 					(uint)dataToSend.Length,
 					dataToSend,
 					out transferredSize,
-					WriteOptions);
+					WriteOptions | NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_START_BIT);
 
 				if (status != FTDI.FT_STATUS.FT_OK || transferredSize != dataToSend.Length)
-					throw new InvalidOperationException("Error while writing to the bus. (Status: " + status + ")");
+					throw new CommunicationException("Error while writing to the bus. (Status: " + status + ")");
 
 				// Receive data
 				var buffer = new byte[receiveLength];
@@ -201,10 +203,13 @@ namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C
 					(uint)receiveLength,
 					buffer,
 					out transferredSize,
-					ReadOptions);
+                    ReadOptions |
+                        NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_START_BIT |
+                        NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_STOP_BIT |
+                        NativeMethods_I2C.TransferOptions.I2C_TRANSFER_OPTIONS_NACK_LAST_BYTE);
 
 				if (status != FTDI.FT_STATUS.FT_OK)
-					throw new InvalidOperationException("Error while reading from the bus. (Status: " + status + ")");
+					throw new CommunicationException("Error while reading from the bus. (Status: " + status + ")");
 
 				if (transferredSize < receiveLength)
 				{

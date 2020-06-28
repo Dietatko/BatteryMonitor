@@ -12,10 +12,15 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		{
 		}
 
+        public ushort BatteryStatus
+        {
+            get { return this.GetValue<ushort>(BatteryStatusKey); }
+            set { this.SetValue(BatteryStatusKey, value); }
+        }
 
-		#region Readings
+        #region Readings
 
-		public float Voltage
+        public float Voltage
 		{
 			get { return this.GetValue<float>(VoltageKey); }
 			set
@@ -44,12 +49,34 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 			set { this.SetValue(TemperatureKey, value); }
 		}
 
-		#endregion Readings
+        #endregion Readings
 
 
-		#region State of charge
-		
-		public float RemainingCapacity
+        #region Charging request
+
+        public float ChargingVoltage
+        {
+            get { return this.GetValue<float>(ChargingVoltageKey); }
+            set
+            {
+                Contract.Requires(value, "value").ToBeInRange(x => x >= 0f);
+
+                this.SetValue(ChargingVoltageKey, value);
+            }
+        }
+
+        public float ChargingCurrent
+        {
+            get { return this.GetValue<float>(ChargingCurrentKey); }
+            set { this.SetValue(ChargingCurrentKey, value); }
+        }
+
+        #endregion Charging request
+
+
+        #region State of charge
+
+        public float RemainingCapacity
 		{
 			get { return this.GetValue<float>(RemainingCapacityKey); }
 			set
@@ -116,22 +143,32 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 
 		private const string NamespaceUriName = "BatteryReadingsNS";
 
+		private const string BatteryStatusEntryName = "BatteryStatus";
+
 		private const string VoltageEntryName = "Voltage";
 		private const string ActualCurrentEntryName = "ActualCurrent";
 		private const string AverageCurrentEntryName = "AverageCurrent";
 		private const string TemperatureEntryName = "Temperature";
 
-		private const string RemainingCapacityEntryName = "RemainingCapacity";
+        private const string ChargingVoltageEntryName = "ChargingVoltage";
+        private const string ChargingCurrentEntryName = "ChargingCurrent";
+
+        private const string RemainingCapacityEntryName = "RemainingCapacity";
 		private const string AbsoluteStateOfChargeEntryName = "AbsoluteStateOfCharge";
 		private const string RelativeStateOfChargeEntryName = "RelativeStateOfCharge";
 
 		private const string ActualRunTimeEntryName = "ActualRunTime";
 		private const string AverageRunTimeEntryName = "AverageRunTime";
 
+		public static readonly EntryKey BatteryStatusKey = CreateKey(BatteryStatusEntryName);
+
 		public static readonly EntryKey VoltageKey = CreateKey(VoltageEntryName);
 		public static readonly EntryKey ActualCurrentKey = CreateKey(ActualCurrentEntryName);
 		public static readonly EntryKey AverageCurrentKey = CreateKey(AverageCurrentEntryName);
 		public static readonly EntryKey TemperatureKey = CreateKey(TemperatureEntryName);
+
+		public static readonly EntryKey ChargingVoltageKey = CreateKey(ChargingVoltageEntryName);
+		public static readonly EntryKey ChargingCurrentKey = CreateKey(ChargingCurrentEntryName);
 
 		public static readonly EntryKey RemainingCapacityKey = CreateKey(RemainingCapacityEntryName);
 		public static readonly EntryKey AbsoluteStateOfChargeKey = CreateKey(AbsoluteStateOfChargeEntryName);

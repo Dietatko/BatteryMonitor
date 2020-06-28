@@ -18,12 +18,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 {
 	public class BatteryAdapter : IBatteryAdapter
 	{
-		private const int RetryCount = 3;
+		private const int RetryCount = 5;
 
 		private readonly object m_lock = new object();
 		private readonly RepeatableTask m_monitoringTask;
 
-		public BatteryAdapter(SMBusInterface connection, uint address)
+		public BatteryAdapter(SMBusInterface connection, byte address)
 		{
 			this.Tracer = LogManager.GetLogger(this.GetType());
 
@@ -31,15 +31,15 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			
 			this.Connection = connection;
 			this.Address = address;
-			this.m_monitoringTask = new RepeatableTask(this.MonitoringAction, String.Format("SMBus Adapter - 0x{0:X}", address))
-			{
-				MinTriggerTime =  TimeSpan.FromSeconds(1)
-			};
+			//this.m_monitoringTask = new RepeatableTask(this.MonitoringAction, String.Format("SMBus Adapter - 0x{0:X}", address))
+			//{
+			//	MinTriggerTime =  TimeSpan.FromSeconds(1)
+			//};
 		}
 
 		protected ILog Tracer { get; private set; }
 		protected SMBusInterface Connection { get; private set; }
-		protected uint Address { get; private set; }
+		protected byte Address { get; private set; }
 
 		public BatteryPack Pack
 		{
@@ -65,7 +65,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		public async Task RecognizeBattery()
 		{
-			this.Tracer.DebugFormat("Recognizing battery at address 0x{0:X} ...", this.Address);
+			this.Tracer.Debug($"Recognizing battery at address 0x{Address:X2} ...");
 
 			try
 			{
@@ -73,8 +73,11 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				await this.ReadProductData(pack);
 				await this.ReadProtocolParams(pack);
 
-				this.Pack = pack;
-				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.ProductDefinition().Manufacturer, pack.ProductDefinition().Product, pack.DesignParameters().NominalVoltage, pack.DesignParameters().DesignedCapacity * 1000);
+                //await this.Connection.WriteWordCommand(Address, 0x0F, 0);
+                //await this.Connection.WriteWordCommand(Address, 0x17, 50);
+
+                this.Pack = pack;
+				this.Tracer.InfoFormat("Battery recognized at address 0x{0:X2}: {1} {2} ({3:F2} V, {4:N0} mAh).", this.Address, pack.ProductDefinition().Manufacturer, pack.ProductDefinition().Product, pack.DesignParameters().NominalVoltage, pack.DesignParameters().DesignedCapacity * 1000);
 			}
 			catch (Exception ex)
 			{
@@ -82,7 +85,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				if (thrownEx is AggregateException)
 					thrownEx = ((AggregateException)thrownEx).Flatten().InnerException;
 
-				this.Tracer.Warn(String.Format("Error while reading health information of the battery at address 0x{0:X}", this.Address), thrownEx);
+				this.Tracer.Warn($"Error while reading health information of the battery at address 0x{Address:X2}", thrownEx);
 
 				if (!(thrownEx is InvalidOperationException))
 					throw;
@@ -93,7 +96,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		private async Task<BatteryPack> RecognizeGeometry()
 		{
-			var cellCount = (int)(await this.ReadUShortValue(SMBusCommandIds.CellCount).ConfigureAwait(false));
+            //var cellCount = (int)(await this.ReadUShortValue(SMBusCommandIds.CellCount).ConfigureAwait(false));
+            var cellCount = 3;
 			var nominalVoltage = (await this.ReadUShortValue(SMBusCommandIds.DesignVoltage).ConfigureAwait(false)) / 1000f;
 			var cellVoltage = nominalVoltage / cellCount;
 
@@ -102,9 +106,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			var pack = new BatteryPack(cells);
 
 			var designParams = pack.DesignParameters();
-			designParams.DesignedDischargeCurrent = (await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
+			//designParams.DesignedDischargeCurrent = (await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
 			designParams.DesignedDischargeCurrent = 0.0f;
-			designParams.MaxDischargeCurrent = (await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
+			//designParams.MaxDischargeCurrent = (await this.ReadUShortValue(SMBusCommandIds.ManufactureDate).ConfigureAwait(false));
 			designParams.MaxDischargeCurrent = 0.0f;
 			designParams.DesignedCapacity = (await this.ReadUShortValue(SMBusCommandIds.DesignCapacity).ConfigureAwait(false)) / 1000f;
 
@@ -112,7 +116,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			batterySMBusWrapper.CellCount = cellCount;
 
 			this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("A series battery with {1} cells recognized at address 0x{0:X}:", this.Address, cellCount)
+					.AppendLine($"A series battery with {cellCount} cells recognized at address 0x{Address:X2}:")
 					.Indent()
 						.AppendLine("Nominal voltage: {0} V (Cell voltage: {1} V)", nominalVoltage, cellVoltage)
 						.AppendLine("Designed discharge current: {0} A", designParams.DesignedDischargeCurrent)
@@ -125,7 +129,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		private async Task ReadProductData(BatteryPack pack)
 		{
-			this.Tracer.DebugFormat("Reading manufacturer data of battery at address 0x{0:X} ...", this.Address);
+			this.Tracer.Debug("Reading manufacturer data of battery at address 0x{Address:X2} ...");
 
 			var productDefinition = pack.ProductDefinition();
 			productDefinition.Manufacturer = await this.ReadStringValue(SMBusCommandIds.ManufacturerName, 16).ConfigureAwait(false);
@@ -136,7 +140,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			productDefinition.SerialNumber = serialNumber.ToString(CultureInfo.InvariantCulture);
 
 			this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("The manufacturer data of battery at address 0x{0:X}:", this.Address)
+					.AppendLine($"The manufacturer data of battery at address 0x{Address:X2}:")
 					.Indent()
 						.AppendLine("Manufacturer:     {0}", productDefinition.Manufacturer)
 						.AppendLine("Product:          {0}", productDefinition.Product)
@@ -148,12 +152,14 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		private async Task ReadProtocolParams(BatteryPack pack)
 		{
-			this.Tracer.DebugFormat("Reading SMBus protocol parameters of the battery at address 0x{0:X} ...", this.Address);
+			this.Tracer.Debug($"Reading SMBus protocol parameters of the battery at address 0x{Address:X2} ...");
 
 			var batterySMBusWrapper = pack.SMBusData();
 
-			// Read SMBus specification info
-			var specificationInfo = await this.ReadUShortValue(SMBusCommandIds.SpecificationInfo).ConfigureAwait(false);
+            batterySMBusWrapper.BatteryMode = await this.ReadUShortValue(SMBusCommandIds.BatteryMode).ConfigureAwait(false);
+
+            // Read SMBus specification info
+            var specificationInfo = await this.ReadUShortValue(SMBusCommandIds.SpecificationInfo).ConfigureAwait(false);
 			switch (specificationInfo & 0xFF)
 			{
 			case 0x11:
@@ -174,9 +180,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			batterySMBusWrapper.CurrentScale = (int)Math.Pow(10, (specificationInfo >> 12) & 0x0F);
 
 			this.Tracer.Debug(new TraceBuilder()
-				.AppendLine("SMBus protocol parameters of the battery at address 0x{0:X}:", this.Address)
+				.AppendLine($"SMBus protocol parameters of the battery at address 0x{Address:X2}:")
 				.Indent()
-					.AppendLine("Specification version: {0}", batterySMBusWrapper.SpecificationVersion)
+                    .AppendLine("Battery mode: {0}", Convert.ToString(batterySMBusWrapper.BatteryMode, 2).PadLeft(16, '0'))
+                    .AppendLine("Specification version: {0}", batterySMBusWrapper.SpecificationVersion)
 					.AppendLine("Voltage scale: {0}x", batterySMBusWrapper.VoltageScale)
 					.AppendLine("Current scale: {0}x", batterySMBusWrapper.CurrentScale)
 				.Trace());
@@ -187,20 +194,19 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 
 		#region Readings
 
-		public Task UpdateReadings()
+		public async Task UpdateReadings()
 		{
-			return Task.WhenAll(
-			    this.ReadHealth(),
-				this.ReadActuals());
+            await this.ReadHealth();
+			await this.ReadActuals();
 		}
 
-		private async Task ReadHealth()
+        public async Task ReadHealth()
 		{
 			var pack = this.Pack;
 			if (pack == null)
 				return;
 
-			this.Tracer.DebugFormat("Reading battery health information of the battery at address 0x{0:X}.", this.Address);
+			this.Tracer.Debug($"Reading battery health information of the battery at address 0x{Address:X}.");
 
 			try
 			{
@@ -218,10 +224,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				var packHealth = pack.Health();
 				packHealth.FullChargeCapacity = fullChargeCapacity;
 				packHealth.CycleCount = cycleCount;
-				packHealth.CalculationPrecision = calculationPrecision;
+                packHealth.CalculationPrecision = calculationPrecision <= 1.0 ? calculationPrecision : 0.0f;
 				
 				this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("The health information of the battery at address 0x{0:X} successfully read:", this.Address)
+					.AppendLine($"The health information of the battery at address 0x{Address:X2} successfully read:")
 					.Indent()
 						.AppendLine("Full-charge capacity: {0} mAh", packHealth.FullChargeCapacity * 1000f)
 						.AppendLine("Cycle count: {0}", packHealth.CycleCount)
@@ -234,16 +240,16 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				if (thrownEx is AggregateException)
 					thrownEx = ((AggregateException)thrownEx).Flatten().InnerException;
 
-				this.Tracer.Warn(String.Format("Error while reading health information of the battery at address 0x{0:X}", this.Address), thrownEx);
+				this.Tracer.Warn($"Error while reading health information of the battery at address 0x{Address:X2}", thrownEx);
 
 				if (!(thrownEx is InvalidOperationException))
 					throw;
 			}
 		}
 
-		private async Task ReadActuals()
+        public async Task ReadActuals()
 		{
-			this.Tracer.DebugFormat("Reading battery actuals information of the battery at address 0x{0:X}.", this.Address);
+			this.Tracer.DebugFormat($"Reading battery actuals information of the battery at address 0x{Address:X2}.");
 
 			var pack = this.Pack;
 			if (pack == null)
@@ -253,10 +259,15 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			{
 				var packActuals = pack.Actuals();
 
-				packActuals.Voltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
+                packActuals.BatteryStatus = await this.ReadUShortValue(SMBusCommandIds.BatteryStatus).ConfigureAwait(false);
+
+                packActuals.Voltage = (await this.ReadUShortValue(SMBusCommandIds.Voltage).ConfigureAwait(false)) / 1000f;
 				packActuals.ActualCurrent = (await this.ReadShortValue(SMBusCommandIds.Current).ConfigureAwait(false)) / 1000f;
 				packActuals.AverageCurrent = (await this.ReadShortValue(SMBusCommandIds.AverageCurrent).ConfigureAwait(false)) / 1000f;
 				packActuals.Temperature = (await this.ReadUShortValue(SMBusCommandIds.Temperature).ConfigureAwait(false)) / 10f;
+
+				packActuals.ChargingVoltage = (await this.ReadUShortValue(SMBusCommandIds.ChargingVoltage).ConfigureAwait(false)) / 1000f;
+				packActuals.ChargingCurrent = (await this.ReadShortValue(SMBusCommandIds.ChargingCurrent).ConfigureAwait(false)) / 1000f;
 
 				packActuals.RemainingCapacity = (await this.ReadUShortValue(SMBusCommandIds.RemainingCapacity).ConfigureAwait(false)) / 1000f;
 				packActuals.AbsoluteStateOfCharge = (await this.ReadUShortValue(SMBusCommandIds.AbsoluteStateOfCharge).ConfigureAwait(false)) / 100f;
@@ -284,14 +295,20 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					cellActuals.Voltage = cellVoltage;
 				}
 
+                var minCellVoltage = pack.SubElements.Min(x => x.Actuals().Voltage);
+                var maxCellVoltage = pack.SubElements.Max(x => x.Actuals().Voltage);
 				this.Tracer.Debug(new TraceBuilder()
-					.AppendLine("The actuals of the battery at address 0x{0:X} successfully read:", this.Address)
+					.AppendLine($"The actuals of the battery at address 0x{Address:X2} successfully read:")
 					.Indent()
-						.AppendLine("Voltage:                 {0} V ({1})", packActuals.Voltage, pack.SubElements.Select((c, i) => string.Format("{0}: {1} V", i, c.Actuals().Voltage)).Join(", "))
-						.AppendLine("Actual current:          {0} mA", packActuals.ActualCurrent * 1000f)
+                        .AppendLine("Battery status:          {0}", Convert.ToString(packActuals.BatteryStatus, 2).PadLeft(16, '0'))
+                        .AppendLine("Voltage:                 {0:F3} V ({1})", packActuals.Voltage, pack.SubElements.Select((c, i) => string.Format("{0}: {1:F3} V", i, c.Actuals().Voltage)).Join(", "))
+                        .AppendLine("Delta voltage:           {0:D} mV ({1})", (int)((maxCellVoltage - minCellVoltage) * 1000.0f), pack.SubElements.Select((c, i) => string.Format("{0}: {1:D} mV", i, (int)((maxCellVoltage - c.Actuals().Voltage) * 1000.0f))).Join(", "))
+                        .AppendLine("Actual current:          {0} mA", packActuals.ActualCurrent * 1000f)
 						.AppendLine("Average current:         {0} mA", packActuals.AverageCurrent * 1000f)
-						.AppendLine("Temperature:             {0:f2} °C", packActuals.Temperature - 273.15f)
-						.AppendLine("Remaining capacity:      {0:N0} mAh", packActuals.RemainingCapacity * 1000f)
+						.AppendLine("Temperature:             {0:F2} °C", packActuals.Temperature - 273.15f)
+                        .AppendLine("Charging voltage:        {0} V", packActuals.ChargingVoltage)
+                        .AppendLine("Charging current:        {0} mA", packActuals.ChargingCurrent * 1000f)
+                        .AppendLine("Remaining capacity:      {0:N0} mAh", packActuals.RemainingCapacity * 1000f)
 						.AppendLine("Absolute StateOfCharge:  {0} %", packActuals.AbsoluteStateOfCharge * 100f)
 						.AppendLine("Relative StateOfCharge:  {0} %", packActuals.RelativeStateOfCharge * 100f)
 						.AppendLine("Actual run time:         {0}", packActuals.ActualRunTime.ToString())
@@ -304,14 +321,14 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				if (thrownEx is AggregateException)
 					thrownEx = ((AggregateException)thrownEx).Flatten().InnerException;
 
-				this.Tracer.Warn(String.Format("Error while reading actuals of the battery at address 0x{0:X}", this.Address), thrownEx);
+				this.Tracer.Warn($"Error while reading actuals of the battery at address 0x{Address:X2}", thrownEx);
 
 				if (!(thrownEx is InvalidOperationException))
 					throw;
 			}
 		}
 
-		private uint GetCellVoltageCommandId(int cellIndex)
+		private byte GetCellVoltageCommandId(int cellIndex)
 		{
 			switch (cellIndex)
 			{
@@ -362,12 +379,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			{
 				this.m_measurementCount = 0;
 				this.m_monitoringTask.Start();
-				this.Tracer.InfoFormat("Monitoring of the battery at address 0x{0:X} started.", this.Address);
+				this.Tracer.Info($"Monitoring of the battery at address 0x{Address:X2} started.");
 			}
 			else if (!hasSubscribers && this.m_monitoringTask.IsRunning)
 			{
 				this.m_monitoringTask.Stop();
-				this.Tracer.InfoFormat("Monitoring of the battery at address 0x{0:X} stopped.", this.Address);
+				this.Tracer.Info($"Monitoring of the battery at address 0x{Address:X2} stopped.");
 			}
 				
 
@@ -398,42 +415,47 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 			// Exception intentionally swallowed
 		}
 
-		#endregion Monitoring
+        #endregion Monitoring
 
 
-		//#region Settings
+        //#region Settings
 
-		///// <summary>
-		///// Setup battery to report alarm when remaining capacity is lower than set values.
-		///// </summary>
-		///// <param name="remainingCapacity">Remaining capacity treshold (in Ah); <i>0</i> to disable the alarm; <i>null</i> not to change the threshold.</param>
-		///// <param name="remainingTime">Remaining time treshold; <i>zero timespan</i> to disable the alarm; <i>null</i> not to change the threshold.</param>
-		//public void SetupRemainingCapacityAlarm(float? remainingCapacity, TimeSpan? remainingTime)
-		//{
-		//	if (remainingCapacity.HasValue)
-		//	{
-		//		remainingCapacity = 1000 * remainingCapacity.Value / this.Battery.Information.CurrentScale;
-		//		this.Connection.WriteWordCommand(this.Address, SMBusCommandIds.RemainingCapacityAlarm, (ushort)remainingCapacity.Value);
-		//	}
+        ///// <summary>
+        ///// Setup battery to report alarm when remaining capacity is lower than set values.
+        ///// </summary>
+        ///// <param name="remainingCapacity">Remaining capacity treshold (in Ah); <i>0</i> to disable the alarm; <i>null</i> not to change the threshold.</param>
+        ///// <param name="remainingTime">Remaining time treshold; <i>zero timespan</i> to disable the alarm; <i>null</i> not to change the threshold.</param>
+        //public void SetupRemainingCapacityAlarm(float? remainingCapacity, TimeSpan? remainingTime)
+        //{
+        //	if (remainingCapacity.HasValue)
+        //	{
+        //		remainingCapacity = 1000 * remainingCapacity.Value / this.Battery.Information.CurrentScale;
+        //		this.Connection.WriteWordCommand(this.Address, SMBusCommandIds.RemainingCapacityAlarm, (ushort)remainingCapacity.Value);
+        //	}
 
-		//	if (remainingTime.HasValue)
-		//	{
-		//		this.Connection.WriteWordCommand(this.Address, SMBusCommandIds.RemainingTimeAlarm, (ushort)remainingTime.Value.TotalMinutes);
-		//	}
+        //	if (remainingTime.HasValue)
+        //	{
+        //		this.Connection.WriteWordCommand(this.Address, SMBusCommandIds.RemainingTimeAlarm, (ushort)remainingTime.Value.TotalMinutes);
+        //	}
 
-		//	this.Tracer.InfoFormat(
-		//		"Alarm settings for battery at {0:X} to {1} mAh or {2} remaining time.", 
-		//		this.Address,
-		//		(remainingCapacity.HasValue ? (remainingCapacity.Value * 1000).ToString("N0") : "<No change>"),
-		//		(remainingTime.HasValue ? remainingTime.Value.ToString() : "<No change>"));
-		//}
+        //	this.Tracer.InfoFormat(
+        //		"Alarm settings for battery at {0:X} to {1} mAh or {2} remaining time.", 
+        //		this.Address,
+        //		(remainingCapacity.HasValue ? (remainingCapacity.Value * 1000).ToString("N0") : "<No change>"),
+        //		(remainingTime.HasValue ? remainingTime.Value.ToString() : "<No change>"));
+        //}
 
-		//#endregion Settings
+        //#endregion Settings
 
 
-		#region Reading primitives
+        #region Reading primitives
 
-		private Task<short> ReadShortValue(uint commandId)
+        public Task<byte> ReadByteValue(byte commandId)
+        {
+            return this.RetryOperation(() => this.Connection.ReadByteCommand(this.Address, commandId));
+        }
+
+        private Task<short> ReadShortValue(byte commandId)
 		{
 			return this.ReadUShortValue(commandId)
 				.ContinueWith(t =>
@@ -447,12 +469,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				}, TaskContinuationOptions.OnlyOnRanToCompletion);
 		}
 
-		private Task<ushort> ReadUShortValue(uint commandId)
+        private Task<ushort> ReadUShortValue(byte commandId)
 		{
 			return this.RetryOperation(() => this.Connection.ReadWordCommand(this.Address, commandId));
 		}
 
-		private Task<string> ReadStringValue(uint commandId, int stringLength)
+		private Task<string> ReadStringValue(byte commandId, int stringLength)
 		{
 			return this.ReadBlockCommand(commandId, stringLength)
 				.ContinueWith(t =>
@@ -463,7 +485,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 				TaskContinuationOptions.OnlyOnRanToCompletion);
 		}
 
-		private Task<byte[]> ReadBlockCommand(uint commandId, int blockSize)
+		private Task<byte[]> ReadBlockCommand(byte commandId, int blockSize)
 		{
 			return this.RetryOperation(() => this.Connection.ReadBlockCommand(this.Address, commandId, blockSize));
 		}
@@ -479,14 +501,16 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 					T value = await task;
 					return value;
 				}
-				catch (AggregateException ex)
+                catch (Exception ex)
 				{
-					if (ex.InnerExceptions.OfType<InvalidOperationException>().Any())
+					if ((ex is AggregateException && ((AggregateException)ex).InnerExceptions.OfType<InvalidOperationException>().Any()) ||
+                        ex is CommunicationException)
 					{
 						if (retry == retryCount)
 							throw;
 
 						retry++;
+                        await Task.Delay(20);
 					}
 					else
 						throw;

@@ -14,6 +14,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		{
 		}
 
+
+        public ushort BatteryMode
+        {
+            get { return this.GetValue<ushort>(BatteryModeKey); }
+            set { this.SetValue(BatteryModeKey, value); }
+        }
 		
 		public Version SpecificationVersion
 		{
@@ -37,18 +43,20 @@ namespace ImpruvIT.BatteryMonitor.Protocols.SMBus
 		{
 			get { return this.GetValue<int>(CurrentScaleKey); }
 			set { this.SetValue(CurrentScaleKey, value); }
-		}
+        }
 
 
-		#region Entry keys
+        #region Entry keys
 
-		private const string NamespaceUriName = "SMBus";
-		private const string SpecificationVersionEntryName = "SpecificationVersion";
+        private const string NamespaceUriName = "SMBus";
+        private const string BatteryModeEntryMode = "BatteryMode";
+        private const string SpecificationVersionEntryName = "SpecificationVersion";
 		private const string CellCountEntryName = "CellCount";
 		private const string VoltageScaleEntryName = "VoltageScale";
 		private const string CurrentScaleEntryName = "CurrentScale";
 
-		public static readonly EntryKey SpecificationVersionKey = CreateKey(SpecificationVersionEntryName);
+        public static readonly EntryKey BatteryModeKey = CreateKey(BatteryModeEntryMode);
+        public static readonly EntryKey SpecificationVersionKey = CreateKey(SpecificationVersionEntryName);
 		public static readonly EntryKey CellCountKey = CreateKey(CellCountEntryName);
 		public static readonly EntryKey VoltageScaleKey = CreateKey(VoltageScaleEntryName);
 		public static readonly EntryKey CurrentScaleKey = CreateKey(CurrentScaleEntryName);

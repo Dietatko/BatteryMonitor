@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommunicationException.cs" />
     <Compile Include="Domain\Battery\ReadingsWrapperExtensions.cs" />
     <Compile Include="Domain\FallbackReadingValue.cs" />
     <Compile Include="Domain\Descriptors\ChartReadingDescriptor.cs" />

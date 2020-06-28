@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public class TypedReadingValue<TValue> : ReadingValueBase, IReadingValue
+    [DebuggerDisplay("{Key} = {Value}")]
+    public class TypedReadingValue<TValue> : ReadingValueBase, IReadingValue
 	{
 		public TypedReadingValue(EntryKey key)
 			: base(key)

@@ -10,10 +10,10 @@ using ImpruvIT;
 using ImpruvIT.BatteryMonitor.Domain.Battery;
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
-using ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
 using ImpruvIT.BatteryMonitor.Protocols;
 using ImpruvIT.BatteryMonitor.Protocols.SMBus;
 using NativeMethods = ImpruvIT.BatteryMonitor.Hardware.Ftdi.NativeMethods;
+using I2C = ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
 using SPI = ImpruvIT.BatteryMonitor.Hardware.Ftdi.SPI;
 using LTC6804 = ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804;
 
@@ -23,26 +23,29 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 	{
 		public static string DisabledText = "Disabled";
 
-		static void Main()
+		static async Task Main()
 		{
 			log4net.Config.XmlConfigurator.Configure();
 
-			//TestI2C();
-			//TestSPI();
-			TestLtc6804();
+            //var protocol = new LTC6804.LTC6804_1Interface(new SPI.Connection(), 1);
+            //protocol.ReadRegister(LTC6804.CommandId.ReadStatusRegisterB, 6).Wait();
 
-			// Start monitor thread;
-			//MonitorBattery();
+            //TestI2C();
+            //TestSPI();
+            //TestLtc6804();
+
+            // Start monitor thread;
+            await MonitorBattery();
 		}
 
-		private static void MonitorBattery()
+		private static async Task MonitorBattery()
 		{
 			// Discover bus devices
 			IEnumerable<IDiscoverDevices> dicoveryServices = GetDiscoveryServices();
 			var discoveryTask = Task.WhenAll(dicoveryServices.Select(x => x.GetConnectors()));
 			var allConnectors = discoveryTask.Result.SelectMany(x => x);
 
-			var connector = allConnectors.FirstOrDefault();
+			var connector = allConnectors.OfType<I2C.Device>().FirstOrDefault();
 			if (connector == null)
 			{
 				Console.WriteLine("No SMBus connector found.");
@@ -51,14 +54,15 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 			Console.WriteLine("Connecting to SMBus '{0}' of type '{1}'.", connector.Name, connector.Type);
 
-			var connection = connector.Connect().Result;
+			var connection = await connector.Connect();
 			try
 			{
-				//uint address = DiscoverDevices(connection);
-				uint address = 0x2A;
+				//uint address = (await DiscoverDevices(new SMBusInterface((ICommunicateToAddressableBus)connection))).First();
+                //uint address = 0x2A;
+                byte address = 0x0B;
 
-				var batteryAdapter = new BatteryAdapter(new SMBusInterface((ICommunicateToAddressableBus)connection), address);
-				batteryAdapter.RecognizeBattery().Wait();
+                var batteryAdapter = new BatteryAdapter(new SMBusInterface((ICommunicateToAddressableBus)connection), address);
+				await batteryAdapter.RecognizeBattery();
 				var batteryPack = batteryAdapter.Pack;
 
 				Console.WriteLine("Battery found at address {0}:", address);
@@ -79,7 +83,32 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				//Console.WriteLine("Current scale:            {0}x", battery.Information.CurrentScale);
 				Console.WriteLine();
 
-				batteryAdapter.UpdateReadings().Wait();
+                int counter = 0;
+                while(true)
+                {
+                    try
+                    {
+                        if (counter == 0)
+                            await batteryAdapter.ReadHealth();
+                        counter = (counter + 1) % 5;
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Updating health failed!");
+                    }
+
+                    try
+                    {
+                        await batteryAdapter.ReadActuals();
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Updating actuals failed!");
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                }
+				
 				var health = batteryPack.Health();
 				Console.WriteLine("Current battery status:");
 				Console.WriteLine("Full charge capacity:     {0:N0} mAh", health.FullChargeCapacity * 1000);
@@ -90,30 +119,30 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				//Console.WriteLine("Battery status:           {0}", battery.Status.BatteryStatus);
 				Console.WriteLine();
 
-				//batteryAdapter.ReadActuals().Wait();
-				//PrintActuals(battery);
+                //batteryAdapter.ReadActuals().Wait();
+                //PrintActuals(battery);
 
-				//batteryAdapter.ReadActuals(
-				//		bc => bc.Voltage,
-				//		bc => bc.Current
-				//	);
+                //batteryAdapter.ReadActuals(
+                //		bc => bc.Voltage,
+                //		bc => bc.Current
+                //	);
 
-				// TestAllCommands(connection, address);
+                // TestAllCommands(connection, address);
 
-				//connection.WriteWordCommand(address, SMBusCommandIds.RemainingCapacityAlarm, 78);
-				//var val = connection.ReadWordCommand(address, SMBusCommandIds.RemainingCapacityAlarm);
+                //connection.WriteWordCommand(address, SMBusCommandIds.RemainingCapacityAlarm, 78);
+                //var val = connection.ReadWordCommand(address, SMBusCommandIds.RemainingCapacityAlarm);
 
-				//ushort voltage = connection.ReadWordCommand(address, 0x09);
+                //ushort voltage = connection.ReadWordCommand(address, 0x09);
 
-				var subscription = batteryAdapter.SubscribeToUpdates(PrintActuals, UpdateFrequency.Normal);
+                //var subscription = batteryAdapter.SubscribeToUpdates(PrintActuals, UpdateFrequency.Normal);
 
 				Console.ReadLine();
 
-				subscription.Unsubscribe();
+				//subscription.Unsubscribe();
 			}
 			finally
 			{
-				connection.Disconnect().Wait();
+				await connection.Disconnect();
 			}
 		}
 
@@ -144,7 +173,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			//Console.WriteLine("Remaining time alarm:     {0}", (battery.Health.RemainingTimeAlarm > TimeSpan.Zero ? battery.Status.RemainingTimeAlarm.ToString() : DisabledText));
 		}
 
-		private static void TestAllCommands(SMBusInterface connection, uint address)
+		private static void TestAllCommands(SMBusInterface connection, byte address)
 		{
 			connection.QuickCommand(address);
 			//connection.SendByte(address, 0x79);
@@ -165,14 +194,14 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 			FTDI.FT_STATUS status;
 
 			uint channelCount = 0;
-			status = NativeMethods_I2C.I2C_GetNumChannels(out channelCount);
+			status = I2C.NativeMethods_I2C.I2C_GetNumChannels(out channelCount);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to find number of I2C channels. (Status: " + status + ")");
 			}
 
 			var infoNode = new NativeMethods.FT_DEVICE_LIST_INFO_NODE();
-			status = NativeMethods_I2C.I2C_GetChannelInfo(0, infoNode);
+			status = I2C.NativeMethods_I2C.I2C_GetChannelInfo(0, infoNode);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to open I2C channel. (Status: " + status + ")");
@@ -180,14 +209,14 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 			IntPtr i2cHandle;
 
-			status = NativeMethods_I2C.I2C_OpenChannel(0, out i2cHandle);
+			status = I2C.NativeMethods_I2C.I2C_OpenChannel(0, out i2cHandle);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to open I2C channel. (Status: " + status + ")");
 			}
 
-			var config = new NativeMethods_I2C.ChannelConfig(NativeMethods_I2C.ClockRate.Standard, 1, NativeMethods_I2C.ConfigOptions.None);
-			status = NativeMethods_I2C.I2C_InitChannel(i2cHandle, config);
+			var config = new I2C.NativeMethods_I2C.ChannelConfig(I2C.NativeMethods_I2C.ClockRate.Standard, 1, I2C.NativeMethods_I2C.ConfigOptions.None);
+			status = I2C.NativeMethods_I2C.I2C_InitChannel(i2cHandle, config);
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
 				throw new InvalidOperationException("Unable to initialize I2C channel. (Status: " + status + ")");
@@ -200,7 +229,7 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 				throw new InvalidOperationException("Unable to open I2C channel. (Status: " + status + ")");
 			}
 
-			status = NativeMethods_I2C.I2C_CloseChannel(i2cHandle);
+			status = I2C.NativeMethods_I2C.I2C_CloseChannel(i2cHandle);
 			i2cHandle = IntPtr.Zero;
 			if (status != FTDI.FT_STATUS.FT_OK)
 			{
@@ -296,31 +325,45 @@ namespace ImpruvIt.BatteryMonitor.ConsoleApp
 
 			Console.WriteLine("Connecting to SPI device '{0}' of type '{1}'.", connector.Name, connector.Type);
 
-			var connection = connector.Connect().Result;
-			var adapter = new LTC6804.BatteryAdapter(connection as ICommunicateToBus);
+			var connection = connector.Connect().Result as ICommunicateToBus;
+			var adapter = new LTC6804.BatteryAdapter(connection);
 
-			adapter.RecognizeBattery().Wait();
+			while (adapter.ChainLength == 0)
+			{
+				//connection.Send(new byte[] {0xAA, 0xF0});
+				adapter.RecognizeBattery().Wait();
+			}
+			
 			adapter.UpdateReadings().Wait();
 			adapter.PerformSelfTest().Wait();
 
 			var battery = adapter.Pack;
 		}
 
-		private static IEnumerable<uint> DiscoverDevices(SMBusInterface connection)
+		private static async Task<IEnumerable<uint>> DiscoverDevices(SMBusInterface connection)
 		{
-			for (uint addr = 1; addr < 128; addr++)
+            var addresses = new List<uint>();
+
+			for (byte addr = 11; addr < 12; addr++)
 			{
 				try
 				{
-					connection.ReadWordCommand(addr, 0x09);
+					var response = await connection.ReadWordCommand(addr, 0x09);
+                    if (response == 0)
+                        continue;
 				}
-				catch (InvalidOperationException)
+				catch (AggregateException ex)
 				{
-					continue;
+                    if (ex.InnerException is InvalidOperationException)
+					    continue;
+
+                    throw;
 				}
 
-				yield return addr;
+                addresses.Add(addr);
 			}
+
+            return addresses;
 		}
 
 		private static IEnumerable<IDiscoverDevices> GetDiscoveryServices()

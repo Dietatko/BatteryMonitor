@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using ImpruvIT.Contracts;
 
 namespace ImpruvIT.BatteryMonitor.Domain
 {
-	public abstract class ReadingValueBase
+    [DebuggerDisplay("{Key}")]
+    public abstract class ReadingValueBase
 	{
 		protected ReadingValueBase(EntryKey key)
 		{
