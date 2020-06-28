@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using ImpruvIT.Contracts;
-
 using ImpruvIT.BatteryMonitor.Hardware;
 
 namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
@@ -22,7 +20,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		}
 
 		public ICommunicateToBus Connection { get; set; }
-		public int ChainLength { get; private set; }
+		public int ChainLength { get; }
 
 		public Task WakeUp()
 		{
@@ -43,9 +41,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			return this.WriteData(buffer);
 		}
 
-		public Task WriteRegister(ushort commandId, byte[] chainData)
+		public Task WriteRegister(ushort commandId, byte[] chipData)
 		{
-			return this.WriteRegister(commandId, Enumerable.Repeat(chainData, this.ChainLength));
+			return this.WriteRegister(commandId, Enumerable.Repeat(chipData, this.ChainLength));
 		}
 
 		public Task WriteRegister(ushort commandId, IEnumerable<byte[]> chainData)
@@ -108,7 +106,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				inBufferIndex += dataLength + 2;
 			}
 
-			return chainData;
+			return chainData; 
 		}
 
 		private void AddPec(byte[] buffer, int startIndex, int byteCount)

@@ -18,7 +18,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 {
 	public class BatteryAdapter : IBatteryAdapter
 	{
-		private const float CtoKCoeficient = 273.15f;
+		private const float CtoKCoefficient = 273.15f;
 		private const float MinConnectedCellVoltage = 0.5f;
 
 		private readonly object m_lock = new object();
@@ -36,21 +36,18 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			};
 		}
 
-		protected ILog Tracer { get; private set; }
+		protected ILog Tracer { get; }
 		public ICommunicateToBus BusConnection { get; set; }
-		protected LTC6804_1Interface Connection { get; private set; }
+		private LTC6804_1Interface Connection { get; set; }
 
-		public int ChainLength 
-		{
-			get { return this.Connection.ChainLength; }
-		}
+		public int ChainLength => Connection?.ChainLength ?? 0;
 
 		public Pack Pack
 		{
 			get { return this.m_pack; }
 			private set
 			{
-				if (Object.ReferenceEquals(this.m_pack, value))
+				if (ReferenceEquals(this.m_pack, value))
 					return;
 
 				this.m_pack = value;
@@ -68,8 +65,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 			try
 			{
-				// Determine chain length
-				var chainLength = await DetermineChainLength().ConfigureAwait(false);
+                //await new LTC6804_1Interface(this.BusConnection, 1).WakeUp();
+                //Thread.Sleep(10);
+                await DetermineChainLength().ConfigureAwait(false);     // Wakeup
+
+                // Determine chain length
+                var chainLength = await DetermineChainLength().ConfigureAwait(false);
 				if (chainLength == 0)
 				{
 					this.Tracer.Warn("No chips detected in the daisy chain.");
@@ -92,10 +93,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			catch (Exception ex)
 			{
 				Exception thrownEx = ex;
-				if (thrownEx is AggregateException)
-					thrownEx = ((AggregateException)thrownEx).Flatten().InnerException;
+				if (thrownEx is AggregateException aggregateEx)
+					thrownEx = aggregateEx.Flatten().InnerException;
 
-				this.Tracer.Warn(String.Format("Error while reading health information of the battery"), thrownEx);
+				this.Tracer.Warn("Error while reading health information of the battery", thrownEx);
 
 				if (!(thrownEx is InvalidOperationException))
 					throw;
@@ -181,11 +182,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					.Trace());
 
 			// Connect all chip packs into a series stack
-			Pack pack;
-			if (chainPacks.Count > 1)
-				pack = new SeriesPack(chainPacks);
-			else
-				pack = chainPacks[0];
+            Pack pack = chainPacks.Count > 1 ? new SeriesPack(chainPacks) : chainPacks[0];
 
 			return pack;
 		}
@@ -216,12 +213,15 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 			if (batteryPack is ChipPack && this.ChainLength > 1)
 			{
-				this.Tracer.Warn(String.Format("Unable to read actuals as battery geometry has single chip while daisy chain has {0} chips.", this.ChainLength));
+				this.Tracer.Warn($"Unable to read actuals as battery geometry has single chip while daisy chain has {this.ChainLength} chips.");
 				return;
 			}
 
 			try
 			{
+				// Wake up
+				await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false);
+
 				// Measure
 				await this.MeasureActuals();
 
@@ -237,7 +237,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					var chipPack = this.FindChipPack(chainIndex);
 					if (chipPack == null)
 					{
-						this.Tracer.Warn(String.Format("A chip pack with chain index {0} was not found in the stack while processing actuals. Ignoring measured data for this chip.", chainIndex));
+						this.Tracer.Warn($"A chip pack with chain index {chainIndex} was not found in the stack while processing actuals. Ignoring measured data for this chip.");
 						continue;
 					}
 
@@ -249,7 +249,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 					var statusRegister = statusRegisters[chainIndex];
 
 					chipPackActuals.Voltage = statusRegister.PackVoltage;
-					chipPackActuals.Temperature = ConvertToTemperature(auxRegister.GetAuxVoltage(1), auxRegister.Ref2Voltage);
+					chipPackActuals.Temperature = ConvertToTemperature(auxRegister.GetAuxVoltage(3), auxRegister.Ref2Voltage);
 					
 					// Update actuals for each connected cell
 					foreach (var connectedCell in chipPack.ConnectedCells)
@@ -271,10 +271,10 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			catch (Exception ex)
 			{
 				Exception thrownEx = ex;
-				if (thrownEx is AggregateException)
-					thrownEx = ((AggregateException)thrownEx).Flatten().InnerException;
+				if (thrownEx is AggregateException aggregateEx)
+					thrownEx = aggregateEx.Flatten().InnerException;
 
-				this.Tracer.Warn(String.Format("Error while reading actuals of the battery"), thrownEx);
+				this.Tracer.Warn("Error while reading actuals of the battery", thrownEx);
 
 				if (!(thrownEx is InvalidOperationException))
 					throw;
@@ -343,7 +343,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			}
 				
 
-			// TODO: update periode
+			// TODO: update period
 		}
 
 		private void MonitoringAction()
@@ -373,7 +373,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		#region Self-test
 
-		private const int OpenWireMeasurmentCount = 5;
+		private const int OpenWireMeasurementCount = 5;
 		private const ushort DigitalFilterTestAdcValue = 0x9555;
 		private const float MaxPackVoltageDiff = 0.5f;
 		private const float MinAnalogSupplyVoltage = 4.5f;
@@ -382,7 +382,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		private const float MaxDigitalSupplyVoltage = 3.6f;
 		private const float MinRef2Voltage = 2.985f;
 		private const float MaxRef2Voltage = 3.015f;
-		private const float MaxDieTemperature = 80.0f + CtoKCoeficient;
+		private const float MaxDieTemperature = 80.0f + CtoKCoefficient;
 
 		public async Task PerformSelfTest()
 		{
@@ -428,9 +428,9 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				}
 
 				if (testFailed)
-					this.Tracer.Warn(String.Format("The digital filter of the chip pack with chain index {0} is broken.", chainIndex));
+					this.Tracer.Warn($"The digital filter of the chip pack with chain index {chainIndex} is broken.");
 				else
-					this.Tracer.Debug(String.Format("The digital filter of the chip pack with chain index {0} is OK.", chainIndex));
+					this.Tracer.Debug($"The digital filter of the chip pack with chain index {chainIndex} is OK.");
 			}
 		}
 
@@ -452,7 +452,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				var chipPack = this.FindChipPack(chainIndex);
 				if (chipPack == null)
 				{
-					this.Tracer.Warn(String.Format("The chip pack with chain index {0} was not found in the stack while processing actuals. Ignoring measured data for this chip.", chainIndex));
+					this.Tracer.Warn($"The chip pack with chain index {chainIndex} was not found in the stack while processing actuals. Ignoring measured data for this chip.");
 					continue;
 				}
 
@@ -463,52 +463,52 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				var packActuals = chipPack.Actuals();
 				var packVoltageDiff = Math.Abs(packActuals.Voltage - statusRegister.PackVoltage);
 				if (packVoltageDiff > MaxPackVoltageDiff)
-					this.Tracer.Warn(String.Format("The chip pack with chain index {0} has too big pack voltage difference. Pack voltage: {1:N2} V. Sum of cell voltages: {2:N2} V.", chainIndex, statusRegister.PackVoltage, packActuals.Voltage));
+					this.Tracer.Warn($"The chip pack with chain index {chainIndex} has too big pack voltage difference. Pack voltage: {statusRegister.PackVoltage:N2} V. Sum of cell voltages: {packActuals.Voltage:N2} V.");
 				else
-					this.Tracer.Debug(String.Format("The chip pack with chain index {0} has normal pack voltage difference. Pack voltage: {1:N2} V. Sum of cell voltages: {2:N2} V.", chainIndex, statusRegister.PackVoltage, packActuals.Voltage));
+					this.Tracer.Debug($"The chip pack with chain index {chainIndex} has normal pack voltage difference. Pack voltage: {statusRegister.PackVoltage:N2} V. Sum of cell voltages: {packActuals.Voltage:N2} V.");
 
 				// Check analog power supply voltage
 				if (statusRegister.AnalogSupplyVoltage < MinAnalogSupplyVoltage || statusRegister.AnalogSupplyVoltage > MaxAnalogSupplyVoltage)
-					this.Tracer.Warn(String.Format("The analog supply voltage of the chip pack with chain index {0} is out of range. Actual voltage {1:N3} V. Expected range: {2:N1} - {3:N1} V.", chainIndex, statusRegister.AnalogSupplyVoltage, MinAnalogSupplyVoltage, MaxAnalogSupplyVoltage));
+					this.Tracer.Warn($"The analog supply voltage of the chip pack with chain index {chainIndex} is out of range. Actual voltage {statusRegister.AnalogSupplyVoltage:N3} V. Expected range: {MinAnalogSupplyVoltage:N1} - {MaxAnalogSupplyVoltage:N1} V.");
 				else
-					this.Tracer.Debug(String.Format("The analog supply voltage of the chip pack with chain index {0} is in normal range. Actual voltage {1:N3} V. Expected range: {2:N1} - {3:N1} V.", chainIndex, statusRegister.AnalogSupplyVoltage, MinAnalogSupplyVoltage, MaxAnalogSupplyVoltage));
+					this.Tracer.Debug($"The analog supply voltage of the chip pack with chain index {chainIndex} is in normal range. Actual voltage {statusRegister.AnalogSupplyVoltage:N3} V. Expected range: {MinAnalogSupplyVoltage:N1} - {MaxAnalogSupplyVoltage:N1} V.");
 
 				// Check analog power supply voltage
 				if (statusRegister.DigitalSupplyVoltage < MinDigitalSupplyVoltage || statusRegister.DigitalSupplyVoltage > MaxDigitalSupplyVoltage)
-					this.Tracer.Warn(String.Format("The digital supply voltage of the chip pack with chain index {0} is out of range. Actual voltage {1:N3} V. Expected range: {2:N1} - {3:N1} V.", chainIndex, statusRegister.DigitalSupplyVoltage, MinDigitalSupplyVoltage, MaxDigitalSupplyVoltage));
+					this.Tracer.Warn($"The digital supply voltage of the chip pack with chain index {chainIndex} is out of range. Actual voltage {statusRegister.DigitalSupplyVoltage:N3} V. Expected range: {MinDigitalSupplyVoltage:N1} - {MaxDigitalSupplyVoltage:N1} V.");
 				else
-					this.Tracer.Debug(String.Format("The digital supply voltage of the chip pack with chain index {0} is in normal range. Actual voltage {1:N3} V. Expected range: {2:N1} - {3:N1} V.", chainIndex, statusRegister.DigitalSupplyVoltage, MinDigitalSupplyVoltage, MaxDigitalSupplyVoltage));
+					this.Tracer.Debug($"The digital supply voltage of the chip pack with chain index {chainIndex} is in normal range. Actual voltage {statusRegister.DigitalSupplyVoltage:N3} V. Expected range: {MinDigitalSupplyVoltage:N1} - {MaxDigitalSupplyVoltage:N1} V.");
 
 				// Check 2nd reference voltage
 				if (auxRegister.Ref2Voltage < MinRef2Voltage || auxRegister.Ref2Voltage > MaxRef2Voltage)
-					this.Tracer.Warn(String.Format("The 2nd reference voltage of the chip pack with chain index {0} is out of range. Actual voltage {1:N3} V. Expected range: {2:N3} - {3:N3} V.", chainIndex, auxRegister.Ref2Voltage, MinRef2Voltage, MaxRef2Voltage));
+					this.Tracer.Warn($"The 2nd reference voltage of the chip pack with chain index {chainIndex} is out of range. Actual voltage {auxRegister.Ref2Voltage:N3} V. Expected range: {MinRef2Voltage:N3} - {MaxRef2Voltage:N3} V.");
 				else
-					this.Tracer.Debug(String.Format("The 2nd reference voltage of the chip pack with chain index {0} is normal range. Actual voltage {1:N3} V. Expected range: {2:N3} - {3:N3} V.", chainIndex, auxRegister.Ref2Voltage, MinRef2Voltage, MaxRef2Voltage));
+					this.Tracer.Debug($"The 2nd reference voltage of the chip pack with chain index {chainIndex} is normal range. Actual voltage {auxRegister.Ref2Voltage:N3} V. Expected range: {MinRef2Voltage:N3} - {MaxRef2Voltage:N3} V.");
 
 				// Check failing mux
 				if (statusRegister.MuxFail)
-					this.Tracer.Warn(String.Format("The mux of the chip pack with chain index {0} has failure.", chainIndex));
+					this.Tracer.Warn($"The mux of the chip pack with chain index {chainIndex} has failure.");
 				else
-					this.Tracer.Debug(String.Format("The mux of the chip pack with chain index {0} is OK.", chainIndex));
+					this.Tracer.Debug($"The mux of the chip pack with chain index {chainIndex} is OK.");
 
 				// Check die temperature
 				if (statusRegister.DieTemperature > MaxDieTemperature)
-					this.Tracer.Warn(String.Format("The die temperature of the chip pack with chain index {0} is too high. Actual temperature {1:N1} °C. Maximum allowed temperature: {2:N1} °C.", chainIndex, statusRegister.DieTemperature - CtoKCoeficient, MaxDieTemperature - CtoKCoeficient));
+					this.Tracer.Warn($"The die temperature of the chip pack with chain index {chainIndex} is too high. Actual temperature {statusRegister.DieTemperature - CtoKCoefficient:N1} °C. Maximum allowed temperature: {MaxDieTemperature - CtoKCoefficient:N1} °C.");
 				else
-					this.Tracer.Debug(String.Format("The die temperature of the chip pack with chain index {0} is in operational range. Actual temperature {1:N1} °C. Maximum allowed temperature: {2:N1} °C.", chainIndex, statusRegister.DieTemperature - CtoKCoeficient, MaxDieTemperature - CtoKCoeficient));
+					this.Tracer.Debug($"The die temperature of the chip pack with chain index {chainIndex} is in operational range. Actual temperature {statusRegister.DieTemperature - CtoKCoefficient:N1} °C. Maximum allowed temperature: {MaxDieTemperature - CtoKCoefficient:N1} °C.");
 
 				// Check whether chip shut down because of high temperature
 				if (statusRegister.ThermalShutdownOccurred)
-					this.Tracer.Warn(String.Format("The chip pack with chain index {0} registered a thermal shut down.", chainIndex));
+					this.Tracer.Warn($"The chip pack with chain index {chainIndex} registered a thermal shut down.");
 				else
-					this.Tracer.Debug(String.Format("The chip pack with chain index {0} did not register any thermal shut down.", chainIndex));
+					this.Tracer.Debug($"The chip pack with chain index {chainIndex} did not register any thermal shut down.");
 			}
 		}
 
 		private async Task TestOpenWires()
 		{
 			// Measure cell voltages with current pull-up
-			for (int i = 0; i < OpenWireMeasurmentCount; i++)
+			for (int i = 0; i < OpenWireMeasurementCount; i++)
 			{
 				await this.Connection.ExecuteCommand(CommandId.StartOpenWireConversion(ConversionMode.Normal, true, false, 0)).ConfigureAwait(false);
 				await Task.Delay(10).ConfigureAwait(false);
@@ -524,7 +524,7 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				.ToArray();
 
 			// Measure cell voltages with current pull-down
-			for (int i = 0; i < OpenWireMeasurmentCount; i++)
+			for (int i = 0; i < OpenWireMeasurementCount; i++)
 			{
 				await this.Connection.ExecuteCommand(CommandId.StartOpenWireConversion(ConversionMode.Normal, false, false, 0)).ConfigureAwait(false);
 				await Task.Delay(10).ConfigureAwait(false);
@@ -553,10 +553,13 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 				if (Math.Abs(pullDownVoltages[chainIndex][11] - 0.0f) < Single.Epsilon)
 					openWires.Add(12);
 
-				if (openWires.Count > 0)
-					this.Tracer.Warn(String.Format("There are open wires on the chip pack with chain index {0}. Open wires: {1}.", chainIndex, openWires.Select(x => x.ToString(CultureInfo.CurrentCulture)).Join(", ")));
+                if (openWires.Count > 0)
+                {
+                    var openWiresMsg = openWires.Select(x => x.ToString(CultureInfo.CurrentCulture)).Join(", ");
+                    this.Tracer.Warn($"There are open wires on the chip pack with chain index {chainIndex}. Open wires: {openWiresMsg}.");
+                }
 				else
-					this.Tracer.Debug(String.Format("All cell voltage wires on the chip pack with chain index {0} are correctly connected.", chainIndex));
+					this.Tracer.Debug($"All cell voltage wires on the chip pack with chain index {chainIndex} are correctly connected.");
 			}
 		}
 
@@ -567,20 +570,26 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		private async Task StartReference()
 		{
-			var configRegisterData = (await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false)).ToArray();
-			this.CheckChainLength("reading configuration register", configRegisterData);
+			byte[][] configRegisterData;
+			do {
+				configRegisterData = (await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false)).ToArray();
+				this.CheckChainLength("reading configuration register", configRegisterData);
+			} while(configRegisterData.Any(x => x == null));
 
 			var configRegisters = configRegisterData.Select(x => new ConfigurationRegister(x)).ToArray();
 
-			configRegisters.ForEach(x => x.SetGpioPullDowns(false));
 			configRegisters.ForEach(x => x.ReferenceOn = true);
 			await this.Connection.WriteRegister(CommandId.WriteConfigRegister, configRegisters.Select(x => x.Data)).ConfigureAwait(false);
 		}
 
 		private async Task StopReference()
 		{
-			var configRegisterData = (await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false)).ToArray();
-			this.CheckChainLength("reading configuration register", configRegisterData);
+			byte[][] configRegisterData;
+			do
+			{
+				configRegisterData = (await this.Connection.ReadRegister(CommandId.ReadConfigRegister, 6).ConfigureAwait(false)).ToArray();
+				this.CheckChainLength("reading configuration register", configRegisterData);
+			} while (configRegisterData.Any(x => x == null));
 
 			var configRegisters = configRegisterData.Select(x => new ConfigurationRegister(x)).ToArray();
 
@@ -678,10 +687,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		/// </summary>
 		protected virtual void OnDescriptorsChanged()
 		{
-			EventHandler handlers = this.DescriptorsChanged;
-			if (handlers != null)
-				handlers(this, EventArgs.Empty);
-		}
+            this.DescriptorsChanged?.Invoke(this, EventArgs.Empty);
+        }
 
 		#endregion Descriptions
 
@@ -692,22 +699,18 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 		/// <summary>
 		/// Fires the <see cref="PropertyChanged"/> event.
 		/// </summary>
-		/// <param name="propertyName">The name of the chnaged property.</param>
+		/// <param name="propertyName">The name of the changed property.</param>
 		protected virtual void OnPropertyChanged(string propertyName)
 		{
-			PropertyChangedEventHandler handlers = this.PropertyChanged;
-			if (handlers != null)
-				handlers(this, new PropertyChangedEventArgs(propertyName));
-		}
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
 		private void CheckChainLength(string actionDescription, params byte[][][] chainData)
 		{
 			if (chainData.Any(x => x.Length != this.ChainLength))
-			{
-				var message = String.Format(
-					"Inconsistent daisy chain length detected while {0}. Lengths detected: {1}",
-					actionDescription,
-					chainData.Select(x => x.Length.ToString(CultureInfo.InvariantCulture)).Join(", "));
+            {
+                var detectedLengths = chainData.Select(x => x.Length.ToString(CultureInfo.InvariantCulture)).Join(", ");
+				var message = $"Inconsistent daisy chain length detected while {actionDescription}. Lengths detected: {detectedLengths}";
 
 				this.Tracer.Error(message);
 				throw new InvalidOperationException(message);
@@ -716,13 +719,12 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 
 		private static float ConvertToTemperature(float voltage, float ref2Voltage)
 		{
-			const float coefA = 0.003825269f;
-			const float coefB = -27.64f;
-			const float coefCtoK = 273.15f;
+			const float coefficientA = 0.003825269f;
+			const float coefficientB = -27.64f;
 
 			var adcReading = voltage / ref2Voltage * 30000;
-			var temperature = coefA * adcReading + coefB;
-			return temperature + coefCtoK;
+			var temperature = coefficientA * adcReading + coefficientB;
+			return temperature + CtoKCoefficient;
 		}
 
 		private ChipPack FindChipPack(int chainIndex)

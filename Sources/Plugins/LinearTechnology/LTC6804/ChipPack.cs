@@ -19,8 +19,8 @@ namespace ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804
 			this.InitializeReadings();
 		}
 
-		public int ChainIndex { get; private set; }
-		public IReadOnlyDictionary<int, SingleCell> ConnectedCells { get; private set; }
+		public int ChainIndex { get; }
+		public IReadOnlyDictionary<int, SingleCell> ConnectedCells { get; }
 
 		public IEnumerable<int> ConnectedChannels
 		{

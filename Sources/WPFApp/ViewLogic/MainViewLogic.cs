@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 using ImpruvIT.BatteryMonitor.Hardware;
 using ImpruvIT.BatteryMonitor.Hardware.Ftdi;
-using SMBus = ImpruvIT.BatteryMonitor.Protocols.SMBus;
+
+using I2C = ImpruvIT.BatteryMonitor.Hardware.Ftdi.I2C;
 using SPI = ImpruvIT.BatteryMonitor.Hardware.Ftdi.SPI;
+using SMBus = ImpruvIT.BatteryMonitor.Protocols.SMBus;
 using LTC6804 = ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.LTC6804;
 
 namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
@@ -161,13 +163,13 @@ namespace ImpruvIT.BatteryMonitor.WPFApp.ViewLogic
 		{
 			var batteries = new ListBase<BatteryLogic>();
 
-			//var connection = this.Connection as ICommunicateToAddressableBus;
-			//if (connection != null)
-			//	batteries.Add(new BatteryLogic(new SMBus.BatteryAdapter(new SMBus.SMBusInterface(connection), 0x2a)));
-
-			var connection = this.Connection as ICommunicateToBus;
+			var connection = this.Connection as ICommunicateToAddressableBus;
 			if (connection != null)
-				batteries.Add(new BatteryLogic(new LTC6804.BatteryAdapter(connection)));
+				batteries.Add(new BatteryLogic(new SMBus.BatteryAdapter(new SMBus.SMBusInterface(connection), 0x2a)));
+
+			//var connection = this.Connection as ICommunicateToBus;
+			//if (connection != null)
+			//	batteries.Add(new BatteryLogic(new LTC6804.BatteryAdapter(connection)));
 
 			this.Batteries = batteries;
 		}
