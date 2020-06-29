@@ -1,103 +1,22 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BED00618-FB38-4EFB-917B-7E208CAEC4D1}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ImpruvIt.BatteryMonitor.ConsoleApp</RootNamespace>
-    <AssemblyName>ImpruvIt.BatteryMonitor.ConsoleApp</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>default</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="FTD2XX_NET">
-      <HintPath>..\..\Libraries\FTD2XX_NET\FTD2XX_NET.dll</HintPath>
-    </Reference>
-    <Reference Include="ImpruvIT.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bca168785b6345be, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Libraries\ImpruvIT\ImpruvIT.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Core\ImpruvIT.BatteryMonitor.csproj">
-      <Project>{F4636427-C81B-408B-B67E-2C9B12DBFAE2}</Project>
-      <Name>ImpruvIT.BatteryMonitor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Plugins\FTDI\ImpruvIT.BatteryMonitor.Hardware.Ftdi.csproj">
-      <Project>{3a6e17c7-dbfb-4d01-9349-f50d62ac93a2}</Project>
-      <Name>ImpruvIT.BatteryMonitor.Hardware.Ftdi</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Plugins\LinearTechnology\ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.csproj">
-      <Project>{7701ef58-6a25-426d-b554-50b86ea593a2}</Project>
-      <Name>ImpruvIT.BatteryMonitor.Protocols.LinearTechnology</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Plugins\SMBus\ImpruvIT.BatteryMonitor.Protocols.SMBus.csproj">
-      <Project>{95c36704-9e09-44dd-aa78-c013e746be61}</Project>
-      <Name>ImpruvIT.BatteryMonitor.Protocols.SMBus</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>xcopy /R /Y /D "$(ProjectDir)..\..\Libraries\libMPSSE\lib\windows\i386\libMPSSE.dll" "$(TargetDir)"
-</PostBuildEvent>
-  </PropertyGroup>
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+<Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <Title>ImpruvIT.BatteryMonitor</Title>
+        <Company>ImpruvIT</Company>
     </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
+    <ItemGroup>
+      <ProjectReference Include="..\Core\ImpruvIT.BatteryMonitor.csproj" />
+      <ProjectReference Include="..\Plugins\FTDI\ImpruvIT.BatteryMonitor.Hardware.Ftdi.csproj" />
+      <ProjectReference Include="..\Plugins\LinearTechnology\ImpruvIT.BatteryMonitor.Protocols.LinearTechnology.csproj" />
+      <ProjectReference Include="..\Plugins\SMBus\ImpruvIT.BatteryMonitor.Protocols.SMBus.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.5" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.5" />
+    </ItemGroup>
+
 </Project>

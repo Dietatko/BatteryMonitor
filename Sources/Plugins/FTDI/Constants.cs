@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
+﻿namespace ImpruvIT.BatteryMonitor.Hardware.Ftdi
 {
-	class Constants
+	internal static class Constants
 	{
 		public const string FlagsProperty = "Flags";
 		public const string TypeProperty = "Type";
