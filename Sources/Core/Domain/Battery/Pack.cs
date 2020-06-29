@@ -12,6 +12,7 @@ namespace ImpruvIT.BatteryMonitor.Domain.Battery
 		{
 			Contract.Requires(subElements, "subElements")
 				.NotToBeNull();
+			
 			this.m_subElements = subElements.ToList();
 			Contract.Requires(this.m_subElements, "subElements")
 				.NotToBeEmpty();
